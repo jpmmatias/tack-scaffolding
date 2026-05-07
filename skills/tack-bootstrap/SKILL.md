@@ -268,7 +268,18 @@ Never create a specialist that the user did not check. Never invent specialists 
 
 Only after Phases 1–4 are confirmed. Generate or update each artifact below in order. For every file: show a unified diff, ask for **apply / skip / edit / apply all**. Never write without confirmation.
 
-1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo, preserving paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, `template/scripts/` → `project/scripts/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
+1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo **except** `${SKILL_DIR}/template/skills/` (runtime dispatcher skills — step **1a** only). Preserve paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, `template/scripts/` → `project/scripts/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
+1a. **Runtime skills (`tack-run`, `tack-agent`)** — copy `${SKILL_DIR}/template/skills/tack-run/` and `${SKILL_DIR}/template/skills/tack-agent/` into the consumer repo’s editor skill directories so the team can invoke the full pipeline or a single agent via skills (not only `@`-mentions). Preserve paths (`SKILL.md`, `references/**`) byte-for-byte unless merging an existing file. For every file: show a unified diff, ask **apply / skip / edit / apply all**. Never blind-overwrite.
+
+   Use **`tack.routing.surfaces`** from Block G to choose **non-Cursor** targets:
+
+   - **`agents`** — `.agents/skills/tack-run/` and `.agents/skills/tack-agent/` (create parent dirs if missing).
+   - **`claude`** — `.claude/skills/tack-run/` and `.claude/skills/tack-agent/`.
+   - **`both`** — write to **both** `.agents/skills/` and `.claude/skills/` targets above.
+   - **`none`** — do **not** write under `.agents/skills/` or `.claude/skills/` (routing surfaces skipped).
+
+   **Always:** if `.cursor/` exists at the consumer repo root, also copy into `.cursor/skills/tack-run/` and `.cursor/skills/tack-agent/` (all values of `tack.routing.surfaces`, including `none`).
+
 2. **`.gitignore` at consumer repo root** — ensure the worktree parent directory is ignored (default **`.worktrees/`**, or match `tack.worktree.dir` from Block F). If the line is missing, show a unified diff and ask **apply / skip**. Explain that `project/scripts/tack-worktree.sh` also appends this line on first `create`, but committing `.gitignore` upfront avoids accidental staging.
 3. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape.
 3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. For each surface selected by `tack.routing.surfaces`:
@@ -304,9 +315,10 @@ For every existing file that diverges from your generated draft: show diff, offe
    (optional) @project/prompts/security-engineer.md when triggers fire
    ```
 
-- [ ] (if routing enabled) Confirm ## Tack routing is present in AGENTS.md and/or CLAUDE.md and points at @project/prompts/auto-orchestrator.md.
+- [ ] (if routing enabled) Confirm ## Tack routing is present in AGENTS.md and/or CLAUDE.md and points at @project/prompts/auto-orchestrator.md (and mentions `tack-run` / `tack-agent` per `template/routing-snippet.md`).
+- [ ] (Phase 5 step 1a) Confirm `tack-run` and `tack-agent` skills exist under the installed skill dirs (`.cursor/skills/` when `.cursor/` exists; `.agents/skills/` / `.claude/skills/` per `tack.routing.surfaces`).
 
-3. Suggest the next step: run `@project/prompts/product-manager.md` to draft `S-001`, ideally pulled from the highest-priority `[SPEC]`-tagged follow-up in the Phase 2 business-rules draft. If no follow-ups exist (NEW project), suggest the user paste their first epic.
+3. Suggest the next step: run **`tack-run`** with the first epic for an end-to-end pipeline, **or** `@project/prompts/product-manager.md` / **`tack-agent`** (product-manager) to draft `S-001`, ideally pulled from the highest-priority `[SPEC]`-tagged follow-up in the Phase 2 business-rules draft. If no follow-ups exist (NEW project), suggest the user paste their first epic.
 
 Stop the skill here. Report the artifacts created and any items the user explicitly skipped.
 
@@ -324,6 +336,8 @@ Stop the skill here. Report the artifacts created and any items the user explici
 - `references/file-templates/business-rules.md` — Phase 2 draft template with a–k structure and tagged follow-ups.
 - `references/file-templates/specialist.md` — anonymized worked specialist prompt.
 - `template/routing-snippet.md` — single source of truth for the `## Tack routing` H2 block embedded in `AGENTS.md` / `CLAUDE.md`.
+- `template/skills/tack-run/` — full-pipeline dispatcher skill (Phase 5 step **1a**).
+- `template/skills/tack-agent/` — single-agent dispatcher skill (Phase 5 step **1a**).
 - `references/file-templates/agents-routing.md` — anonymized worked example for the `## Tack routing` section (new-file and merge-into-existing cases).
 - `scripts/detect-stack.sh` — Phase 1 detection helper, prints JSON.
 - `scripts/recon.sh` — Phase 2.1 reconnaissance helper, dumps `recon.json` bucketed into the six layers.
