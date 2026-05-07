@@ -1,0 +1,45 @@
+# Project: <PROJECT_NAME>
+
+Fill this file and save it as `.cursorrules` at the repository root (or merge these sections into your existing rules).
+
+## Tech stack
+
+- <PRIMARY_LANGUAGE_OR_RUNTIME> (e.g. TypeScript / Python / Go)
+- <FRAMEWORKS> (e.g. web framework, test runner — be explicit)
+
+## Domain and naming (CRITICAL)
+
+Define **stable vocabulary** for agents and humans. Prefer short bullets; expand in `project/docs/domain-glossary.md`.
+
+- **Product / brand:** <BRAND_RULES>
+- **Core entities:** list canonical nouns and **forbidden** synonyms.
+- **Boundaries:** name external systems (payment, identity, data warehouse) and how you refer to them in code/docs.
+
+## Engineering invariants (CRITICAL)
+
+List non-negotiable rules for this codebase:
+
+- <INVARIANT_1> (e.g. spelling of a feature flag that must not be auto-corrected)
+- <INVARIANT_2> (e.g. identity claim order, parity between legacy and new modules)
+- <INVARIANT_3>
+
+## Architecture rules
+
+- Where the canonical architecture description lives: `project/docs/architecture.md` → link to your real doc.
+- Module / layer boundaries: <BOUNDARY_RULES>
+
+## SDD / TDD / harness
+
+- **Specs:** Number product specs `S-001`, `S-002`, … (`project/specs/S-XXX-<slug>.md`). Reference the active spec id in plans and PRs when changing behaviour.
+- **ADRs:** Number architecture decisions `ADR-0001`, `ADR-0002`, … New ADRs in `project/docs/adr/` using `project/docs/adr/_template.md`. Reference ADRs in prose as `ADR-NNNN`.
+- **Traceability:** Tasks should cite which acceptance criteria (`AC-N`) they satisfy; commits may use `Closes: S-XXX#AC-N`.
+- **Glossary:** New domain nouns belong in `project/docs/domain-glossary.md` (or reuse existing terms). Do not invent parallel vocabulary.
+- **Harness:** Prefer typed boundaries, glossary alignment, and shared test harness factories/doubles under `<TEST_HARNESS_ROOT>` so agents and humans share the same seams — see `project/docs/test-harness.md`.
+
+## Quality commands (fill with your repo’s scripts)
+
+- Lint: `<LINT_COMMAND>` (e.g. `npm run lint`)
+- Tests: `<TEST_COMMAND>` (e.g. `npm test` or `vitest run`)
+- Typecheck (if applicable): `<TYPECHECK_COMMAND>`
+
+The orchestrator prompts assume a **red** then **green** test gate using `<TEST_COMMAND>` unless you override them per task.

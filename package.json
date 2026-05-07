@@ -1,0 +1,12 @@
+{
+  "name": "sdd-multi-agent-template",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spec-driven development template and sdd-bootstrap agent skill (skills.sh / multi-editor)",
+  "license": "MIT",
+  "scripts": {
+    "sync": "bash scripts/sync-skills.sh",
+    "check-sync": "bash scripts/check-skills-sync.sh",
+    "validate-skill": "bash scripts/validate-skill-frontmatter.sh"
+  }
+}

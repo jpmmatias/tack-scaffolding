@@ -1,0 +1,25 @@
+name: Check
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Skill mirrors match canonical
+        run: npm run check-sync
+
+      - name: Validate SKILL.md frontmatter
+        run: npm run validate-skill
+
+      - name: skills CLI discovers packaged skill
+        run: npx -y skills add . --list -y

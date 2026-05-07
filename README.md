@@ -2,41 +2,84 @@
 
 Portable **spec-driven development** (SDD) and **isolated role prompts** for coding agents: numbered specs (`S-XXX`), acceptance criteria (`AC-N`), plans with traceability, ADRs (`ADR-NNNN`), strict TDD gates, and optional full-auto orchestration via subagents.
 
-## What’s in this folder
+The **machine-runnable bootstrap** is the agent skill **`sdd-bootstrap`**, which interviews you, mines business rules from existing code when needed, and materializes governance docs under `project/` in your repository.
+
+## Install the skill
+
+### 1. Recommended — `npx skills` (skills.sh)
+
+Works with **Claude Code, Cursor, Google Antigravity, GitHub Copilot, and 50+ other agents** — the CLI installs into each tool’s expected path.
+
+```bash
+cd /path/to/your/repo
+npx skills add <github-owner>/<github-repo>
+# explicit skill name (optional):
+npx skills add <github-owner>/<github-repo> --skill sdd-bootstrap
+```
+
+After install, open your agent and invoke the **sdd-bootstrap** skill (or describe bootstrapping SDD / filling `.cursorrules` and `project/docs/`). The skill copies the bundled template into `project/` and walks the six-phase flow described in `skills/sdd-bootstrap/SKILL.md`.
+
+Browse more skills at [skills.sh](https://skills.sh/).
+
+### 2. Manual — copy the skill folder
+
+Copy `skills/sdd-bootstrap/` into your editor’s skills directory, for example:
+
+| Agent / editor        | Typical path |
+|----------------------|--------------|
+| Claude Code          | `.claude/skills/sdd-bootstrap/` |
+| Cursor               | `.cursor/skills/sdd-bootstrap/` |
+| Antigravity (project)| `.agents/skills/sdd-bootstrap/` |
+
+Each folder should contain `SKILL.md`, `references/`, `scripts/`, and `template/`.
+
+### 3. Working on this repository (contributors)
+
+The **canonical** skill lives only at [`skills/sdd-bootstrap/`](skills/sdd-bootstrap/). Mirrored copies under `.claude/skills/`, `.cursor/skills/`, and `.agents/skills/` are generated — do not edit those by hand.
+
+```bash
+npm run sync        # refresh mirrors after editing skills/sdd-bootstrap/
+npm run check-sync  # verify mirrors match canonical (also run in CI)
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## What’s in the bundled template
+
+After the skill runs Phase 5, your consumer repo has under `project/`:
 
 | Path | Purpose |
 |------|---------|
-| `.cursorrules.template` | Rename to `.cursorrules` in your repo; fill placeholders (`<STACK>`, `<TEST_COMMAND>`, etc.). |
-| `docs/sdd.md` | SDD lifecycle and 7-step pipeline. |
-| `docs/harness-engineering.md` | Guides vs sensors, steering loop. |
-| `docs/test-harness.md` | Test harness intent and boundary doubles. |
-| `docs/domain-glossary.md` | Skeleton glossary — **must** be filled for your domain. |
-| `docs/architecture.md` | Where to put your canonical architecture doc. |
-| `docs/adr/_template.md` | ADR template. |
-| `prompts/*.md` | Role prompts: product manager, architect, QA, harness engineer, worker, reviewer, security engineer, orchestrators. |
-| `prompts/_specialist-template.md` | Duplicate and rename for stack-specific roles (API, UI, mobile boundary, etc.). |
-| `specs/_template.md` | Product spec template. |
-| `examples/` | Fictitious **OrderFlow** examples showing how to instantiate each piece. |
+| `project/.cursorrules.template` | Rename to `.cursorrules` at **repo root** (or generate `.cursorrules` directly during bootstrap). |
+| `project/docs/sdd.md` | SDD lifecycle and 7-step pipeline. |
+| `project/docs/harness-engineering.md` | Guides vs sensors, steering loop. |
+| `project/docs/test-harness.md` | Test harness intent and boundary doubles. |
+| `project/docs/domain-glossary.md` | Skeleton glossary — **must** be filled for your domain. |
+| `project/docs/architecture.md` | Canonical architecture doc placeholder. |
+| `project/docs/adr/_template.md` | ADR template. |
+| `project/prompts/*.md` | Role prompts: PM, architect, QA, harness engineer, worker, reviewer, security, orchestrators. |
+| `project/prompts/_specialist-template.md` | Duplicate for stack-specific roles. |
+| `project/specs/_template.md` | Product spec template. |
+| `project/examples/` | Fictitious **OrderFlow** examples. |
 
-## Bootstrap (new repo)
+`AGENTS.md` at this repo’s root is a lightweight router for tools that support it; see [`AGENTS.md`](AGENTS.md).
 
-1. Copy this directory into your repo as `project/` (or merge into an existing `project/` layout).
-2. Copy `.cursorrules.template` to the **repository root** as `.cursorrules` and fill every `<PLACEHOLDER>`.
-3. Replace placeholders in `docs/architecture.md` and `docs/domain-glossary.md`.
-4. Duplicate `prompts/_specialist-template.md` for each specialist you need (e.g. `prompts/api.md`, `prompts/ui.md`).
-5. Extend **`Specialist routing — fill in`** in `prompts/auto-orchestrator.md` and optionally in `prompts/orchestrator.md` so Step 5 dispatches the right specialist files and path heuristics.
-6. Run the pipeline:
-   - **Passive:** `@prompts/orchestrator.md` — follow the checklist in isolated chats.
-   - **Active:** `@prompts/auto-orchestrator.md` — same steps, executed as subagents where your environment supports it.
+## Listing on skills.sh
+
+This repo follows the multi-skill layout (`skills/<name>/SKILL.md`) expected by the [Vercel skills CLI](https://vercel.com/docs/agent-resources/skills). To appear in the public directory, submit or update metadata via the process described on [skills.sh](https://skills.sh/) (community registry).
 
 ## Conventions (summary)
 
-- **Specs:** `S-001`, `S-002`, … — files `specs/S-XXX-<slug>.md`.
+- **Specs:** `S-001`, `S-002`, … — files `project/specs/S-XXX-<slug>.md`.
 - **ACs:** `AC-1`, `AC-2`, … in Gherkin inside the spec.
 - **Plans:** `plan.md` with first line `Spec: S-XXX` and a `## Traceability` table (tasks ↔ ACs).
-- **ADRs:** `ADR-0001`, … — files under `project/docs/adr/` (adjust path if you relocate).
+- **ADRs:** `ADR-0001`, … — files under `project/docs/adr/`.
 - **Commits / PRs:** cite `S-XXX` and closed `AC-N` where applicable (e.g. `Closes: S-001#AC-1`).
 
 ## References
 
 - [Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html) (Böckeler, martinfowler.com)
+
+## License
+
+MIT — see [LICENSE](LICENSE).
