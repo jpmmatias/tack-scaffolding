@@ -4,66 +4,21 @@ Prioritized improvement opportunities for this repository (canonical skill at [`
 
 **Legend:** **P0** = blocking quality / drift risk; **P1** = high value; **P2** = nice-to-have. **S/M/L** = small / medium / large effort.
 
-## Summary by theme and priority
+## Summary by theme and priority (pending)
 
 | Theme | P0 | P1 | P2 | Total |
 |-------|----|----|----|-------|
-| 1. Authoring & DX | 4 | 3 | 0 | 7 |
 | 2. Script hardening & tests | 2 | 4 | 0 | 6 |
 | 3. Skill correctness & safeguards | 1 | 2 | 1 | 4 |
 | 4. Template content & onboarding | 0 | 2 | 2 | 4 |
 | 5. Tooling / CLI | 0 | 1 | 1 | 2 |
 | 6. Repo hygiene | 1 | 1 | 1 | 3 |
 | 7. Worktree polish | 0 | 0 | 2 | 2 |
-| **Total** | **8** | **13** | **7** | **28** |
+| **Total** | **4** | **10** | **7** | **21** |
 
-> **Last refresh:** post-commit `b5c3faf` (added `tack-run` / `tack-agent` skills + Phase 5 step 1a runtime copy). New items **B-25–B-28** track sync/validation gaps introduced by that commit; **B-01** and **B-03** were widened to cover the new SKILLs.
+Done so far: **7** (B-01, B-02, B-03, B-04, B-25, B-26, B-27 — see [Done](#done)).
 
----
-
-## Theme 1 — Authoring & DX
-
-### B-01 — CI guard: routing snippet matches AGENTS/CLAUDE templates
-
-- **Priority:** P0 · **Effort:** S
-- **Rationale:** [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) rule 12 (line 33) states `template/routing-snippet.md` is the single source for the `## Tack routing` H2, yet the same block is duplicated in [`skills/tack-bootstrap/template/AGENTS.md.template`](skills/tack-bootstrap/template/AGENTS.md.template) (lines 13–22) and [`skills/tack-bootstrap/template/CLAUDE.md.template`](skills/tack-bootstrap/template/CLAUDE.md.template) (lines 13–22), and the worked example in [`skills/tack-bootstrap/references/file-templates/agents-routing.md`](skills/tack-bootstrap/references/file-templates/agents-routing.md) restates it twice (lines 28+/84+). After commit `b5c3faf` the snippet now also embeds the **`tack-run`** / **`tack-agent`** skill names, expanding the drift surface (root [`AGENTS.md`](AGENTS.md) skills bullets and the new dispatcher SKILL descriptions are downstream of the same names). They match today; CI does not enforce equality.
-- **Acceptance:** A script or CI step fails when `routing-snippet.md` content (from `## Tack routing` through end of section) differs from the corresponding H2 in both `*.md.template` files **and** the two worked examples in `agents-routing.md` after `npm run sync`.
-
-### B-02 — Pre-commit / pre-push: sync + check-sync
-
-- **Priority:** P0 · **Effort:** S
-- **Rationale:** [`CONTRIBUTING.md`](CONTRIBUTING.md) requires `npm run sync` after editing canonical; drift is only caught in [`.github/workflows/check.yml`](.github/workflows/check.yml) on push/PR. Local hooks reduce failed CI from forgotten mirrors.
-- **Acceptance:** Husky or simple `.git/hooks`-documented script runs `npm run sync` and `npm run check-sync` (or at least `check-sync`) before push; documented in CONTRIBUTING.
-
-### B-03 — Single source of version truth
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** [`package.json`](package.json) (`version: 0.1.0`) and three independent SKILL frontmatters can now diverge: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md), [`skills/tack-run/SKILL.md`](skills/tack-run/SKILL.md), [`skills/tack-agent/SKILL.md`](skills/tack-agent/SKILL.md) (each `version: 0.1.0` today). Commit `b5c3faf` added the latter two without extending version governance.
-- **Acceptance:** One field is canonical (likely `package.json`); all three SKILL frontmatters are generated or validated equal in [`scripts/validate-skill-frontmatter.sh`](scripts/validate-skill-frontmatter.sh) (extended per **B-27**) or `npm run validate-skill`.
-
-### B-04 — Markdown linter + link checker in CI
-
-- **Priority:** P1 · **Effort:** M
-- **Rationale:** Many markdown files and relative links across canonical + three mirrors; broken links are easy to miss.
-- **Acceptance:** CI job runs markdown lint (e.g. `markdownlint-cli2`) and link check (e.g. `lychee`) on `skills/tack-bootstrap/**` and root docs; failures block merge.
-
-### B-25 — Extend `sync-skills.sh` / `check-skills-sync.sh` to `tack-run` and `tack-agent`
-
-- **Priority:** P0 · **Effort:** S
-- **Rationale:** Commit `b5c3faf` added canonical [`skills/tack-run/`](skills/tack-run/) and [`skills/tack-agent/`](skills/tack-agent/) plus three editor mirrors each (`.cursor/`, `.claude/`, `.agents/`). [`scripts/sync-skills.sh`](scripts/sync-skills.sh) (lines 10, 16) and [`scripts/check-skills-sync.sh`](scripts/check-skills-sync.sh) (lines 9, 13) **only iterate `skills/tack-bootstrap`** — the new mirrors will silently drift from canonical and CI (`npm run check-sync` in [`.github/workflows/check.yml:19`](.github/workflows/check.yml)) will not catch it. This is a regression introduced by the same commit that created BACKLOG.md.
-- **Acceptance:** Both scripts loop over a list `(tack-bootstrap, tack-run, tack-agent)` (or auto-discover `skills/*/SKILL.md`); a deliberate edit in any canonical SKILL without `npm run sync` fails CI; mirrors regenerate byte-for-byte after `npm run sync`.
-
-### B-26 — Sync canonical dispatcher skills into `template/skills/` (bootstrap install source)
-
-- **Priority:** P0 · **Effort:** S
-- **Rationale:** Phase 5 step **1a** of [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) (lines 272–281) installs runtime skills into the consumer repo by copying [`skills/tack-bootstrap/template/skills/tack-run/`](skills/tack-bootstrap/template/skills/tack-run/) and [`skills/tack-bootstrap/template/skills/tack-agent/`](skills/tack-bootstrap/template/skills/tack-agent/). Today these are duplicates of the canonical [`skills/tack-run/`](skills/tack-run/) and [`skills/tack-agent/`](skills/tack-agent/), but **no script keeps them in sync** — a fix to canonical will not reach bootstrapped consumers until someone manually copies it (and back-mirrors via **B-25**). Verified `diff -r skills/tack-run skills/tack-bootstrap/template/skills/tack-run` is empty today; that is luck, not enforcement.
-- **Acceptance:** `npm run sync` also `cp -R skills/tack-run/ skills/tack-bootstrap/template/skills/tack-run/` (and same for `tack-agent`) before the editor-mirror loop; `npm run check-sync` fails when the bundled template copy diverges; documented in CONTRIBUTING.
-
-### B-27 — `validate-skill-frontmatter.sh` covers all canonical SKILLs
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** [`scripts/validate-skill-frontmatter.sh`](scripts/validate-skill-frontmatter.sh) (line 7) hardcodes `$ROOT/skills/tack-bootstrap/SKILL.md`. The two new SKILLs added in `b5c3faf` ([`skills/tack-run/SKILL.md`](skills/tack-run/SKILL.md), [`skills/tack-agent/SKILL.md`](skills/tack-agent/SKILL.md)) ship `name`/`description`/`license`/`version` frontmatter that is never validated. The "Use when" convention check therefore silently does not apply to dispatchers.
-- **Acceptance:** Script iterates every `skills/*/SKILL.md` (and optionally the bundled `skills/tack-bootstrap/template/skills/*/SKILL.md`), enforces `name`, `description`, "Use when" substring, and (per **B-03**) `version` equality against `package.json`.
+> **Last refresh:** B-25 / B-26 moved to **Done** after rewriting `scripts/sync-skills.sh` and `scripts/check-skills-sync.sh` to auto-discover every `skills/*/SKILL.md` (editor mirrors) and to enforce byte-equality of `skills/tack-bootstrap/template/skills/<name>/` (bundled install source) against canonical, with CONTRIBUTING updated. Theme 1 is now empty; the only remaining sync/validation gap from commit `b5c3faf` is **B-28** (contract tests for dispatcher prompt names / model tags).
 
 ---
 
@@ -217,7 +172,41 @@ Prioritized improvement opportunities for this repository (canonical skill at [`
 
 ---
 
+## Done
+
+Items below have shipped. Kept here (rather than deleted) so each acceptance criterion has a single, citable evidence link in-tree. Move to a release note / `CHANGELOG.md` (see pending **B-22**) and prune from this file once cumulative.
+
+### B-01 — CI guard: routing snippet matches AGENTS/CLAUDE templates · P0 · S
+
+- **Shipped:** [`scripts/check-routing-snippet.sh`](scripts/check-routing-snippet.sh) extracts the `## Tack routing` H2 from [`skills/tack-bootstrap/template/AGENTS.md.template`](skills/tack-bootstrap/template/AGENTS.md.template), [`skills/tack-bootstrap/template/CLAUDE.md.template`](skills/tack-bootstrap/template/CLAUDE.md.template), and the 1st + 3rd fenced ` ```markdown ` blocks of [`skills/tack-bootstrap/references/file-templates/agents-routing.md`](skills/tack-bootstrap/references/file-templates/agents-routing.md), then `diff`s each against canonical [`skills/tack-bootstrap/template/routing-snippet.md`](skills/tack-bootstrap/template/routing-snippet.md). Wired as `npm run check-routing` (see [`package.json`](package.json)) and enforced in CI at [`.github/workflows/check.yml`](.github/workflows/check.yml) ("Routing snippet matches all canonical copies"). Acceptance fully met.
+
+### B-02 — Pre-push hook: sync + check-sync · P0 · S
+
+- **Shipped:** [`.githooks/pre-push`](.githooks/pre-push) runs `check-sync`, `validate-skill`, and `check-routing` before push; installs via `npm run install-hooks` (which sets `core.hooksPath=.githooks`). The hook no-ops gracefully when `.git` is not writable. Documented in [`CONTRIBUTING.md`](CONTRIBUTING.md) ("Local hooks (optional)") and [`.githooks/README.md`](.githooks/README.md). Acceptance met (note: hook intentionally runs `check-sync`, not `sync`, so committers explicitly resync rather than mutating files at push time).
+
+### B-03 — Single source of version truth · P1 · S
+
+- **Shipped:** [`scripts/validate-skill-frontmatter.sh`](scripts/validate-skill-frontmatter.sh) reads `version` from [`package.json`](package.json) (canonical) and fails when any `skills/*/SKILL.md` frontmatter `version` differs. Run via `npm run validate-skill` and enforced in CI ("Validate SKILL.md frontmatter") and the pre-push hook. Implemented together with **B-27** (multi-skill iteration), which is required for this guard to cover the dispatcher skills.
+
+### B-04 — Markdown linter + link checker in CI · P1 · M
+
+- **Shipped:** CI ([`.github/workflows/check.yml`](.github/workflows/check.yml)) runs `markdownlint-cli2-action` over `skills/tack-bootstrap/**`, `skills/tack-run/**`, `skills/tack-agent/**`, and root `*.md`, then `lychee-action` (offline) over the same scope plus `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `BACKLOG.md`. Configs at [`.markdownlint-cli2.jsonc`](.markdownlint-cli2.jsonc) and [`lychee.toml`](lychee.toml). Local helpers `npm run lint` and `npm run check-links` ([`scripts/check-links.sh`](scripts/check-links.sh) auto-fetches a pinned `lychee` binary on first run for Apple silicon / Linux). Acceptance met.
+
+### B-27 — `validate-skill-frontmatter.sh` covers all canonical SKILLs · P1 · S
+
+- **Shipped:** [`scripts/validate-skill-frontmatter.sh`](scripts/validate-skill-frontmatter.sh) globs `skills/*/SKILL.md` (so `tack-bootstrap`, `tack-run`, and `tack-agent` are all checked) and enforces `name`, `description`, the `Use when` substring, and `version` equality with [`package.json`](package.json). Bundled copies under `skills/tack-bootstrap/template/skills/*/SKILL.md` are not iterated directly — they are kept byte-equal to canonical by **B-26**, so frontmatter is implicitly covered.
+
+### B-25 — `sync-skills.sh` / `check-skills-sync.sh` cover all canonical skills · P0 · S
+
+- **Shipped:** [`scripts/sync-skills.sh`](scripts/sync-skills.sh) and [`scripts/check-skills-sync.sh`](scripts/check-skills-sync.sh) now auto-discover every `skills/*/SKILL.md` (so `tack-bootstrap`, `tack-run`, and `tack-agent` are all covered without an explicit list) and (sync) `cp -R` / (check) `diff -rq` against the three editor mirrors `.claude/skills/<name>/`, `.cursor/skills/<name>/`, `.agents/skills/<name>/`. A deliberate edit to any canonical SKILL without `npm run sync` causes `npm run check-sync` (and CI [`.github/workflows/check.yml:19`](.github/workflows/check.yml), via the existing `npm run check-sync` step) to fail with a `diff -ru` excerpt and a `run from repo root: npm run sync` pointer. Verified by drift probe (`printf '\n# DRIFT_PROBE\n' >> skills/tack-run/SKILL.md` → check-sync exits 1; isolated mirror drift on `.claude/skills/tack-run/SKILL.md` → check-sync exits 1 pointing at the mirror; restore + `npm run sync` → byte-equal). Acceptance fully met.
+
+### B-26 — Bundled bootstrap install source kept byte-equal to canonical · P0 · S
+
+- **Shipped:** [`scripts/sync-skills.sh`](scripts/sync-skills.sh) Phase A auto-discovers any `skills/tack-bootstrap/template/skills/*/SKILL.md` (today `tack-run`, `tack-agent`) and `cp -R` from canonical `skills/<name>/` **before** the editor-mirror loop, so a fix to canonical reaches bootstrapped consumers via [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) Phase 5 step **1a** (lines 272–281). [`scripts/check-skills-sync.sh`](scripts/check-skills-sync.sh) Phase A runs `diff -rq skills/<name> skills/tack-bootstrap/template/skills/<name>` and fails on any divergence (verified: `printf '\n# DRIFT_PROBE\n' >> skills/tack-run/SKILL.md` → `bundled drift detected for skills/tack-bootstrap/template/skills/tack-run`). Documented in [`CONTRIBUTING.md`](CONTRIBUTING.md) under "After you change the skill". Acceptance fully met.
+
+---
+
 ## How to use this backlog
 
 1. Pick a row; open a PR referencing `BACKLOG.md#b-NN` (or a future `S-XXX`).
-2. After implementing, move the item to a **Done** subsection or delete it—keep this file the single source of pending work, or migrate to GitHub Issues with labels `P0` / `P1` / `P2`.
+2. After implementing, move the item to the **Done** subsection (preferred — preserves a citable evidence link) or delete it; keep this file the single source of pending work, or migrate to GitHub Issues with labels `P0` / `P1` / `P2`.

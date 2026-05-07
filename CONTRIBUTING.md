@@ -2,7 +2,7 @@
 
 ## Canonical skill location
 
-Edit **only** [`skills/tack-bootstrap/`](skills/tack-bootstrap/). That directory is the single source of truth for the `tack-bootstrap` skill (including bundled template under `skills/tack-bootstrap/template/`).
+Edit **only** the canonical skill trees under [`skills/`](skills/) — today [`skills/tack-bootstrap/`](skills/tack-bootstrap/), [`skills/tack-run/`](skills/tack-run/), and [`skills/tack-agent/`](skills/tack-agent/). Those directories are the single source of truth (the `tack-bootstrap` canonical includes its bundled template under `skills/tack-bootstrap/template/`, except for `skills/tack-bootstrap/template/skills/`, which is regenerated from the dispatcher canonicals — see below).
 
 ## After you change the skill
 
@@ -12,13 +12,12 @@ From the repository root:
 npm run sync
 ```
 
-This copies the canonical skill into:
+For each canonical `skills/<name>/`, this:
 
-- `.claude/skills/tack-bootstrap/` (Claude Code)
-- `.cursor/skills/tack-bootstrap/` (Cursor)
-- `.agents/skills/tack-bootstrap/` (Antigravity workspace skills)
+- copies it into the editor mirrors `.claude/skills/<name>/` (Claude Code), `.cursor/skills/<name>/` (Cursor), and `.agents/skills/<name>/` (Antigravity workspace skills) — auto-discovered from `skills/*/SKILL.md`, so adding a new canonical skill is automatically picked up;
+- and, for the dispatcher skills bundled with bootstrap (today `tack-run` and `tack-agent`), also copies it into `skills/tack-bootstrap/template/skills/<name>/` so the bootstrap install source stays byte-equal to canonical.
 
-Commit **both** the canonical tree and the three mirrors so CI stays green.
+Commit the canonical tree, the bundled copies, and the editor mirrors so CI stays green (`npm run check-sync` enforces both layers).
 
 ## Checks
 
