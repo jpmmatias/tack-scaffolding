@@ -5,6 +5,18 @@ Question bank for the `tack-bootstrap` skill. Use this in **Phase 3** (blocks A�
 Hard rules:
 
 - Maximum **3 questions per turn**. Wait for the user to answer before sending more.
+
+---
+
+## Block F — Parallel execution (git worktrees)
+
+Ask during Phase 3 **after** blocks A–E unless the user already volunteered preferences. Three questions (one round):
+
+1. Should `@auto-orchestrator.md` create an **isolated git worktree** per feature? Recommend **`prompt`** (confirm each run); alternatives **`always`** / **`never`** (stay on the current checkout).
+2. **Branch naming:** recommend **`feature/S-XXX-<slug>`** (ties the branch to the reserved spec id); alternative **`feature/<slug>`** if the team rejects spec ids in branch names.
+3. **Fork base:** **`detect`** (`main` → `master` → current branch) vs pinning **`main`** / **`master`** / another stable branch for `git worktree add`.
+
+Record answers under **Parallel execution (worktrees)** in `.cursorrules` (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`).
 - Skip any question whose answer is already in the Phase 2 draft. Do not re-ask.
 - For every "I don't know" answer: present 2–3 options with one-line trade-offs and ask the user to pick.
 - Always cite `file:line` when a question grounds in existing code.

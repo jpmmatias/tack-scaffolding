@@ -28,7 +28,7 @@ You execute six phases in order. **Never jump phases.** Phase 2 is mandatory for
 7. **Never overwrite blindly.** If a file already exists and diverges from your draft, show a diff and offer merge.
 8. **Always cite `file:line`** when you reference existing code or docs in the consumer repo.
 9. The Phase 2 done-gate is the literal string `complete`. "looks good", "ok", "ship it", "done", "finished", "go", "next" — none of these advance the phase. If the user says any of those, run **one more round of at least 3 clarifying questions** targeting the least-covered Phase 2 sections, then re-prompt for `complete`.
-10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, etc. Helper scripts live at `${SKILL_DIR}/scripts/`; invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
+10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, `project/scripts/tack-worktree.sh`, etc. Bootstrap-only helpers live at `${SKILL_DIR}/scripts/` (`detect-stack.sh`, `recon.sh`); invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
 11. Model routing convention: `[Opus]` = `claude-opus-4-7-thinking-xhigh`, `[Sonnet]` = `claude-4.6-sonnet-medium-thinking`, `[Composer]` = `composer-2-fast`. Always tag specialists with one of these.
 
 ---
@@ -200,6 +200,10 @@ The full question bank lives in `references/discovery-questions.md`. Blocks, in 
 - **Block C — Engineering invariants.** Boundary rules (e.g. "domain does not import from infra"), function/module size limits, mandatory architectural pattern (hexagonal, clean, feature folders, …), mock conventions and libraries.
 - **Block D — Architecture.** Topology (monolith, modular, microservices, serverless), persistence, messaging, jobs, auth/identity, critical external integrations.
 - **Block E — Team & risk.** Team size, security/compliance areas (PII, PCI, GDPR, HIPAA, SOC2, etc.), existing ADRs or starting fresh.
+- **Block F — Parallel execution (git worktrees).** Three questions (max 3 per turn; if combined with other gaps, split across rounds):
+  1. Should `@auto-orchestrator.md` ask before creating an isolated worktree per feature? Recommend **`prompt`** (confirm each run), alternatives **`always`** / **`never`** (legacy single-checkout flow).
+  2. Branch naming: recommend **`feature/S-XXX-<slug>`** (ties branch to spec id); alternative **`feature/<slug>`** only if the team insists.
+  3. Base branch for `git worktree add`: **`detect`** (script tries `main` → `master` → current) vs pinning **`main`** / **`master`** / another stable branch.
 
 When the user says "I don't know", offer 2–3 options with trade-offs (see Block-by-Block defaults in `references/discovery-questions.md`).
 
@@ -253,14 +257,15 @@ Never create a specialist that the user did not check. Never invent specialists 
 
 Only after Phases 1–4 are confirmed. Generate or update each artifact below in order. For every file: show a unified diff, ask for **apply / skip / edit / apply all**. Never write without confirmation.
 
-1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo, preserving paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
-2. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Use `references/file-templates/cursorrules.md` as the worked shape.
-3. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape.
-4. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape.
-5. **`project/prompts/<name>.md`** — one per confirmed specialist. Fill from `project/prompts/_specialist-template.md`; use `references/file-templates/specialist.md` as the worked shape.
-6. **`project/prompts/auto-orchestrator.md`** — update the **Specialist routing — fill in** table only. Do not touch other sections.
-7. *(Optional, on user accept)* `project/docs/adr/0001-stack-baseline.md` recording stack + key invariants chosen here. Use `project/docs/adr/_template.md` as the shape.
-8. *(Optional, on user accept)* Promote `project/docs/_discovery/business-rules-draft.md` to `project/docs/business-rules.md` as a permanent reference, **or** for each `[SPEC]`-tagged follow-up emit a stub at `project/specs/S-XXX-<slug>.md` containing only the title and AC headers (no Gherkin) — leaving full authoring to `product-manager.md`.
+1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo, preserving paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, `template/scripts/` → `project/scripts/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
+2. **`.gitignore` at consumer repo root** — ensure the worktree parent directory is ignored (default **`.worktrees/`**, or match `tack.worktree.dir` from Block F). If the line is missing, show a unified diff and ask **apply / skip**. Explain that `project/scripts/tack-worktree.sh` also appends this line on first `create`, but committing `.gitignore` upfront avoids accidental staging.
+3. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape.
+4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape.
+5. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape.
+6. **`project/prompts/<name>.md`** — one per confirmed specialist. Fill from `project/prompts/_specialist-template.md`; use `references/file-templates/specialist.md` as the worked shape.
+7. **`project/prompts/auto-orchestrator.md`** — update the **Specialist routing — fill in** table only. Do not touch other sections.
+8. *(Optional, on user accept)* `project/docs/adr/0001-stack-baseline.md` recording stack + key invariants chosen here. Use `project/docs/adr/_template.md` as the shape.
+9. *(Optional, on user accept)* Promote `project/docs/_discovery/business-rules-draft.md` to `project/docs/business-rules.md` as a permanent reference, **or** for each `[SPEC]`-tagged follow-up emit a stub at `project/specs/S-XXX-<slug>.md` containing only the title and AC headers (no Gherkin) — leaving full authoring to `product-manager.md`.
 
 For every existing file that diverges from your generated draft: show diff, offer merge, never blind-overwrite.
 
@@ -272,6 +277,7 @@ For every existing file that diverges from your generated draft: show diff, offe
 2. Print the SDD 7-step pipeline as a final checklist:
 
    ```text
+   0. [ ] (optional) @project/prompts/worktree-coordinator.md — isolated worktree + branch per `tack.worktree.*` in .cursorrules
    1. [ ] @project/prompts/product-manager.md — first spec S-001
    2. [ ] @project/prompts/architect.md — plan.md with Traceability
    3. [ ] @project/prompts/qa-tester.md — red
@@ -290,7 +296,8 @@ Stop the skill here. Report the artifacts created and any items the user explici
 
 ## Additional resources
 
-- `references/discovery-questions.md` — full question bank for blocks A–E and all Phase 2 question patterns with conditional follow-ups.
+- `references/discovery-questions.md` — full question bank for blocks A–E, plus Block F (worktrees) in this `SKILL.md`, and all Phase 2 question patterns with conditional follow-ups.
+- `references/worktree-design.md` — parallel feature worktrees (`git worktree`), spec-id reservation, cleanup gates.
 - `references/business-rule-discovery-checklist.md` — minimum-evidence checklist for Phase 2 sections (a)–(k).
 - `references/specialist-catalog.md` — typical specialists with scope, detection signals, suggested model, example invariants.
 - `references/file-templates/cursorrules.md` — anonymized worked example.
@@ -300,5 +307,6 @@ Stop the skill here. Report the artifacts created and any items the user explici
 - `references/file-templates/specialist.md` — anonymized worked specialist prompt.
 - `scripts/detect-stack.sh` — Phase 1 detection helper, prints JSON.
 - `scripts/recon.sh` — Phase 2.1 reconnaissance helper, dumps `recon.json` bucketed into the six layers.
+- `template/scripts/tack-worktree.sh` — copied to `project/scripts/` in the consumer repo; `git worktree` helper for parallel SDD runs.
 
 When in doubt about path conventions, model tags, or the **Specialist routing** table schema — re-read `project/prompts/auto-orchestrator.md` lines 148–159 in the consumer repo. Never edit other sections of that file.

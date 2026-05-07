@@ -43,3 +43,14 @@ List non-negotiable rules for this codebase:
 - Typecheck (if applicable): `<TYPECHECK_COMMAND>`
 
 The orchestrator prompts assume a **red** then **green** test gate using `<TEST_COMMAND>` unless you override them per task.
+
+## Parallel execution (worktrees)
+
+Tack can run each feature in an **isolated git worktree** + branch so multiple agent sessions do not clobber the same working tree. The helper is `project/scripts/tack-worktree.sh` (see `project/docs/sdd.md` — **Parallel features**). Configure:
+
+- `tack.worktree.mode`: `<prompt | always | never>` — default **`prompt`**: the auto-orchestrator asks before creating a worktree. Use **`always`** to skip the question, **`never`** to keep the legacy single-worktree flow.
+- `tack.worktree.naming`: default **`feature/S-XXX-<slug>`** (branch example: `feature/S-001-login`). Alternative: **`feature/<slug>`** (no spec id in the branch name).
+- `tack.worktree.base`: `<main | master | develop | detect>` — branch to fork from; **`detect`** (default) lets the script pick an existing local branch (`main` → `master` → current).
+- `tack.worktree.dir`: **`.worktrees`** — parent directory for linked worktrees (must stay **gitignored**; the script appends `/.` to `.gitignore` on first use).
+
+The directory `.worktrees/` must not be committed. If your repo already uses another location, set `tack.worktree.dir` and ignore that path in `.gitignore`.

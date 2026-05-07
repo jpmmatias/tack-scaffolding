@@ -31,10 +31,11 @@ Unlike `@orchestrator.md` (passive checklist only), you **execute** the SDD/TDD 
 
 Your job:
 
-1. Resolve the next free spec id `S-XXX` under `project/specs/`.
-2. Run Steps 1–7 in order (see **Dispatch protocol**).
-3. Validate gates between steps (red / green / invariants / reviewer).
-4. Emit the **Final report**.
+1. Optionally run **Step −1** (worktree isolation). When active, every downstream **`Task`** runs with **`working_directory`** set to the created worktree path (when your platform supports it).
+2. Resolve the next free spec id `S-XXX` under `project/specs/` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7.
+3. Run Steps 1–7 in order (see **Dispatch protocol**).
+4. Validate gates between steps (red / green / invariants / reviewer).
+5. Emit the **Final report**.
 
 ---
 
@@ -50,6 +51,7 @@ Dispatch each subagent with `model` set from this table. If the model is unavail
 
 Step → tag mapping:
 
+- Step −1 (worktree): **`[Composer]`**
 - Steps 1, 2, 7: **`[Opus]`**
 - Steps 3, 4, 6: **`[Sonnet]`**
 - Step 5 (implementation / specialists): **`[Composer]`**
@@ -76,30 +78,52 @@ Use **`Task`** with:
 - `description`: short unique title per step (e.g. `SDD Step 3 QA red S-001`)
 - `model`: from **Model routing** for that step
 - `prompt`: as built above
+- **`working_directory`** (required when Step −1 succeeded): absolute `worktree_path` from the coordinator JSON — every Step 1–7 dispatch **must** use this cwd so edits and `git diff` stay isolated. Omit only when Step −1 was skipped or failed fallback.
 - `run_in_background`: `false` unless the platform requires otherwise — you need the subagent result before the next step.
+
+## Step −1 — Worktree setup (optional)
+
+1. Read optional worktree settings from **`.cursorrules` at the repository root** (or from `project/.cursorrules` if that is the only copy your team uses). Parse these keys if present; otherwise use defaults:
+   - `tack.worktree.mode`: `prompt` | `always` | `never` — default **`prompt`**
+   - `tack.worktree.naming`: e.g. `feature/S-XXX-<slug>` — default **`feature/S-XXX-<slug>`**
+   - `tack.worktree.base`: branch name, or `detect` — default **`detect`** (script tries `main` → `master` → current branch)
+   - `tack.worktree.dir`: directory under repo root for linked worktrees — default **`.worktrees`**
+2. Decide:
+   - **`never`** — skip Step −1 entirely. All steps use the current working directory. Go to **Step 0**.
+   - **`always`** — run the coordinator (no user question).
+   - **`prompt`** — ask the human once: *Run this feature in an isolated git worktree/branch?* **Default: yes.** If the human declines → skip Step −1.
+3. If proceeding: derive a **slug** from the epic (kebab-case, e.g. `change-background`). If the epic is ambiguous, ask one clarifying question.
+4. Dispatch **`@worktree-coordinator.md`** with model **`[Composer]`**, passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
+5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract). If `error` is non-null → **STOP** (Stop conditions) unless the human instructs you to continue without isolation; in that case fall back to **Step 0** in the current directory and **do not** use a reserved spec id.
+6. All **subsequent** `Task` calls for Steps 1–7 **must** use `working_directory = worktree_path`.
 
 ## Step 0 — Spec id
 
-1. List `project/specs/` (excluding `_template.md`).
-2. Determine the lowest unused `S-XXX` (`S-001`, `S-002`, …). If collision or ambiguity → **STOP** (Stop conditions).
-3. Pass the epic + intended `S-XXX` hint to Step 1 only if `product-manager.md` expects the human to pick the id; otherwise let PM assign the next free id per its Outputs — after Step 1, **discover** the created file `project/specs/S-XXX-<slug>.md` by listing the directory again.
+1. If Step −1 produced **`spec_id_reserved`**, treat it as the canonical **`S-XXX`** for this run. Continue to Step 1 and instruct **`@product-manager.md`** to use exactly that id in **INPUTS** (`Reserved spec id: S-XXX`).
+2. Otherwise: list `project/specs/` (excluding `_template.md`), determine the lowest unused `S-XXX`. If collision or ambiguity → **STOP** (Stop conditions).
+3. After Step 1, **discover** the created file `project/specs/S-XXX-<slug>.md`. If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
 
 ## Step 1 — `@product-manager.md`
 
 - Model: Opus.
-- Inputs: epic description + paths to rules file, glossary, `_template.md`, architecture pointers per PM Inputs.
+- Inputs: epic description + paths to rules file, glossary, `_template.md`, architecture pointers per PM Inputs. **If Step −1 reserved `spec_id_reserved`, include verbatim:** `Reserved spec id: S-XXX`.
+- **`working_directory`:** `worktree_path` when Step −1 succeeded.
 - After dispatch: confirm new file `project/specs/S-XXX-<slug>.md` exists and contains numbered **AC-1**, **AC-2**, … If missing → **STOP**.
+
+- **Steps 2–7:** use the same **`working_directory`** as Step 1 whenever Step −1 created a worktree (isolation of `git diff`, tests, and edits).
 
 ## Step 2 — `@architect.md`
 
 - Model: Opus.
 - Inputs: absolute path to the spec file from Step 1 + architect Inputs (architecture, ADR folder, sdd).
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch: locate `plan.md` (repo root or under `project/specs/` — **first line must be** `Spec: S-XXX` per architect rules). Confirm `## Traceability` table exists with **Task id**, **Description**, **ACs covered**. Every AC from the spec appears at least once. If architect stops asking for PM first, or outputs invalid plan → **STOP**.
 
 ## Step 3 — `@qa-tester.md` (red)
 
 - Model: Sonnet.
 - Inputs: spec path + plan path + qa-tester Inputs (test-harness, glossary).
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch:
   1. Discover new/updated test files (git status or glob — match your project’s test suffixes).
   2. Assert every new/edited test file has at least one `describe('S-XXX AC-N:` …)` matching an AC from the spec. If any AC lacks a matching describe → **STOP**.
@@ -110,6 +134,7 @@ Use **`Task`** with:
 - Run **only if** `plan.md` or task files explicitly assign harness work, or Step 3 failed for missing factories/doubles and the architect task said to extend harness first (if ambiguous, prefer running harness when traceability mentions `<TEST_HARNESS_ROOT>`).
 - Model: Sonnet.
 - Inputs: harness-engineer Inputs + spec/plan context.
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch: re-run Step 3 red confirmation if harness changed test setup (minimal re-run of affected tests).
 
 ## Step 5 — Specialist implementation (`@worker.md` and/or your specialist prompts)
@@ -117,18 +142,21 @@ Use **`Task`** with:
 - Model: Composer (fallback per **Model routing**).
 - Choose prompt(s) via **Specialist routing — fill in** below. If multiple categories apply, dispatch **sequentially** in a deterministic order you define in that section.
 - Inputs: spec path + plan path + verbatim or summarized **red** `<TEST_COMMAND>` output from Step 3 (required for TDD contract in `worker.md`).
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After all dispatches: run **`<TEST_COMMAND>`** for scope of change. If failures remain that pre-existed harness issues only, distinguish; implementation must move toward green.
 
 ## Step 6 — `@qa-tester.md` (confirm green)
 
 - Model: Sonnet.
 - Inputs: spec + plan + ask subagent to run tests and confirm every AC has coverage and telemetry tests if the spec’s telemetry table is non-empty.
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Run **`<TEST_COMMAND>`** (full suite or scoped per repo practice). Any failure → **STOP** (green gate violated).
 
 ## Step 7 — `@reviewer.md`
 
 - Model: Opus.
 - Inputs: governing spec path + task references + **`git diff`** (or instruct subagent to run `git diff` / `git diff --name-only` in repo). Include any **parity / invariant** checks from `.cursorrules` (e.g. legacy vs new module pairs).
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Subagent Outputs: PASS or FAIL + enumerated checklist. **FAIL** → **STOP**. **PASS** → continue to Step 7b if triggered, otherwise emit **Final report** with `COMPLETED`.
 
 ## Step 7b — `@security-engineer.md` (optional, on-demand)
@@ -140,6 +168,7 @@ Use **`Task`** with:
 - If no trigger fires, **skip** this step and emit the Final report with `**Security audit verdict:** n/a`.
 - Model: **Opus**
 - Inputs: governing spec path + task references + **`git diff`** (full text) + paths to rules file, glossary, architecture document.
+- **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Subagent Outputs: same contract as `@reviewer.md` — PASS or FAIL + checklist. **FAIL** → **STOP**.
 - The security audit does **not** replace `@reviewer.md`; both must pass when Step 7b is triggered.
 
@@ -174,6 +203,7 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 8. **Step 7** — reviewer returns **FAIL** for any checklist item.
 9. **Step 7b** — security-engineer returns **FAIL** for any checklist item, when the security audit was triggered.
 10. **Model** unavailable after upward fallback.
+11. **Step −1** — `tack-worktree.sh` / coordinator returned an error and the human did not authorize fallback to the main checkout; or worktree path cannot be used as **`working_directory`** for downstream tasks.
 
 Do not auto-retry failed steps in this version; document the failure and stop.
 
@@ -186,6 +216,8 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 ```markdown
 ## Auto-orchestrator report
 
+- **Worktree:** `<absolute path>` or `n/a` if Step −1 skipped
+- **Branch:** `<branch name>` or `n/a`
 - **Spec:** `S-XXX-<slug>` — `<path>`
 - **Plan:** `<path to plan.md>`
 - **ADRs created:** (list paths or "none")
@@ -194,6 +226,7 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Reviewer verdict:** PASS | FAIL
 - **Reviewer checklist:** (summary or enumerated)
 - **Security audit verdict:** PASS | FAIL | n/a (only present when Step 7b ran; `n/a` if no trigger fired)
+- **Next steps:** when Worktree is not `n/a`: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
 - **Status:** COMPLETED | STOPPED at Step N — <reason>
 ```
 
@@ -213,6 +246,7 @@ Optional human gates (not active by default): after Step 1, 2, 3, 5, or 6, pause
 
 # Default pipeline order (mirror passive orchestrator)
 
+0. **`[Composer]`** `@worktree-coordinator.md` — only when Step −1 runs (isolation)
 1. **`[Opus]`** `@product-manager.md`
 2. **`[Opus]`** `@architect.md`
 3. **`[Sonnet]`** `@qa-tester.md` — red

@@ -53,7 +53,8 @@ After the skill runs Phase 5, your consumer repo has under `project/`:
 | Path | Purpose |
 |------|---------|
 | `project/.cursorrules.template` | Rename to `.cursorrules` at **repo root** (or generate `.cursorrules` directly during bootstrap). |
-| `project/docs/sdd.md` | SDD lifecycle and 7-step pipeline. |
+| `project/docs/sdd.md` | SDD lifecycle, 7-step pipeline, and **Parallel features** (`git worktree`). |
+| `project/scripts/tack-worktree.sh` | Helper to create/list/remove linked worktrees + reserve `S-XXX` across branches (`.cursorrules`: `tack.worktree.*`). |
 | `project/docs/harness-engineering.md` | Guides vs sensors, steering loop. |
 | `project/docs/test-harness.md` | Test harness intent and boundary doubles. |
 | `project/docs/domain-glossary.md` | Skeleton glossary — **must** be filled for your domain. |

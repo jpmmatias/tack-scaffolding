@@ -48,6 +48,7 @@ If the configured model is unavailable on the human's plan, fall back **upward**
 
 When given an epic or task, emit checkboxes in this order. Always include the `[Model]` tag verbatim:
 
+0. [ ] **`[Composer]`** `@worktree-coordinator.md` — create an isolated worktree + branch (read `tack.worktree.mode` in `.cursorrules`: skip when `never`, or if you choose to work on the current branch; run `project/scripts/tack-worktree.sh` from repo root)
 1. [ ] **`[Opus]`** `@product-manager.md` — write `specs/S-XXX-<slug>.md`
 2. [ ] **`[Opus]`** `@architect.md` — write `plan.md` + task markdown files under `specs/`; traceability table
 3. [ ] **`[Sonnet]`** `@qa-tester.md` — write **failing** tests first (red); `S-XXX AC-N` describe blocks

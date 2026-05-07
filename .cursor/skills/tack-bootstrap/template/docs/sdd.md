@@ -4,7 +4,7 @@ This workspace ties product intent to code through **numbered specs** (`S-XXX`),
 
 ## Lifecycle
 
-> Two execution modes: run the steps below manually via [orchestrator.md](../prompts/orchestrator.md), or end-to-end automated via [auto-orchestrator.md](../prompts/auto-orchestrator.md). The seven steps are identical.
+> Two execution modes: run the steps below manually via [orchestrator.md](../prompts/orchestrator.md), or end-to-end automated via [auto-orchestrator.md](../prompts/auto-orchestrator.md). The seven steps are identical. **Optionally** run [worktree-coordinator.md](../prompts/worktree-coordinator.md) first to create a **dedicated git worktree** + branch (see **Parallel features** below).
 
 1. **Idea** — captured informally (ticket, conversation).
 2. **Spec** — [product-manager prompt](../prompts/product-manager.md) produces `specs/S-XXX-<slug>.md` from [specs/_template.md](../specs/_template.md).
@@ -31,6 +31,32 @@ flowchart LR
     Reviewer -->|fail| Worker
     Reviewer -->|pass| Done[Merge]
 ```
+
+## Parallel features (git worktrees)
+
+Run **multiple specs at once** without agents overwriting each other’s files: create one **linked worktree + branch per feature** from your trunk (`main` / `master`), run `product-manager` → … → `reviewer` **inside that directory**. Configuration lives under **Parallel execution (worktrees)** in `.cursorrules`.
+
+Implementation helper (bash, repo root):
+
+- [`../scripts/tack-worktree.sh`](../scripts/tack-worktree.sh) — `create`, `next-spec-id`, `list`, `path`, `remove`.
+
+Suggested flow (also orchestrated by [auto-orchestrator.md](../prompts/auto-orchestrator.md) Step −1):
+
+1. Reserve the next spec id across **all** worktrees: `bash project/scripts/tack-worktree.sh next-spec-id`.
+2. Create a branch `feature/S-XXX-<slug>` and checkout under `.worktrees/…`: `bash project/scripts/tack-worktree.sh create "<slug>" [--spec S-XXX]`.
+3. Open a dedicated agent **with cwd = that worktree path** and run the usual SDD prompts.
+
+```mermaid
+flowchart TB
+    Main["main at repo root"]
+    WT1[".worktrees/feature-S-005-login"]
+    WT2[".worktrees/feature-S-006-change-background"]
+
+    Main --> WT1
+    Main --> WT2
+```
+
+Cleanup when merged: `bash project/scripts/tack-worktree.sh remove <slug-or-path>` (see script `--help`). Additional design notes ship with the **tack-bootstrap** skill source at `references/worktree-design.md` (developer reference; not required at runtime).
 
 ## References
 

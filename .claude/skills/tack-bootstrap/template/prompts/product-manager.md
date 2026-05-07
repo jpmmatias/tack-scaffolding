@@ -10,12 +10,13 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. Use v
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md)
 - [specs/_template.md](../specs/_template.md)
+- **Optional — Reserved spec id:** if the human / orchestrator supplies `S-XXX` (e.g. from parallel worktree setup), you **must** use that id exactly and **must not** pick a different “next free” id.
 
 ---
 
 # Outputs (only write here)
 
-- New files: `specs/S-XXX-<slug>.md` (use next free id `S-001`, `S-002`, …)
+- New files: `specs/S-XXX-<slug>.md` (use next free id `S-001`, `S-002`, … **unless** Inputs gave a reserved id — then use that id exactly)
 - When introducing a **new domain noun** not already in the glossary: update [project/docs/domain-glossary.md](../docs/domain-glossary.md) in the **same** change (same branch/session).
 
 ---
