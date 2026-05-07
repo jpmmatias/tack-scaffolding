@@ -85,6 +85,10 @@ Do **not** propose new features, rewrite architecture, or expand scope beyond th
 
 16. **Asymmetric security edit** — **fill in:** if `.cursorrules` requires paired edits (legacy vs new modules), security fix only in one half? → **FAIL** if yes.
 
+## Telemetry of security-relevant events
+
+17. **Missing security telemetry** — Spec lists telemetry rows for security-relevant flows (auth, consent, encryption flag evaluation, IPC rejection) and no test asserts them? → **FAIL** if yes.
+
 ---
 
 Output **`PASS`** only if **zero** FAIL rows **for applicable checks**. If a section is N/A for your repository, mark those rows **n/a** in your output and do not count them as FAIL.
@@ -97,7 +101,7 @@ For each FAIL row, append **one line**:
 
 `#<n> — <severity> — <remediation pointer>`
 
-- **Severity:** `critical` / `high` / `medium` / `low`.
+- **Severity:** `critical` / `high` / `medium` / `low`. Suggested defaults: `critical` for plaintext leaks of secrets, identity bypasses, or unauthenticated egress to sensitive backends; `high` for auth bypass, missing consent gates, SSRF, open redirect, unsafe DOM injection, asymmetric parity edits; `medium` for missing schema validation, missing edge headers, telemetry PII; `low` for cookie-attribute drift, must-not-autocorrect spelling violations, lockfile churn, missing security telemetry.
 - **Remediation pointer:** name the downstream prompt (`@worker.md`, `@harness-engineer.md`, `@architect.md`, or your specialist prompt).
 
 Remediation lines are **advisory prose only** — do not paste code patches.

@@ -54,3 +54,10 @@ Tack can run each feature in an **isolated git worktree** + branch so multiple a
 - `tack.worktree.dir`: **`.worktrees`** — parent directory for linked worktrees (must stay **gitignored**; the script appends `/.` to `.gitignore` on first use).
 
 The directory `.worktrees/` must not be committed. If your repo already uses another location, set `tack.worktree.dir` and ignore that path in `.gitignore`.
+
+## Auto-orchestration routing
+
+Tack can auto-route every feature/bug/task in agents that read `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). The bootstrap skill writes a `## Tack routing` H2 block into those files; this section configures whether and where.
+
+- `tack.routing.auto`: `<yes | no>` — default **`yes`**: every feature/bug/task is dispatched through `@project/prompts/auto-orchestrator.md` (the active SDD pipeline). Set to **`no`** to keep the passive flow where the human `@`-mentions `@project/prompts/orchestrator.md` manually.
+- `tack.routing.surfaces`: `<agents | claude | both | none>` — default **`both`** when any Claude marker (`AGENTS.md`, `.claude/`, `CLAUDE.md`) is detected; **`agents`** otherwise. **`agents`** writes only `AGENTS.md` (read by every modern surface). **`claude`** writes only `CLAUDE.md`. **`both`** writes both. **`none`** skips writing the routing block (forces `tack.routing.auto = no`).

@@ -28,7 +28,7 @@ Your **only** job is to output a **sequential checklist** of `@prompts/` command
 ## Variants
 
 - `@orchestrator.md` (this file) — passive: emits the checklist; the human runs each step manually in isolated chat windows.
-- `@auto-orchestrator.md` — active: same checklist, but executes each step as a subagent via the `Task` tool (where supported). No human checkpoints unless the pipeline stops on failure.
+- `@auto-orchestrator.md` — active: same checklist, but executes each step as a subagent via the `Task` tool (where supported). No human checkpoints. Use when you want full-auto execution and accept that any failure stops the pipeline.
 
 ---
 
@@ -49,7 +49,7 @@ If the configured model is unavailable on the human's plan, fall back **upward**
 When given an epic or task, emit checkboxes in this order. Always include the `[Model]` tag verbatim:
 
 0. [ ] **`[Composer]`** `@worktree-coordinator.md` — create an isolated worktree + branch (read `tack.worktree.mode` in `.cursorrules`: skip when `never`, or if you choose to work on the current branch; run `project/scripts/tack-worktree.sh` from repo root)
-1. [ ] **`[Opus]`** `@product-manager.md` — write `specs/S-XXX-<slug>.md`
+1. [ ] **`[Opus]`** `@product-manager.md` — write `specs/S-XXX-<slug>.md` (this step is now an interactive grilling dialogue: one question at a time with recommended answers, then the spec)
 2. [ ] **`[Opus]`** `@architect.md` — write `plan.md` + task markdown files under `specs/`; traceability table
 3. [ ] **`[Sonnet]`** `@qa-tester.md` — write **failing** tests first (red); `S-XXX AC-N` describe blocks
 4. [ ] **`[Sonnet]`** `@harness-engineer.md` — **only if** factories, fixtures, or boundary doubles are missing for this work

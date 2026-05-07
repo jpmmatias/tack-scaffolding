@@ -1,6 +1,6 @@
 # Harness engineering (outer harness)
 
-This repo uses **harness engineering** in the sense of [Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html): **Agent = Model + Harness**. The **outer harness** is what you define—rules, specs, prompts, tests, review gates—not the IDE’s built-in model or retrieval.
+This repo uses **harness engineering** in the sense of [Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html) (Böckeler, martinfowler.com, April 2026): **Agent = Model + Harness**. The **outer harness** is what you define—rules, specs, prompts, tests, review gates—not the IDE’s built-in model or retrieval.
 
 ## Core ideas
 

@@ -29,16 +29,28 @@ Do **not** propose new features or rewrite architecture.
 
 # Audit checklist
 
-## Universal gates
+**TDD / coverage**
 
-1. **Missing spec** — Feature work without referenced **`S-XXX`** in PR/task? → **FAIL** if yes.
-2. **`src/**` or production tree without tests** — Any behaviour change under the application tree that does **not** add or modify at least one test file? → **FAIL** if yes (unless task explicitly documents why tests are impossible—rare). *(Adjust `src/**` in this rule to your repo layout in `.cursorrules` if needed.)*
-3. **Commit order** — For multi-commit PRs, did the **test** commit come **before** the implementation commit? Evidence: `git log --oneline`. → **FAIL** if order wrong (single atomic commit with tests + impl together is OK).
-4. **Test quality** — Tests couple to internals instead of behaviours named in ACs? → **FAIL** if yes.
+1. **`src/**` or production tree without tests** — Any behaviour change under the application tree that does **not** add or modify at least one test file? → **FAIL** if yes (unless task explicitly documents why tests are impossible—rare). *(Adjust `src/**` in this rule to your repo layout in `.cursorrules` if needed.)*
+2. **Commit order** — For multi-commit PRs, did the **test** commit come **before** the implementation commit? Evidence: `git log --oneline`. → **FAIL** if order wrong (single atomic commit with tests + impl together is OK).
+3. **Test quality** — Tests couple to internals instead of behaviours named in ACs? → **FAIL** if yes.
+
+**Spec traceability**
+
+4. **Missing spec** — Feature work without referenced **`S-XXX`** in PR/task? → **FAIL** if yes.
 5. **Untested AC** — Any **AC-N** from the cited spec without a corresponding test change in the diff? → **FAIL** if yes.
+
+**Harness / mocks**
+
 6. **Boundary mocks** — Bespoke mocks for boundaries that **must** use shared harness doubles (per `.cursorrules` / [test-harness.md](../docs/test-harness.md))? → **FAIL** if yes.
+
+**Glossary / telemetry**
+
 7. **New domain noun** — Introduces a new domain term not present in `project/docs/domain-glossary.md` (and not added in same PR)? → **FAIL** if yes.
 8. **Telemetry gap** — Spec lists telemetry rows but no test asserts them? → **FAIL** if yes.
+
+**Naming**
+
 9. **Vague new tests** — New test suites whose **only** description pattern is `should …` without **`S-XXX AC-N`**? → **FAIL** if yes.
 
 ## Project-specific invariants (fill in `.cursorrules` and mirror here)
@@ -50,4 +62,4 @@ Add rows **only** for rules your codebase defines. Examples (commented — delet
 
 ---
 
-Output **`PASS`** only if **zero** FAIL rows across both sections you enabled.
+Output **`PASS`** only if **zero** FAIL rows.

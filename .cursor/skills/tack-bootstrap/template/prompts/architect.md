@@ -22,6 +22,8 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 - Markdown task files under `specs/` referenced by `plan.md`
 - **New ADR** under [project/docs/adr/](../docs/adr/) when the change is structural (new boundary, new dependency, new cross-cutting pattern). Use [project/docs/adr/_template.md](../docs/adr/_template.md).
 
+ADR location policy: new ADRs land in `project/docs/adr/`. If your repo has a legacy `docs/adr/` (or any other historical ADR folder), document that in `.cursorrules` and never create new ADRs there — reference legacy ADRs by id only. Continue ADR numbering across **all** ADR folders.
+
 ADR identifier and filename conventions:
 
 - File name: `NNNN-title-kebab.md`.

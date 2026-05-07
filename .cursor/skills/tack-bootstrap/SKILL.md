@@ -30,6 +30,7 @@ You execute six phases in order. **Never jump phases.** Phase 2 is mandatory for
 9. The Phase 2 done-gate is the literal string `complete`. "looks good", "ok", "ship it", "done", "finished", "go", "next" — none of these advance the phase. If the user says any of those, run **one more round of at least 3 clarifying questions** targeting the least-covered Phase 2 sections, then re-prompt for `complete`.
 10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, `project/scripts/tack-worktree.sh`, etc. Bootstrap-only helpers live at `${SKILL_DIR}/scripts/` (`detect-stack.sh`, `recon.sh`); invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
 11. Model routing convention: `[Opus]` = `claude-opus-4-7-thinking-xhigh`, `[Sonnet]` = `claude-4.6-sonnet-medium-thinking`, `[Composer]` = `composer-2-fast`. Always tag specialists with one of these.
+12. **Agent-agnostic routing.** The skill emits routing into `.cursorrules` (Cursor) and `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). Both are governed by `tack.routing.*`. Splice the `## Tack routing` H2 only — never overwrite other sections. Defaults: `auto = yes`, `surfaces = both` when either `AGENTS.md` / `.claude/` / `CLAUDE.md` is detected, else `agents`.
 
 ---
 
@@ -62,6 +63,13 @@ Then present a **detection summary** and ask the user to confirm or correct it. 
 - Non-empty source files: N (capped if > some threshold)
 - Notable directories: src/, app/, tests/, infra/, migrations/, ...
 - Template location: project/ (assumed; correct me if you copied it elsewhere)
+- Agent surfaces detected:
+    CLAUDE.md     : present | absent
+    AGENTS.md     : present | absent
+    .claude/ dir  : present | absent
+    .cursor/ dir  : present | absent
+    .copilot/ dir : present | absent
+- Routing default: tack.routing.auto = yes, tack.routing.surfaces = both if any Claude marker present, else agents.
 
 Confirm or correct any field above before I proceed. Reply with corrections, or "correct" to accept.
 ```
@@ -204,6 +212,9 @@ The full question bank lives in `references/discovery-questions.md`. Blocks, in 
   1. Should `@auto-orchestrator.md` ask before creating an isolated worktree per feature? Recommend **`prompt`** (confirm each run), alternatives **`always`** / **`never`** (legacy single-checkout flow).
   2. Branch naming: recommend **`feature/S-XXX-<slug>`** (ties branch to spec id); alternative **`feature/<slug>`** only if the team insists.
   3. Base branch for `git worktree add`: **`detect`** (script tries `main` → `master` → current) vs pinning **`main`** / **`master`** / another stable branch.
+- **Block G — Agent routing (auto-orchestration).** Two questions, max 3 per turn.
+  1. Should this repo auto-route every feature/bug/task request to `@project/prompts/auto-orchestrator.md`? Recommend **`yes`**: the SDD pipeline becomes the default entry point in any agent that reads `AGENTS.md`/`CLAUDE.md` (Claude Code, Cursor, Copilot CLI, Codex, Antigravity). **`no`** keeps the passive flow (the human `@`-mentions prompts manually). Persist as `tack.routing.auto`.
+  2. Which surfaces should receive the routing block? Default to the detection from Phase 1: **`both`** (write `AGENTS.md` and `CLAUDE.md`) when any Claude marker is present; **`agents`** otherwise; **`claude`** for Claude-only repos; **`none`** to skip everything (forces `tack.routing.auto = no`). Persist as `tack.routing.surfaces`.
 
 When the user says "I don't know", offer 2–3 options with trade-offs (see Block-by-Block defaults in `references/discovery-questions.md`).
 
@@ -260,6 +271,11 @@ Only after Phases 1–4 are confirmed. Generate or update each artifact below in
 1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo, preserving paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, `template/scripts/` → `project/scripts/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
 2. **`.gitignore` at consumer repo root** — ensure the worktree parent directory is ignored (default **`.worktrees/`**, or match `tack.worktree.dir` from Block F). If the line is missing, show a unified diff and ask **apply / skip**. Explain that `project/scripts/tack-worktree.sh` also appends this line on first `create`, but committing `.gitignore` upfront avoids accidental staging.
 3. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape.
+3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. For each surface selected by `tack.routing.surfaces`:
+   - File missing → create from `AGENTS.md.template` / `CLAUDE.md.template`.
+   - File exists → splice/replace **only** the H2 section titled `## Tack routing`. Preserve every other byte. If no such heading exists, append the section at the end.
+
+   Show a unified diff per file and ask **apply / skip / edit / apply all**, same protocol as step 3. Use `references/file-templates/agents-routing.md` as the worked shape. Idempotent: re-running the skill with the same `tack.routing.*` values must produce a no-op diff.
 4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape.
 5. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape.
 6. **`project/prompts/<name>.md`** — one per confirmed specialist. Fill from `project/prompts/_specialist-template.md`; use `references/file-templates/specialist.md` as the worked shape.
@@ -288,6 +304,8 @@ For every existing file that diverges from your generated draft: show diff, offe
    (optional) @project/prompts/security-engineer.md when triggers fire
    ```
 
+- [ ] (if routing enabled) Confirm ## Tack routing is present in AGENTS.md and/or CLAUDE.md and points at @project/prompts/auto-orchestrator.md.
+
 3. Suggest the next step: run `@project/prompts/product-manager.md` to draft `S-001`, ideally pulled from the highest-priority `[SPEC]`-tagged follow-up in the Phase 2 business-rules draft. If no follow-ups exist (NEW project), suggest the user paste their first epic.
 
 Stop the skill here. Report the artifacts created and any items the user explicitly skipped.
@@ -305,6 +323,8 @@ Stop the skill here. Report the artifacts created and any items the user explici
 - `references/file-templates/architecture.md` — anonymized worked example.
 - `references/file-templates/business-rules.md` — Phase 2 draft template with a–k structure and tagged follow-ups.
 - `references/file-templates/specialist.md` — anonymized worked specialist prompt.
+- `template/routing-snippet.md` — single source of truth for the `## Tack routing` H2 block embedded in `AGENTS.md` / `CLAUDE.md`.
+- `references/file-templates/agents-routing.md` — anonymized worked example for the `## Tack routing` section (new-file and merge-into-existing cases).
 - `scripts/detect-stack.sh` — Phase 1 detection helper, prints JSON.
 - `scripts/recon.sh` — Phase 2.1 reconnaissance helper, dumps `recon.json` bucketed into the six layers.
 - `template/scripts/tack-worktree.sh` — copied to `project/scripts/` in the consumer repo; `git worktree` helper for parallel SDD runs.

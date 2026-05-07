@@ -106,9 +106,33 @@ Use **`Task`** with:
 ## Step 1 — `@product-manager.md`
 
 - Model: Opus.
-- Inputs: epic description + paths to rules file, glossary, `_template.md`, architecture pointers per PM Inputs. **If Step −1 reserved `spec_id_reserved`, include verbatim:** `Reserved spec id: S-XXX`.
+- This step is an **iterative grilling loop** (one question at a time) until a spec is written.
 - **`working_directory`:** `worktree_path` when Step −1 succeeded.
-- After dispatch: confirm new file `project/specs/S-XXX-<slug>.md` exists and contains numbered **AC-1**, **AC-2**, … If missing → **STOP**.
+- Initialize `qa_history = []`.
+- Loop:
+  1. Dispatch PM as a subagent with Inputs including:
+     - epic description
+     - paths to the rules file, glossary, `_template.md`, architecture pointers per PM Inputs
+     - `mode: autonomous`
+     - `qa_history` (current)
+     - **If Step −1 reserved `spec_id_reserved`, include verbatim:** `Reserved spec id: S-XXX` so the PM uses that id when it eventually writes the spec.
+  2. Parse the PM output:
+     - `STATUS: NEEDS_INPUT`:
+       - Render the question via Cursor's **`AskQuestion`** tool with:
+         - `prompt`: `next_question` verbatim, then a newline, then `Recommendation: <recommendation>`.
+         - `options`: each entry from the PM's `options:` list (preserve `(recommended)` suffix), plus a final option `Other - I'll explain in chat`.
+         - `allow_multiple`: `false`.
+       - If the human picks `Other - I'll explain in chat`, post a short note in chat asking for the free-form answer and wait for the next user message; treat that message text as `answer`.
+       - If the human picks any other option, use that option's label with the `(recommended)` suffix stripped as `answer`.
+       - If the human replies exactly `cancel grill` (in chat or as the free-form follow-up) → **STOP** (Stop conditions).
+       - Append `{ question: next_question, recommendation, options, answer }` to `qa_history` (`options` = PM's list only, not the appended `Other` row), then continue the loop.
+     - `STATUS: SPEC_WRITTEN`:
+       - Discover the new file `project/specs/S-XXX-<slug>.md`.
+       - Confirm it exists and contains numbered **AC-1**, **AC-2**, … If missing → **STOP**.
+       - If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
+       - Proceed to Step 2.
+     - Anything else → **STOP** (Stop conditions).
+- Note: this loop may require **N+1** PM dispatches for **N** questions, by design.
 
 - **Steps 2–7:** use the same **`working_directory`** as Step 1 whenever Step −1 created a worktree (isolation of `git diff`, tests, and edits).
 
@@ -195,15 +219,17 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 
 1. Subagent errors or does not create expected artifacts.
 2. **Spec id** cannot be determined or collides.
-3. **Step 1** — no valid `project/specs/S-XXX-<slug>.md` with ACs.
-4. **Step 2** — no valid `plan.md` with `Spec: S-XXX` and **Traceability** covering all ACs.
-5. **Step 3** — missing `describe('S-XXX AC-N:` for any AC, or **red gate**: tests do not fail after qa-tester red phase.
-6. **Step 6** — **green gate**: any test still failing.
-7. **Invariant / parity** (before Step 7): **fill in** — e.g. behaviour edit touched only one file in a required pair listed in `.cursorrules` → **STOP** when your rules define that as blocking.
-8. **Step 7** — reviewer returns **FAIL** for any checklist item.
-9. **Step 7b** — security-engineer returns **FAIL** for any checklist item, when the security audit was triggered.
-10. **Model** unavailable after upward fallback.
-11. **Step −1** — `tack-worktree.sh` / coordinator returned an error and the human did not authorize fallback to the main checkout; or worktree path cannot be used as **`working_directory`** for downstream tasks.
+3. **Step 1** — PM returns malformed output (missing/unknown `STATUS`, missing required fields, or missing/empty `options:` when `STATUS: NEEDS_INPUT`).
+4. **Step 1** — human replies `cancel grill`.
+5. **Step 1** — no valid `project/specs/S-XXX-<slug>.md` with ACs.
+6. **Step 2** — no valid `plan.md` with `Spec: S-XXX` and **Traceability** covering all ACs.
+7. **Step 3** — missing `describe('S-XXX AC-N:` for any AC, or **red gate**: tests do not fail after qa-tester red phase.
+8. **Step 6** — **green gate**: any test still failing.
+9. **Invariant / parity** (before Step 7): **fill in** — e.g. behaviour edit touched only one file in a required pair listed in `.cursorrules` → **STOP** when your rules define that as blocking.
+10. **Step 7** — reviewer returns **FAIL** for any checklist item.
+11. **Step 7b** — security-engineer returns **FAIL** for any checklist item, when the security audit was triggered.
+12. **Model** unavailable after upward fallback.
+13. **Step −1** — `tack-worktree.sh` / coordinator returned an error and the human did not authorize fallback to the main checkout; or worktree path cannot be used as **`working_directory`** for downstream tasks.
 
 Do not auto-retry failed steps in this version; document the failure and stop.
 
@@ -219,6 +245,7 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Worktree:** `<absolute path>` or `n/a` if Step −1 skipped
 - **Branch:** `<branch name>` or `n/a`
 - **Spec:** `S-XXX-<slug>` — `<path>`
+- **Spec grill (Q&A trail):** (list `question → answer` in order, or "n/a")
 - **Plan:** `<path to plan.md>`
 - **ADRs created:** (list paths or "none")
 - **Test files:** (list)
@@ -234,7 +261,7 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 
 # Isolation
 
-You do **not** persist full subagent transcripts in your working memory across steps. Retain only: **spec id**, **paths**, **step outcomes**, **git/test snippets** needed for the next dispatch and for **Final report**.
+You do **not** persist full subagent transcripts in your working memory across steps. Retain only: **spec id**, **paths**, **step outcomes**, **git/test snippets** needed for the next dispatch and for **Final report**. This limits context rot in the parent chat.
 
 ---
 

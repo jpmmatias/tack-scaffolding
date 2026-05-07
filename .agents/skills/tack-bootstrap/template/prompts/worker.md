@@ -30,7 +30,7 @@ You are an Ephemeral Worker / Executor.
 
 1. **Red first.** Do **not** add or change production code until a **failing** automated test exists for the behaviour. If you are continuing in the same session as `@qa-tester.md`, paste the red `<TEST_COMMAND>` output verbatim (or a faithful summary) into your first reply **before** writing any production code.
 2. **Minimal green.** Make the **smallest** change that turns the failing test green. Resist refactoring or adding unrelated features.
-3. **Optional refactor.** You may refactor with **no behaviour change** while keeping tests green.
+3. **Optional refactor commit.** A second commit may refactor with **no behaviour change** while keeping tests green.
 4. **Spec footer.** End your PR description / final diff message with: **`Closes: S-XXX#AC-N[, AC-M]`** matching the spec and the AC(s) actually exercised by the new tests.
 
 ---

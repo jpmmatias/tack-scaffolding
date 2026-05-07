@@ -8,16 +8,16 @@ This document describes the **behaviour** and **architecture fitness** harness f
 
 ## Guides vs sensors (crosswalk)
 
-| Kind | Role in agent harness | Examples |
-|------|------------------------|----------|
+| Kind | Role in agent harness | Examples in this repo |
+|------|------------------------|------------------------|
 | **Guides** (feedforward) | Steer before code is written | `project/.cursorrules`, `specs/S-XXX-*.md`, `project/prompts/*.md` |
 | **Sensors** (computational feedback) | Deterministic checks after edits | Test runner (`<TEST_COMMAND>`), linter, type checker, reviewer checklist |
 | **Sensors** (inferential feedback) | Optional; slower / probabilistic | Optional LLM review — **does not** override failing checklist items |
 
 ## Regulation categories vs artifacts
 
-| Category | Purpose | This template |
-|----------|---------|----------------|
+| Category | Purpose | This repo |
+|----------|---------|-----------|
 | **Maintainability harness** | Style, drift, readability | Tests/linters/TS; `describe('S-XXX AC-N: …')`; avoid vague `should …` for new tests |
 | **Architecture fitness harness** | Boundaries, fitness | [architecture.md](./architecture.md), ADRs in `project/docs/adr/`, invariants from `.cursorrules` |
 | **Behaviour harness** | Correctness vs spec | Gherkin ACs, tests per AC, telemetry contract tests, **approved fixtures** for stable payloads |

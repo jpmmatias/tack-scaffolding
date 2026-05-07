@@ -16,7 +16,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You a
 
 # Outputs (only write here)
 
-- Test files using your project’s conventions (suffixes, colocation rules — read from `.cursorrules`)
+- Test files using your project’s conventions (suffixes, colocation rules — read from `.cursorrules`; common patterns: `**/*.test.ts`, `**/*.test.tsx`, `tests/**`)
 - Optional harness helpers under `<TEST_HARNESS_ROOT>` when factories are missing (coordinate with `@harness-engineer.md`)
 
 ---
