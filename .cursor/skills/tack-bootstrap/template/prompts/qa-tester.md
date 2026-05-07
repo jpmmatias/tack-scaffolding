@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You a
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../.cursorrules)
+- Repository rules: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
 - The active **spec** `specs/S-XXX-<slug>.md`
 - The active **task** / plan snippet (`specs/**/task.md` or task section from Architect output)
 - [project/docs/test-harness.md](../docs/test-harness.md)

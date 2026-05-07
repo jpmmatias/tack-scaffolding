@@ -8,7 +8,7 @@
 
 ## Status
 
-Proposed | Accepted | Superseded by [ADR-NNNN](./NNNN-other-decision.md)
+Proposed | Accepted | Superseded by **ADR-NNNN** (link to the superseding ADR file when you create it)
 
 ## Context
 

@@ -21,5 +21,24 @@ jobs:
       - name: Validate SKILL.md frontmatter
         run: npm run validate-skill
 
+      - name: Routing snippet matches all canonical copies
+        run: npm run check-routing
+
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@v17
+        with:
+          globs: |
+            skills/tack-bootstrap/**/*.md
+            skills/tack-run/**/*.md
+            skills/tack-agent/**/*.md
+            *.md
+
+      - name: Link check (offline)
+        uses: lycheeverse/lychee-action@v2
+        with:
+          lycheeVersion: v0.22.0
+          args: --offline --no-progress --config lychee.toml skills/tack-bootstrap skills/tack-run skills/tack-agent README.md AGENTS.md CONTRIBUTING.md BACKLOG.md
+          fail: true
+
       - name: skills CLI discovers packaged skill
         run: npx -y skills add . --list -y

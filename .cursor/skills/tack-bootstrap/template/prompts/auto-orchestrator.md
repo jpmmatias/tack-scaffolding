@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- [project/.cursorrules](../.cursorrules) (or the repository’s equivalent rules file at repo root)
+- [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap; or the repository’s equivalent rules file)
 - [project/docs/sdd.md](../docs/sdd.md)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/specs/_template.md](../specs/_template.md)

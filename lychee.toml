@@ -1,0 +1,10 @@
+offline = true
+
+accept = [200, 206, 403]
+
+exclude_path = [
+  ".claude",
+  ".cursor",
+  ".agents",
+  "node_modules",
+]

@@ -7,6 +7,10 @@
   "scripts": {
     "sync": "bash scripts/sync-skills.sh",
     "check-sync": "bash scripts/check-skills-sync.sh",
-    "validate-skill": "bash scripts/validate-skill-frontmatter.sh"
+    "validate-skill": "bash scripts/validate-skill-frontmatter.sh",
+    "check-routing": "bash scripts/check-routing-snippet.sh",
+    "install-hooks": "git config core.hooksPath .githooks",
+    "lint": "npx -y markdownlint-cli2",
+    "check-links": "bash scripts/check-links.sh"
   }
 }

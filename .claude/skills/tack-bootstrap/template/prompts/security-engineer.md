@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You a
 
 # Inputs (read-only)
 
-- Repository rules file (e.g. [project/.cursorrules](../.cursorrules))
+- Repository rules file (e.g. [project/.cursorrules](../.cursorrules.template), generated as `.cursorrules` at repo root after bootstrap)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md) and any canonical doc it references
 - The **diff** or linked commits under review — or, when invoked ad-hoc, the file scope the human pasted

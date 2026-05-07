@@ -14,7 +14,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../.cursorrules)
+- Repository rules: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) *(if UI or domain wording matters)*
 - [project/docs/architecture.md](../docs/architecture.md) *(if layering matters)*
 - Active **spec** / **task** for this change

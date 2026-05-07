@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules file (e.g. [project/.cursorrules](../.cursorrules))
+- Repository rules file (e.g. [project/.cursorrules](../.cursorrules.template), generated as `.cursorrules` at repo root after bootstrap)
 - The diff or linked commits under review
 - The governing **`task.md`** / spec **`S-XXX`** for this change (feature work **must** cite a spec)
 

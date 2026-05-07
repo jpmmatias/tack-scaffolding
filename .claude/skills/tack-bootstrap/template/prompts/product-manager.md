@@ -6,7 +6,7 @@ Ignore prior conversation **except** for any `qa_history` included in **Inputs**
 
 # Inputs (read-only)
 
-- Repository rules file: [project/.cursorrules](../.cursorrules) (or `.cursorrules` at repo root if the project symlinked/copied this layout)
+- Repository rules file: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap; or equivalent rules file if your layout differs)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md)
 - [specs/_template.md](../specs/_template.md)

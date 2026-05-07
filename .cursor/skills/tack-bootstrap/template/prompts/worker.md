@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs** and the task artifact. Produce o
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../.cursorrules)
+- Repository rules: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
 - Active **spec** `specs/S-XXX-<slug>.md`
 - Active **plan** / **task** from Architect (`plan.md`, `specs/**` task files)
 - Failing test output from `@qa-tester.md` when applicable
