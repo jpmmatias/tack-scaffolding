@@ -24,6 +24,21 @@ jobs:
       - name: Routing snippet matches all canonical copies
         run: npm run check-routing
 
+      - name: Install Bats
+        uses: bats-core/bats-action@3.0.1
+
+      - name: Bats (bootstrap scripts)
+        run: npm test
+
+      - name: ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          npm run check-shell
+
+      - name: Dispatch contract (prompts + model tables)
+        run: npm run check-dispatch
+
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@v17
         with:

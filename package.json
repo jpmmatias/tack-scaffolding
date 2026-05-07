@@ -1,6 +1,6 @@
 {
   "name": "tack",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Tack — discipline scaffolding for multi-agent coding (spec-driven development template + tack-bootstrap agent skill)",
   "license": "MIT",
@@ -9,6 +9,9 @@
     "check-sync": "bash scripts/check-skills-sync.sh",
     "validate-skill": "bash scripts/validate-skill-frontmatter.sh",
     "check-routing": "bash scripts/check-routing-snippet.sh",
+    "test": "bats test/bats",
+    "check-shell": "shellcheck $(git ls-files '*.sh')",
+    "check-dispatch": "bash scripts/check-dispatch-contract.sh",
     "install-hooks": "git config core.hooksPath .githooks",
     "lint": "npx -y markdownlint-cli2",
     "check-links": "bash scripts/check-links.sh"

@@ -60,7 +60,7 @@ next_spec_id() {
   local root
   root="$(repo_root)"
   local max=0
-  local wt path n
+  local path n
 
   while IFS= read -r path; do
     [[ -z "$path" ]] && continue
@@ -272,10 +272,10 @@ cmd_create() {
 
   local branch=""
   case "$naming" in
-    feature/S-XXX-*|feature/S-XXX-\<slug\>)
+    "feature/S-XXX-<slug>"|feature/S-XXX-*)
       branch="feature/${spec}-${slug}"
       ;;
-    feature/*\<slug\>*|"feature/<slug>")
+    "feature/<slug>"|feature/*\<slug\>*)
       branch="feature/${slug}"
       ;;
     *)

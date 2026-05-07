@@ -77,57 +77,63 @@ all_files() {
 
 ALL="$(all_files)"
 
-# match_layer NAME REGEX
-#   Filter ALL by an extended regex, sort, dedupe, cap, and emit two values:
-#     stdout: the (possibly truncated) list, one path per line
-#     stderr: literal "true" or "false" indicating whether truncation occurred
-#   The caller captures both via process substitution.
-match_layer() {
+# match_layer_assign PATTERN RESULT_VAR TRUNC_VAR
+#   Filter ALL by an extended regex, sort, dedupe, cap. Writes the (possibly
+#   truncated) newline-separated paths into RESULT_VAR and sets TRUNC_VAR to
+#   true/false. Must run in the current shell (not inside $(...)) so TRUNC_VAR
+#   updates survive — command substitution would run in a subshell and lose flags.
+match_layer_assign() {
   local pattern="$1"
-  local truncated_var="$2"
-  local matched
+  local result_var="$2"
+  local trunc_var="$3"
+  local matched total
   matched="$(printf '%s\n' "$ALL" | grep -E "$pattern" || true)"
   matched="$(printf '%s' "$matched" | sort -u)"
-  local total
   total="$(printf '%s' "$matched" | grep -c . || true)"
   if (( total > CAP )); then
-    eval "$truncated_var=true"
-    printf '%s' "$matched" | head -n "$CAP"
+    eval "${trunc_var}=true"
+    matched="$(printf '%s' "$matched" | head -n "$CAP")"
   else
-    eval "$truncated_var=false"
-    printf '%s' "$matched"
+    eval "${trunc_var}=false"
   fi
+  printf -v "${result_var}" '%s' "$matched"
 }
 
 # Layer 1 — domain core
 LAYER1_PATTERN='(^|/)(domain|core|entities|models|aggregates|value-?objects|services|usecases|application|commands|handlers|interactors|policies|rules|validators|specifications|guards)(/|$)'
 TR1=false
-LAYER1="$(match_layer "$LAYER1_PATTERN" TR1)"
+LAYER1=""
+match_layer_assign "$LAYER1_PATTERN" LAYER1 TR1
 
 # Layer 2 — boundaries (HTTP/RPC, async, contracts)
 LAYER2_PATTERN='(^|/)(controllers|routes|api|endpoints|webhooks|events|subscribers|consumers|jobs|workers|tasks|schemas|dto|contracts)(/|$)|\.(proto|graphql|gql)$|openapi\.(yaml|yml|json)$'
 TR2=false
-LAYER2="$(match_layer "$LAYER2_PATTERN" TR2)"
+LAYER2=""
+match_layer_assign "$LAYER2_PATTERN" LAYER2 TR2
 
 # Layer 3 — persistence
 LAYER3_PATTERN='(^|/)(migrations|prisma|alembic|flyway|liquibase|db|schema|seeds|fixtures)(/|$)|\.sql$|prisma/schema\.prisma$'
 TR3=false
-LAYER3="$(match_layer "$LAYER3_PATTERN" TR3)"
+LAYER3=""
+match_layer_assign "$LAYER3_PATTERN" LAYER3 TR3
 
 # Layer 4 — tests as specs
 LAYER4_PATTERN='(^|/)(tests?|spec|e2e|cypress|playwright|__tests__)(/|$)|\.(test|spec)\.(t|j)sx?$|_test\.go$|_spec\.rb$|test_.+\.py$'
 TR4=false
-LAYER4="$(match_layer "$LAYER4_PATTERN" TR4)"
+LAYER4=""
+match_layer_assign "$LAYER4_PATTERN" LAYER4 TR4
 
 # Layer 5 — config & feature flags
 LAYER5_PATTERN='(^|/)(\.env(\..*)?|config|configs|i18n|locales)(/|$)|(^|/)\.env(\.|$)|(^|/)(launchdarkly|unleash|flagsmith|optimizely)\.|(^|/)tsconfig\.json$|(^|/)next\.config\.(t|j)s$|(^|/)tailwind\.config\.(t|j)s$|(^|/)vite\.config\.(t|j)s$|(^|/)vitest\.config\.(t|j)s$|(^|/)jest\.config\.(t|j)s$|(^|/)pyproject\.toml$|(^|/)setup\.cfg$|(^|/)Cargo\.toml$|(^|/)go\.mod$|(^|/)Gemfile$|(^|/)pom\.xml$|(^|/)build\.gradle(\.kts)?$|(^|/)composer\.json$|(^|/)package\.json$'
 TR5=false
-LAYER5="$(match_layer "$LAYER5_PATTERN" TR5)"
+LAYER5=""
+match_layer_assign "$LAYER5_PATTERN" LAYER5 TR5
 
 # Layer 6 — documentation traces
 LAYER6_PATTERN='(^|/)(README\.md|README\.MD|README|CHANGELOG\.md|CONTRIBUTING\.md|CODE_OF_CONDUCT\.md|SECURITY\.md|docs|adr|\.github/(ISSUE_TEMPLATE|PULL_REQUEST_TEMPLATE))($|/)'
 TR6=false
-LAYER6="$(match_layer "$LAYER6_PATTERN" TR6)"
+LAYER6=""
+match_layer_assign "$LAYER6_PATTERN" LAYER6 TR6
 
 # JSON helpers (no jq dependency)
 emit_string_array() {

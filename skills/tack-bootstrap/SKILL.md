@@ -1,6 +1,6 @@
 ---
 name: tack-bootstrap
-version: 0.1.0
+version: 0.2.0
 license: MIT
 description: Use when bootstrapping Tack (the spec-driven multi-agent template) into a new or existing repository. Triggers on requests to fill the SDD documentation, configure the multi-agent template, populate .cursorrules / domain glossary / architecture doc, design specialist agents, or run a deep business-rule discovery on an existing codebase before writing any specs. Walks the user through a 6-phase interview that detects stack, mines domain rules, and emits governance docs without ever writing application code.
 ---

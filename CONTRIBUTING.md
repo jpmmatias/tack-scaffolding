@@ -25,6 +25,9 @@ Commit the canonical tree, the bundled copies, and the editor mirrors so CI stay
 npm run check-sync    # mirrors must match canonical
 npm run validate-skill  # SKILL.md frontmatter (all skills/*/SKILL.md; version matches package.json)
 npm run check-routing   # routing-snippet.md matches templates + worked examples
+npm test                # Bats: detect-stack, tack-worktree, recon, dispatch contract smoke (install bats-core: brew install bats-core / apt install bats)
+npm run check-shell     # shellcheck on every tracked *.sh (install: brew install shellcheck); CI policy is **zero warnings** (see [.shellcheckrc](.shellcheckrc))
+npm run check-dispatch  # agent-catalog → template prompts; pipeline vs auto-orchestrator model tables
 npm run lint            # optional: markdownlint-cli2 (canonical skills + root *.md)
 npm run check-links     # optional: lychee offline link check (downloads a pinned lychee binary on first run on Apple silicon / Linux; Intel macOS: brew install lychee)
 ```

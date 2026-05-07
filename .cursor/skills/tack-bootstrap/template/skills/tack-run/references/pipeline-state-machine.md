@@ -22,7 +22,7 @@ If the model is unavailable, fall back **upward** (Composer → Sonnet → Opus)
 - Step −1 (worktree): `[Composer]`
 - Steps 1, 2, 7: `[Opus]`
 - Steps 3, 4, 6: `[Sonnet]`
-- Step 5 (implementation): `[Composer]`
+- Step 5 (implementation / specialists): `[Composer]`
 - Step 7b (security, optional): `[Opus]`
 
 ## Dispatch wrapper

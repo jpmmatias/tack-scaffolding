@@ -1,6 +1,6 @@
 ---
 name: tack-agent
-version: 0.1.0
+version: 0.2.0
 license: MIT
 description: Use when invoking a single Tack SDD agent in a bootstrapped repo (product-manager, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, worktree-coordinator, or a custom specialist under project/prompts/). Triggers on requests to run one step of the pipeline, audit with reviewer or security, create a worktree, or "ask the architect/PM/QA". Dispatches one subagent via Task with the correct model; for the full pipeline use tack-run instead.
 ---

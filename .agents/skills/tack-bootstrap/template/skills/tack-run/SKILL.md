@@ -1,6 +1,6 @@
 ---
 name: tack-run
-version: 0.1.0
+version: 0.2.0
 license: MIT
 description: Use when running the full Tack SDD/TDD pipeline end-to-end in a bootstrapped repo. Triggers on requests to run Tack, ship a feature via the spec pipeline, execute auto-orchestrator, or implement work from epic to reviewer. Reads project/prompts/auto-orchestrator.md and dispatches each step as isolated subagents via Task; does not write application code itself.
 ---

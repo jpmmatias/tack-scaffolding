@@ -8,57 +8,21 @@ Prioritized improvement opportunities for this repository (canonical skill at [`
 
 | Theme | P0 | P1 | P2 | Total |
 |-------|----|----|----|-------|
-| 2. Script hardening & tests | 2 | 4 | 0 | 6 |
+| 2. Script hardening & tests | 0 | 0 | 0 | 0 |
 | 3. Skill correctness & safeguards | 1 | 2 | 1 | 4 |
 | 4. Template content & onboarding | 0 | 2 | 2 | 4 |
 | 5. Tooling / CLI | 0 | 1 | 1 | 2 |
 | 6. Repo hygiene | 1 | 1 | 1 | 3 |
 | 7. Worktree polish | 0 | 0 | 2 | 2 |
-| **Total** | **4** | **10** | **7** | **21** |
+| **Total** | **2** | **6** | **7** | **15** |
 
-Done so far: **7** (B-01, B-02, B-03, B-04, B-25, B-26, B-27 — see [Done](#done)).
+Done so far: **13** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-25, B-26, B-27, B-28 — see [Done](#done)).
 
-> **Last refresh:** B-25 / B-26 moved to **Done** after rewriting `scripts/sync-skills.sh` and `scripts/check-skills-sync.sh` to auto-discover every `skills/*/SKILL.md` (editor mirrors) and to enforce byte-equality of `skills/tack-bootstrap/template/skills/<name>/` (bundled install source) against canonical, with CONTRIBUTING updated. Theme 1 is now empty; the only remaining sync/validation gap from commit `b5c3faf` is **B-28** (contract tests for dispatcher prompt names / model tags).
-
----
+> **Last refresh:** Theme 2 (**B-05**–**B-09**, **B-28**) moved to **Done**: Bats coverage for `detect-stack.sh`, `tack-worktree.sh`, and `recon.sh`; `shellcheck` + dispatch contract in CI; `recon.sh` truncation flags fixed (subshell bug); `auto-orchestrator` / `pipeline-state-machine` Step→model parity; `package.json` **0.2.0**.
 
 ## Theme 2 — Script hardening & tests
 
-### B-05 — Bats tests for `detect-stack.sh`
-
-- **Priority:** P0 · **Effort:** M
-- **Rationale:** [`skills/tack-bootstrap/scripts/detect-stack.sh`](skills/tack-bootstrap/scripts/detect-stack.sh) encodes nine ecosystem branches (Node/TS, Python pyproject/setup/requirements, Rust, Go, Ruby, Maven, Gradle, PHP) and `project_class` (lines 293–298). No automated regression coverage.
-- **Acceptance:** Bats suite with ephemeral fixture repos exercises each branch and at least one `project_class: new` vs `existing` case; runs in CI.
-
-### B-06 — Bats tests for `tack-worktree.sh`
-
-- **Priority:** P0 · **Effort:** M
-- **Rationale:** [`skills/tack-bootstrap/template/scripts/tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh) implements spec id reservation, create/list/path/remove, JSON output, and merge gates (`cmd_remove`, lines 179–226).
-- **Acceptance:** Bats tests in a throwaway git repo cover `sanitize_slug`, `next_spec_id` across linked worktrees, JSON shape, `remove` refusing dirty/unmerged (without `--force`), and `--wt-dir` behavior.
-
-### B-07 — Bats test for `recon.sh` layer patterns
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** [`skills/tack-bootstrap/scripts/recon.sh`](skills/tack-bootstrap/scripts/recon.sh) buckets files via `LAYER1_PATTERN`–`LAYER6_PATTERN` (lines 102–130) and truncation flags.
-- **Acceptance:** One fixture tree with known paths; assert each layer receives expected members and `truncated` reflects cap behavior.
-
-### B-08 — `shellcheck` in CI
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** Bash scripts under [`scripts/`](scripts/) and [`skills/tack-bootstrap/scripts/`](skills/tack-bootstrap/scripts/) plus [`skills/tack-bootstrap/template/scripts/`](skills/tack-bootstrap/template/scripts/) lack static analysis gate.
-- **Acceptance:** CI runs `shellcheck` on all `*.sh`; warnings/errors policy documented (e.g. zero warnings).
-
-### B-09 — Fix `--wt-dir` vs `ensure_gitignore_worktrees`
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** `ensure_gitignore_worktrees` uses `WT_DIR_DEFAULT` for the ignore line ([`tack-worktree.sh:103–111`](skills/tack-bootstrap/template/scripts/tack-worktree.sh)); `cmd_create` can override `--wt-dir` later (lines 248–250, 288). Risk of appending wrong path to `.gitignore` if ordering/defaults differ.
-- **Acceptance:** After `create` with custom `--wt-dir`, `.gitignore` contains that directory (or documented explicit non-append); regression test added.
-
-### B-28 — Contract tests for `tack-run` / `tack-agent` against bundled prompts
-
-- **Priority:** P1 · **Effort:** M
-- **Rationale:** The dispatcher skills hard-code agent → prompt → model mappings: [`skills/tack-agent/references/agent-catalog.md`](skills/tack-agent/references/agent-catalog.md) (lines 14–24) names `worktree-coordinator.md`, `product-manager.md`, `architect.md`, `qa-tester.md`, `harness-engineer.md`, `worker.md`, `reviewer.md`, `security-engineer.md`; [`skills/tack-run/references/pipeline-state-machine.md`](skills/tack-run/references/pipeline-state-machine.md) (lines 22–26) maps Step ↔ model tag. Renaming or deleting a prompt file under [`skills/tack-bootstrap/template/prompts/`](skills/tack-bootstrap/template/prompts/) would silently break dispatch with no CI signal.
-- **Acceptance:** Test (bash + diff or Bats) asserts every agent named in `agent-catalog.md` resolves to an existing `skills/tack-bootstrap/template/prompts/<name>.md`, and every model tag (`[Opus]` / `[Sonnet]` / `[Composer]`) listed in `pipeline-state-machine.md` matches the table inside `auto-orchestrator.md`. Runs in CI.
+*(No pending items — shipped entries are in [Done](#done).)*
 
 ---
 
@@ -191,6 +155,30 @@ Items below have shipped. Kept here (rather than deleted) so each acceptance cri
 ### B-04 — Markdown linter + link checker in CI · P1 · M
 
 - **Shipped:** CI ([`.github/workflows/check.yml`](.github/workflows/check.yml)) runs `markdownlint-cli2-action` over `skills/tack-bootstrap/**`, `skills/tack-run/**`, `skills/tack-agent/**`, and root `*.md`, then `lychee-action` (offline) over the same scope plus `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `BACKLOG.md`. Configs at [`.markdownlint-cli2.jsonc`](.markdownlint-cli2.jsonc) and [`lychee.toml`](lychee.toml). Local helpers `npm run lint` and `npm run check-links` ([`scripts/check-links.sh`](scripts/check-links.sh) auto-fetches a pinned `lychee` binary on first run for Apple silicon / Linux). Acceptance met.
+
+### B-05 — Bats tests for `detect-stack.sh` · P0 · M
+
+- **Shipped:** [`test/bats/detect-stack.bats`](test/bats/detect-stack.bats) + [`test/bats/helpers.bash`](test/bats/helpers.bash) cover all nine manifest branches in [`skills/tack-bootstrap/scripts/detect-stack.sh`](skills/tack-bootstrap/scripts/detect-stack.sh) and `project_class` new vs existing. CI: [`.github/workflows/check.yml`](.github/workflows/check.yml) (`bats-core/bats-action` + `npm test`). Acceptance met.
+
+### B-06 — Bats tests for `tack-worktree.sh` · P0 · M
+
+- **Shipped:** [`test/bats/tack-worktree.bats`](test/bats/tack-worktree.bats) exercises `next-spec-id`, linked worktrees, slug sanitization, `list` JSON, `remove` gates (dirty / unmerged / `--force`). CI via `npm test`. Acceptance met.
+
+### B-07 — Bats test for `recon.sh` layer patterns · P1 · S
+
+- **Shipped:** [`test/bats/recon.bats`](test/bats/recon.bats) asserts six-layer bucketing, `node_modules` prune, and cap truncation. [`skills/tack-bootstrap/scripts/recon.sh`](skills/tack-bootstrap/scripts/recon.sh) was fixed so per-layer `truncated` flags are set in the main shell (not lost in a `$(...)` subshell). CI via `npm test`. Acceptance met.
+
+### B-08 — `shellcheck` in CI · P1 · S
+
+- **Shipped:** [`package.json`](package.json) `npm run check-shell` runs `shellcheck` on every tracked `*.sh`; [`.shellcheckrc`](.shellcheckrc) pins `shell=bash`. CI step in [`.github/workflows/check.yml`](.github/workflows/check.yml). Policy: zero ShellCheck warnings (documented in [`CONTRIBUTING.md`](CONTRIBUTING.md) under **Checks**). Acceptance met.
+
+### B-09 — `--wt-dir` vs `ensure_gitignore_worktrees` · P1 · S
+
+- **Shipped:** Regression in [`test/bats/tack-worktree.bats`](test/bats/tack-worktree.bats) (`create --wt-dir custom-wt` → `.gitignore` contains `custom-wt/`). Naming `case` in [`skills/tack-bootstrap/template/scripts/tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh) refactored for ShellCheck + clarity. Acceptance met.
+
+### B-28 — Contract tests for `tack-run` / `tack-agent` against bundled prompts · P1 · M
+
+- **Shipped:** [`scripts/check-dispatch-contract.sh`](scripts/check-dispatch-contract.sh) (`npm run check-dispatch`) verifies stock prompts in [`skills/tack-agent/references/agent-catalog.md`](skills/tack-agent/references/agent-catalog.md) exist under [`skills/tack-bootstrap/template/prompts/`](skills/tack-bootstrap/template/prompts/), and that model-routing tables + Step→model bullets align across [`skills/tack-run/references/pipeline-state-machine.md`](skills/tack-run/references/pipeline-state-machine.md) and [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) (including **Step 7b**). [`test/bats/check-dispatch-contract.bats`](test/bats/check-dispatch-contract.bats) smoke + drift fixture (`TACK_DISPATCH_CONTRACT_ROOT`). CI in [`.github/workflows/check.yml`](.github/workflows/check.yml). Acceptance met.
 
 ### B-27 — `validate-skill-frontmatter.sh` covers all canonical SKILLs · P1 · S
 
