@@ -1,8 +1,8 @@
 {
-  "name": "sdd-multi-agent-template",
+  "name": "tack",
   "version": "0.1.0",
   "private": true,
-  "description": "Spec-driven development template and sdd-bootstrap agent skill (skills.sh / multi-editor)",
+  "description": "Tack — discipline scaffolding for multi-agent coding (spec-driven development template + tack-bootstrap agent skill)",
   "license": "MIT",
   "scripts": {
     "sync": "bash scripts/sync-skills.sh",

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Validate YAML frontmatter on skills/sdd-bootstrap/SKILL.md (CI + local).
+# Validate YAML frontmatter on skills/tack-bootstrap/SKILL.md (CI + local).
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SKILL="$ROOT/skills/sdd-bootstrap/SKILL.md"
+SKILL="$ROOT/skills/tack-bootstrap/SKILL.md"
 
 if [[ ! -f "$SKILL" ]]; then
   echo "validate-skill-frontmatter: missing $SKILL" >&2

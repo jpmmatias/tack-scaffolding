@@ -2,7 +2,7 @@
 
 ## Canonical skill location
 
-Edit **only** [`skills/sdd-bootstrap/`](skills/sdd-bootstrap/). That directory is the single source of truth for the `sdd-bootstrap` skill (including bundled template under `skills/sdd-bootstrap/template/`).
+Edit **only** [`skills/tack-bootstrap/`](skills/tack-bootstrap/). That directory is the single source of truth for the `tack-bootstrap` skill (including bundled template under `skills/tack-bootstrap/template/`).
 
 ## After you change the skill
 
@@ -14,9 +14,9 @@ npm run sync
 
 This copies the canonical skill into:
 
-- `.claude/skills/sdd-bootstrap/` (Claude Code)
-- `.cursor/skills/sdd-bootstrap/` (Cursor)
-- `.agents/skills/sdd-bootstrap/` (Antigravity workspace skills)
+- `.claude/skills/tack-bootstrap/` (Claude Code)
+- `.cursor/skills/tack-bootstrap/` (Cursor)
+- `.agents/skills/tack-bootstrap/` (Antigravity workspace skills)
 
 Commit **both** the canonical tree and the three mirrors so CI stays green.
 

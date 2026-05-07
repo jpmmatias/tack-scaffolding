@@ -1,8 +1,10 @@
-# SDD + multi-agent template
+# Tack
+
+> Discipline scaffolding for multi-agent coding.
 
 Portable **spec-driven development** (SDD) and **isolated role prompts** for coding agents: numbered specs (`S-XXX`), acceptance criteria (`AC-N`), plans with traceability, ADRs (`ADR-NNNN`), strict TDD gates, and optional full-auto orchestration via subagents.
 
-The **machine-runnable bootstrap** is the agent skill **`sdd-bootstrap`**, which interviews you, mines business rules from existing code when needed, and materializes governance docs under `project/` in your repository.
+The **machine-runnable bootstrap** is the agent skill **`tack-bootstrap`**, which interviews you, mines business rules from existing code when needed, and materializes governance docs under `project/` in your repository.
 
 ## Install the skill
 
@@ -14,31 +16,31 @@ Works with **Claude Code, Cursor, Google Antigravity, GitHub Copilot, and 50+ ot
 cd /path/to/your/repo
 npx skills add <github-owner>/<github-repo>
 # explicit skill name (optional):
-npx skills add <github-owner>/<github-repo> --skill sdd-bootstrap
+npx skills add <github-owner>/<github-repo> --skill tack-bootstrap
 ```
 
-After install, open your agent and invoke the **sdd-bootstrap** skill (or describe bootstrapping SDD / filling `.cursorrules` and `project/docs/`). The skill copies the bundled template into `project/` and walks the six-phase flow described in `skills/sdd-bootstrap/SKILL.md`.
+After install, open your agent and invoke the **tack-bootstrap** skill (or describe bootstrapping SDD / filling `.cursorrules` and `project/docs/`). The skill copies the bundled template into `project/` and walks the six-phase flow described in `skills/tack-bootstrap/SKILL.md`.
 
 Browse more skills at [skills.sh](https://skills.sh/).
 
 ### 2. Manual — copy the skill folder
 
-Copy `skills/sdd-bootstrap/` into your editor’s skills directory, for example:
+Copy `skills/tack-bootstrap/` into your editor’s skills directory, for example:
 
 | Agent / editor        | Typical path |
 |----------------------|--------------|
-| Claude Code          | `.claude/skills/sdd-bootstrap/` |
-| Cursor               | `.cursor/skills/sdd-bootstrap/` |
-| Antigravity (project)| `.agents/skills/sdd-bootstrap/` |
+| Claude Code          | `.claude/skills/tack-bootstrap/` |
+| Cursor               | `.cursor/skills/tack-bootstrap/` |
+| Antigravity (project)| `.agents/skills/tack-bootstrap/` |
 
 Each folder should contain `SKILL.md`, `references/`, `scripts/`, and `template/`.
 
 ### 3. Working on this repository (contributors)
 
-The **canonical** skill lives only at [`skills/sdd-bootstrap/`](skills/sdd-bootstrap/). Mirrored copies under `.claude/skills/`, `.cursor/skills/`, and `.agents/skills/` are generated — do not edit those by hand.
+The **canonical** skill lives only at [`skills/tack-bootstrap/`](skills/tack-bootstrap/). Mirrored copies under `.claude/skills/`, `.cursor/skills/`, and `.agents/skills/` are generated — do not edit those by hand.
 
 ```bash
-npm run sync        # refresh mirrors after editing skills/sdd-bootstrap/
+npm run sync        # refresh mirrors after editing skills/tack-bootstrap/
 npm run check-sync  # verify mirrors match canonical (also run in CI)
 ```
 

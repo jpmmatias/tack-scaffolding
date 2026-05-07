@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Fail if committed editor mirrors differ from skills/sdd-bootstrap/ (canonical).
+# Fail if committed editor mirrors differ from skills/tack-bootstrap/ (canonical).
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
-SRC="skills/sdd-bootstrap"
+SRC="skills/tack-bootstrap"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-for DEST in .claude/skills/sdd-bootstrap .cursor/skills/sdd-bootstrap .agents/skills/sdd-bootstrap; do
+for DEST in .claude/skills/tack-bootstrap .cursor/skills/tack-bootstrap .agents/skills/tack-bootstrap; do
   if [[ ! -d "$DEST" ]]; then
     echo "check-skills-sync: missing directory $DEST — run: npm run sync" >&2
     exit 1
