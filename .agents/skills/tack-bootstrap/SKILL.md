@@ -284,9 +284,9 @@ Only after Phases 1–4 are confirmed. Generate or update each artifact below in
 3. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape.
 3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. For each surface selected by `tack.routing.surfaces`:
    - File missing → create from `AGENTS.md.template` / `CLAUDE.md.template`.
-   - File exists → splice/replace **only** the H2 section titled `## Tack routing`. Preserve every other byte. If no such heading exists, append the section at the end.
+   - File exists → use **`${SKILL_DIR}/template/scripts/splice-tack-routing.sh`** to splice/replace only the H2 section titled `## Tack routing`, preserving every other byte. Run with `--check` first to preview the diff; then re-run without `--check` to apply once the user accepts. If no such heading exists, the helper appends the section at the end. Idempotent — re-running with the same `tack.routing.*` values and unchanged `routing-snippet.md` produces a no-op (`--check` exits 0).
 
-   Show a unified diff per file and ask **apply / skip / edit / apply all**, same protocol as step 3. Use `references/file-templates/agents-routing.md` as the worked shape. Idempotent: re-running the skill with the same `tack.routing.*` values must produce a no-op diff.
+   Show the unified diff (the `--check` output, or `diff -u` against the helper's preview) and ask **apply / skip / edit / apply all**, same protocol as step 3. Use `references/file-templates/agents-routing.md` as the worked shape. After Phase 5 the helper is available in the consumer repo at `project/scripts/splice-tack-routing.sh` for re-syncs after upstream `routing-snippet.md` changes.
 4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape.
 5. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape.
 6. **`project/prompts/<name>.md`** — one per confirmed specialist. Fill from `project/prompts/_specialist-template.md`; use `references/file-templates/specialist.md` as the worked shape.
@@ -301,6 +301,7 @@ For every existing file that diverges from your generated draft: show diff, offe
 ## Phase 6 — Smoke test
 
 1. Ask the user to run the `<TEST_COMMAND>` and `<LINT_COMMAND>` recorded in the new `.cursorrules`. Confirm both succeed (or, for an empty NEW project, report that they succeed against the scaffolding).
+1a. Run **`bash project/scripts/tack-doctor.sh`** from the consumer repo root. It fails if `.cursorrules` still contains `<UPPERCASE_PLACEHOLDER>` tokens or if `project/prompts/auto-orchestrator.md` still has `<fill>` rows in the **Specialist routing** table. If it reports issues, return to Phase 5 step 3 (`.cursorrules`) or step 7 (Specialist routing) and fix before continuing.
 2. Print the SDD 7-step pipeline as a final checklist:
 
    ```text
@@ -342,5 +343,7 @@ Stop the skill here. Report the artifacts created and any items the user explici
 - `scripts/detect-stack.sh` — Phase 1 detection helper, prints JSON.
 - `scripts/recon.sh` — Phase 2.1 reconnaissance helper, dumps `recon.json` bucketed into the six layers.
 - `template/scripts/tack-worktree.sh` — copied to `project/scripts/` in the consumer repo; `git worktree` helper for parallel SDD runs.
+- `template/scripts/splice-tack-routing.sh` — Phase 5 step 3b helper; deterministically replaces or appends the `## Tack routing` H2 in `AGENTS.md` / `CLAUDE.md` from `routing-snippet.md`. Supports `--check` for CI / preview. Copied to `project/scripts/` for consumer re-syncs.
+- `template/scripts/tack-doctor.sh` — Phase 6 step 1a verification; fails on leftover `<UPPERCASE_PLACEHOLDER>` tokens in `.cursorrules` and `<fill>` rows in `project/prompts/auto-orchestrator.md`. Copied to `project/scripts/` for ongoing post-bootstrap checks.
 
 When in doubt about path conventions, model tags, or the **Specialist routing** table schema — re-read `project/prompts/auto-orchestrator.md` lines 148–159 in the consumer repo. Never edit other sections of that file.

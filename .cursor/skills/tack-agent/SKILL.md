@@ -2,7 +2,7 @@
 name: tack-agent
 version: 0.2.0
 license: MIT
-description: Use when invoking a single Tack SDD agent in a bootstrapped repo (product-manager, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, worktree-coordinator, or a custom specialist under project/prompts/). Triggers on requests to run one step of the pipeline, audit with reviewer or security, create a worktree, or "ask the architect/PM/QA". Dispatches one subagent via Task with the correct model; for the full pipeline use tack-run instead.
+description: Use when invoking a single Tack SDD agent in a bootstrapped repo (product-manager, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, worktree-coordinator, diagnose, or a custom specialist under project/prompts/). Triggers on requests to run one step of the pipeline, audit with reviewer or security, debug regressions with diagnose, create a worktree, or "ask the architect/PM/QA". Dispatches one subagent via Task with the correct model; for the full pipeline use tack-run instead.
 ---
 
 # tack-agent
@@ -15,7 +15,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 
 ## When to use
 
-- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator.
+- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator, diagnose (bugs / regressions / flaky tests).
 - User references a specific file under `project/prompts/`.
 - User wants a security or reviewer pass on a diff.
 
@@ -39,9 +39,10 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 3. Follow **`${SKILL_DIR}/references/single-dispatch-protocol.md`** for the Task `prompt` wrapper and parameters.
 4. Follow **`${SKILL_DIR}/references/agent-catalog.md`** for default model tags and trigger hints. If the prompt’s Inputs disagree with the table, **the prompt file wins**.
 5. **Ambiguous agent:** use **`AskQuestion`** — options: each stock agent from the catalog, plus discovered specialist files (short list or "Other — I’ll type the filename"), plus **Full pipeline — use tack-run** (non-dispatch; explain redirect).
-6. **Gather INPUTS** before dispatch (e.g. architect needs spec path; reviewer needs `git diff` or scope; PM needs epic and `mode: manual` | `autonomous` and `qa_history` when autonomous). Ask minimal clarifying questions if required paths are missing.
+6. **Gather INPUTS** before dispatch (e.g. architect needs spec path; reviewer needs `git diff` or scope; diagnose needs symptom + optional spec path; PM needs epic and `mode: manual` | `autonomous` and `qa_history` when autonomous). Ask minimal clarifying questions if required paths are missing.
 7. **working_directory:** default to consumer repo root; use the user-supplied **worktree** path if they are in an isolated worktree session.
 8. Return subagent output **verbatim** when practical.
+9. **Platform tool mapping.** Catalog and protocol use Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). Translate to your host's primitives — Claude Code: `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`. Full table: consumer's `project/prompts/auto-orchestrator.md` → **Platform tool mapping**.
 
 ---
 
@@ -56,6 +57,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 | Harness | `harness-engineer.md` |
 | Worker | `worker.md` |
 | Reviewer | `reviewer.md` |
+| Diagnose | `diagnose.md` |
 | Security | `security-engineer.md` |
 
 Do not dispatch `auto-orchestrator.md` through this skill for a full run — use **`tack-run`**. You **may** dispatch `orchestrator.md` if the user only wants the **passive checklist** text emitted (single Task that only produces that checklist per its Outputs).

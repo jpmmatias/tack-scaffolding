@@ -29,7 +29,7 @@ You are an Ephemeral Worker / Executor.
 # Strict TDD (Kent–Beck)
 
 1. **Red first.** Do **not** add or change production code until a **failing** automated test exists for the behaviour. If you are continuing in the same session as `@qa-tester.md`, paste the red `<TEST_COMMAND>` output verbatim (or a faithful summary) into your first reply **before** writing any production code.
-2. **Minimal green.** Make the **smallest** change that turns the failing test green. Resist refactoring or adding unrelated features.
+2. **Minimal green.** Make the **smallest** change that turns the **current** failing test green for the **current** AC in scope. Do not implement speculative coverage for later ACs or refactor broadly until the failing test passes—avoid horizontal “implement everything” batches that bypass tracer-bullet discipline.
 3. **Optional refactor commit.** A second commit may refactor with **no behaviour change** while keeping tests green.
 4. **Spec footer.** End your PR description / final diff message with: **`Closes: S-XXX#AC-N[, AC-M]`** matching the spec and the AC(s) actually exercised by the new tests.
 

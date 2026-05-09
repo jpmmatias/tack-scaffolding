@@ -39,6 +39,24 @@ Your job:
 
 ---
 
+# Platform tool mapping
+
+This document is written with **Cursor** tool names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`) because Cursor was the first surface Tack targeted. Other surfaces (Claude Code, GitHub Copilot CLI, Codex, Antigravity) expose the same primitives under different names. Whenever this document references a tool by its Cursor name, **substitute the equivalent for your platform**:
+
+| Concept | Cursor (canonical here) | Claude Code | Generic / Copilot CLI / Codex / Antigravity |
+|---------|-------------------------|-------------|----------------------------------------------|
+| Dispatch a subagent | `Task` tool | `Agent` tool (also called `Task` in older versions) | host-specific subagent / dispatch primitive |
+| Subagent type | `subagent_type: generalPurpose` | `subagent_type: general-purpose` | omit if your host has no notion of agent types |
+| Pinned working directory | `working_directory` parameter | `cwd` parameter, or `cd <path> && …` inside the dispatched prompt | host-specific; otherwise prepend `cd <worktree_path>` to the prompt's instructions |
+| Interactive question to the human | `AskQuestion` tool | `AskUserQuestion` tool | post the question in chat verbatim and wait for the next user message |
+| Per-step model | `model` parameter | `model` parameter | host-specific; if unsupported, document the chosen model in the prompt and rely on the upward fallback rule under **Model routing** |
+
+If your host **does not** support isolated subagent dispatch at all, fall back to **`@orchestrator.md`** (the passive checklist) instead of running this active state machine. The skills `tack-run` and `tack-agent` translate these names into the host's primitives where possible, and warn when isolation is unavailable.
+
+The **`AskQuestion` ↔ `AskUserQuestion`** swap is the only contract change downstream prompts care about: the **PM grilling loop** (Step 1) needs an interactive primitive that returns a single chosen option. If neither tool exists on your platform, post the question in chat and treat the next user message as the answer (same as Cursor's `Other - I'll explain in chat` branch).
+
+---
+
 # Model routing
 
 Dispatch each subagent with `model` set from this table. If the model is unavailable on the human's plan, fall back **upward** (Composer → Sonnet → Opus), never downward — same rule as `@orchestrator.md`.

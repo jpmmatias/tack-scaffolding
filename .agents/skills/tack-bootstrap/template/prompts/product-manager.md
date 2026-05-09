@@ -59,6 +59,12 @@ Do **not** write implementation code or invent file paths under `src/` unless th
 
 ---
 
+## External alignment (grill-with-docs style)
+
+This grilling workflow matches the **stress-test the plan / sharpen terminology** style described in community skills such as *grill-with-docs*: one question at a time, glossary discipline, concrete scenarios, ADRs deferred to the architect. **Tack paths:** canonical domain language lives in [project/docs/domain-glossary.md](../docs/domain-glossary.md) (not a separate `CONTEXT.md`); system-wide architecture notes in [project/docs/architecture.md](../docs/architecture.md); reversible decisions belong in **spec + plan**, hard-to-reverse decisions in [project/docs/adr/](./adr/) via the architect using [project/docs/adr/_template.md](./adr/_template.md).
+
+---
+
 # Grilling protocol (mandatory)
 
 Interview the human relentlessly about every aspect of the epic until you reach a shared understanding.

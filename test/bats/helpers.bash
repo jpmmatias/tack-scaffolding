@@ -10,6 +10,9 @@ export REPO_ROOT
 export DETECT_STACK="$REPO_ROOT/skills/tack-bootstrap/scripts/detect-stack.sh"
 export RECON_SH="$REPO_ROOT/skills/tack-bootstrap/scripts/recon.sh"
 export TACK_WORKTREE="$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-worktree.sh"
+export SPLICE_TACK_ROUTING="$REPO_ROOT/skills/tack-bootstrap/template/scripts/splice-tack-routing.sh"
+export TACK_DOCTOR="$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-doctor.sh"
+export ROUTING_SNIPPET="$REPO_ROOT/skills/tack-bootstrap/template/routing-snippet.md"
 export CHECK_DISPATCH_CONTRACT="$REPO_ROOT/scripts/check-dispatch-contract.sh"
 
 # Create an isolated git repo; sets TMP_REPO and cds into it.

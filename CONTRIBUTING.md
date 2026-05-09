@@ -25,12 +25,19 @@ Commit the canonical tree, the bundled copies, and the editor mirrors so CI stay
 npm run check-sync    # mirrors must match canonical
 npm run validate-skill  # SKILL.md frontmatter (all skills/*/SKILL.md; version matches package.json)
 npm run check-routing   # routing-snippet.md matches templates + worked examples
-npm test                # Bats: detect-stack, tack-worktree, recon, dispatch contract smoke (install bats-core: brew install bats-core / apt install bats)
+npm test                # Bats: detect-stack, tack-worktree, recon, splice-tack-routing, tack-doctor, dispatch contract smoke (install bats-core: brew install bats-core / apt install bats)
 npm run check-shell     # shellcheck on every tracked *.sh (install: brew install shellcheck); CI policy is **zero warnings** (see [.shellcheckrc](.shellcheckrc))
 npm run check-dispatch  # agent-catalog → template prompts; pipeline vs auto-orchestrator model tables
 npm run lint            # optional: markdownlint-cli2 (canonical skills + root *.md)
 npm run check-links     # optional: lychee offline link check (downloads a pinned lychee binary on first run on Apple silicon / Linux; Intel macOS: brew install lychee)
 ```
+
+## Consumer-side scripts (template/scripts/)
+
+Two helpers ship inside `skills/tack-bootstrap/template/scripts/` and are copied to a consumer's `project/scripts/` during Phase 5. They are validated by Bats and `shellcheck` here, but are intended to be run **from a bootstrapped repo's root**, not from this scaffold:
+
+- `splice-tack-routing.sh` — deterministic `## Tack routing` H2 splice into `AGENTS.md` / `CLAUDE.md` from `project/routing-snippet.md`. Idempotent; supports `--check` for CI / preview. Used by `tack-bootstrap` Phase 5 step 3b and re-runnable when `routing-snippet.md` upgrades.
+- `tack-doctor.sh` — post-bootstrap validator for `.cursorrules` (no `<UPPERCASE>` placeholders) and `project/prompts/auto-orchestrator.md` (no `<fill>` Specialist routing rows). Run by `tack-bootstrap` Phase 6 step 1a; consumers can wire into their own CI as `bash project/scripts/tack-doctor.sh`.
 
 ## Local hooks (optional)
 

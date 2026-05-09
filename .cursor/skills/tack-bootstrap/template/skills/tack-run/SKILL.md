@@ -40,6 +40,7 @@ If the user wants **one** agent only, point them to the **`tack-agent`** skill i
 5. **PM Step 1:** on `STATUS: NEEDS_INPUT`, use **`AskQuestion`** exactly as specified in `auto-orchestrator.md` (options + `Other - I'll explain in chat`). On `cancel grill`, stop per stop conditions.
 6. **Isolation:** retain only spec id, paths, step outcomes, and snippets needed for the next dispatch and the Final report (same as auto-orchestrator **Isolation** section).
 7. **No auto-retry** of failed steps in this version.
+8. **Platform tool mapping.** `auto-orchestrator.md` uses Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). On Claude Code use `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`; on hosts without a subagent primitive, fall back to `@orchestrator.md`. Full table: `auto-orchestrator.md` → **Platform tool mapping**.
 
 ---
 

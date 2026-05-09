@@ -21,6 +21,7 @@ Paths are relative to the **consumer repo root**. Prompt files live under `proje
 | Harness engineer | `harness-engineer.md` | `[Sonnet]` | Harness/factories/doubles; needs spec/plan context when scoped to a feature |
 | Worker | `worker.md` | `[Composer]` | Implementation; needs spec, plan/task, red test output when continuing TDD |
 | Reviewer | `reviewer.md` | `[Opus]` | Needs diff or review scope + governing spec/task reference |
+| Diagnose | `diagnose.md` | `[Opus]` | Hard bugs, regressions, flaky behaviour; needs symptom + rules/harness context; optional `project/specs/S-XXX-*.md` path — **manual** via `tack-agent` (not part of default `auto-orchestrator` pipeline) |
 | Security engineer | `security-engineer.md` | `[Opus]` | Needs diff/scope + rules, glossary, architecture; optional spec id |
 
 ## Passive vs active orchestration (not single-agent “executors”)
