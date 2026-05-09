@@ -41,6 +41,34 @@ Conditional follow-ups:
 - If the user lists no forbidden synonyms → ask "Are there legacy terms you actively want banned from new work? E.g. an old product name, or a misleading data shape." Suggest at least one likely candidate based on Phase 2 findings if available.
 - If telemetry is "we don't have any yet" → propose a single pipeline placeholder, mark it explicitly TODO in the glossary, and add a `[SPEC]` follow-up "Define telemetry baseline".
 
+#### Block A — DDD subsection
+
+**Run only when `tack.ddd.profile = on`.** Skip when the profile is `off`. For **EXISTING** projects, skip questions already answered by Phase 2 section (ddd). Max 3 questions per turn — split across rounds.
+
+**Round 1 — Strategic shape**
+
+1. What are the 2–5 **bounded contexts** in this product? Give each a canonical name and a one-line definition. Default suggestion if the user says "I don't know": one context per top-level service/module folder you detected, or per persona group if monolithic.
+2. For each context, classify it **core** / **supporting** / **generic**. *Core* = competitive logic the team writes from scratch. *Supporting* = needed but not differentiating (e.g. user accounts in most products). *Generic* = solved by an off-the-shelf library or SaaS (e.g. email delivery).
+3. Are there forbidden cross-context terms? E.g. context A calls them "Customer", context B calls them "Account" — both stay, never mix.
+
+**Round 2 — Tactical model**
+
+4. For each context, name 1–3 **aggregate roots** (the entities outsiders address by ID and that own transactional consistency). Recommendation: prefer fewer, larger aggregates initially; split when transactional contention forces it.
+5. List the **value objects** worth naming in the glossary. Hints: anything that's "a number with a unit" (Money, Distance), "a string with a format rule" (Email, IBAN, SKU), or "a tuple that travels together" (DateRange, GeoPoint). Skip low-value primitives.
+6. List the **domain events** the contexts emit (cross-context or audit-worthy). Use `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Skip events that are pure UI signals.
+
+**Round 3 — Boundaries**
+
+7. For each external integration in your architecture, where does the **anticorruption layer** live (or should live)? Path or "none yet → mark `[ADR]`".
+8. Pairwise context relationships: for each pair of contexts that talk, pick a tag — **customer-supplier**, **conformist**, **ACL**, **shared kernel**, **published language**, **partnership**, **separate ways**. Recommendation: when in doubt, pick **ACL** for any context that consumes from a third party or a legacy module.
+
+Conditional follow-ups:
+
+- If the user proposes only one context → push back: "What about admin / back-office work, billing, identity — do those share the language with the user-facing flow, or do they have a different vocabulary that drifts? Often these turn out to be separate contexts."
+- If the user names a context with no aggregates → flag it: "A context without a transactional root is usually a service module, not a bounded context. Want to fold it into a neighbor, or are there aggregates we missed?"
+- If the user picks "shared kernel" for two contexts → push back: "Shared kernel is the most coupled pattern — both contexts must agree on every change. Confirm both teams accept that, otherwise prefer **published language** with a versioned contract."
+- For greenfield projects: if the user can't yet name domain events, defer with `[SPEC]` follow-up "Catalog domain events after the first feature lands" rather than inventing them.
+
 ### Block B — Stack & quality
 
 1. Confirm or correct the language(s), framework(s), and package manager I detected. Anything I missed?

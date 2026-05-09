@@ -23,6 +23,7 @@ Paths are relative to the **consumer repo root**. Prompt files live under `proje
 | Reviewer | `reviewer.md` | `[Opus]` | Needs diff or review scope + governing spec/task reference |
 | Diagnose | `diagnose.md` | `[Opus]` | Hard bugs, regressions, flaky behaviour; needs symptom + rules/harness context; optional `project/specs/S-XXX-*.md` path — **manual** via `tack-agent` (not part of default `auto-orchestrator` pipeline) |
 | Security engineer | `security-engineer.md` | `[Opus]` | Needs diff/scope + rules, glossary, architecture; optional spec id |
+| Domain modeler | `domain-modeler.md` | `[Opus]` | Refines strategic DDD model — bounded contexts, context map, ACLs. Requires `tack.ddd.profile = on`. **Manual** via `tack-agent` (bootstrap-time + on-demand re-runs); **not** part of the default `auto-orchestrator` per-feature pipeline. Inputs: glossary + architecture + Phase 2 discovery draft + trigger text |
 
 ## Passive vs active orchestration (not single-agent “executors”)
 

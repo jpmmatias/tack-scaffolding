@@ -23,6 +23,16 @@ List non-negotiable rules for this codebase:
 - <INVARIANT_2> (e.g. identity claim order, parity between legacy and new modules)
 - <INVARIANT_3>
 
+<!-- ## Bounded contexts and ubiquitous language (CRITICAL)
+DDD-only — emit this section when `tack.ddd.profile = on`. Omit entirely when off.
+
+- **Bounded contexts** are listed in `project/docs/domain-glossary.md` under **Bounded contexts**. Every spec MUST declare its bounded context (single value).
+- **New domain terms** must be added to `project/docs/domain-glossary.md` under a specific context in the same change. Reusing a term across contexts requires either an ADR or a published-language event — never silent reuse.
+- **Cross-context calls** must go through an **anticorruption layer** listed in `project/docs/architecture.md` under **Anticorruption layers**. Importing another context's domain types directly is a review FAIL.
+- **Domain events** follow `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Names that don't match are a review FAIL.
+- **Aggregate state changes** require an invariant test in the harness — every behavior change to an aggregate root cites the invariant it preserves or modifies.
+-->
+
 ## Architecture rules
 
 - Where the canonical architecture description lives: `project/docs/architecture.md` → link to your real doc.

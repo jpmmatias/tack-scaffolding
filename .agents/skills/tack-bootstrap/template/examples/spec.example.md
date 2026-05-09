@@ -6,6 +6,7 @@
 | **Status** | Ready |
 | **Author** | Example Team |
 | **Date** | 2026-05-07 |
+| **Bounded context** | Checkout |
 
 ## Problem
 
@@ -63,6 +64,26 @@ Then the string matches "IDEMPOTENT_RETRY_V2" exactly
 | Payment Intent | glossary → Entities |
 | Customer Session | glossary → Entities |
 | IDEMPOTENT_RETRY_V2 | `.cursorrules` invariants |
+
+## Aggregates touched
+
+| Aggregate | Mode | Invariants touched |
+|-----------|------|--------------------|
+| Payment Intent | mutate | "at most one in-flight intent per Customer Session within the dedupe window" |
+| Customer Session | read | n/a (read-only check of active intent state) |
+
+## Domain events emitted
+
+| Event | Trigger (which AC) | Payload | Invariant that produces it |
+|-------|--------------------|---------|----------------------------|
+| `CheckoutSubmitDeduplicated` | AC-1, AC-2 | `{ intentIdHash, sessionId, reason: "deduplicated" }` | "at most one in-flight intent per Customer Session within the dedupe window" |
+
+## Invariants enforced or changed
+
+| Invariant | AC | Harness test |
+|-----------|----|--------------|
+| At most one in-flight Payment Intent per Customer Session within the dedupe window | AC-1 | `tests/harness/checkout/dedupe-window.invariant.test.ts` |
+| Duplicate Pay attempt emits `CheckoutSubmitDeduplicated` exactly once | AC-2 | `tests/harness/checkout/dedupe-emission.invariant.test.ts` |
 
 ## References
 

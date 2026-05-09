@@ -10,11 +10,11 @@ Prioritized improvement opportunities for this repository (canonical skill at [`
 |-------|----|----|----|-------|
 | 2. Script hardening & tests | 0 | 0 | 0 | 0 |
 | 3. Skill correctness & safeguards | 0 | 0 | 0 | 0 |
-| 4. Template content & onboarding | 0 | 2 | 2 | 4 |
+| 4. Template content & onboarding | 0 | 2 | 4 | 6 |
 | 5. Tooling / CLI | 0 | 1 | 1 | 2 |
 | 6. Repo hygiene | 1 | 1 | 1 | 3 |
 | 7. Worktree polish | 0 | 0 | 2 | 2 |
-| **Total** | **1** | **4** | **6** | **11** |
+| **Total** | **1** | **4** | **8** | **13** |
 
 Done so far: **17** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-10, B-11, B-12, B-13, B-25, B-26, B-27, B-28 — see [Done](#done)).
 
@@ -56,7 +56,19 @@ Done so far: **17** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-10,
 
 - **Priority:** P2 · **Effort:** M
 - **Rationale:** SKILL rule 1 ([`SKILL.md:22`](skills/tack-bootstrap/SKILL.md)) supports PT/EN; public docs are English-only.
-- **Acceptance:** `README.pt-BR.md` mirroring install and conventions; link from main README.
+- **Acceptance:** `README.pt-BR.md` mirroring install and conventions; link from main README. Mention the **DDD profile** opt-in (`tack.ddd.profile`) alongside other Phase 1 detection knobs.
+
+### B-29 — End-to-end OrderFlow demo with DDD profile on
+
+- **Priority:** P2 · **Effort:** M
+- **Rationale:** [`skills/tack-bootstrap/template/examples/`](skills/tack-bootstrap/template/examples/) now shows DDD-populated glossary and spec rows, but a coherent multi-context walkthrough (Checkout + Payments + Fulfillment) — including a `@domain-modeler.md` re-run that splits a context — would help users understand when DDD pays off.
+- **Acceptance:** Worked example under `examples/orderflow-ddd/` with three contexts, an ADR splitting Sales out of Checkout, and a sample `plan.md` that includes the new `## DDD impact` section from `architect.md` rule 8.
+
+### B-30 — Event-storming companion specialist
+
+- **Priority:** P2 · **Effort:** L
+- **Rationale:** `@domain-modeler.md` works from the Phase 2 discovery draft, but greenfield projects (no code) need a structured event-storming pass to produce the first context map. A dedicated specialist running before `@domain-modeler.md` could conduct that interview.
+- **Acceptance:** New `event-stormer.md` prompt under `skills/tack-bootstrap/template/prompts/`, registered in `tack-agent`, with a worked example replacing what is currently the Phase 3 Block A — DDD round 2/3 questions when no Phase 2 draft exists.
 
 ---
 

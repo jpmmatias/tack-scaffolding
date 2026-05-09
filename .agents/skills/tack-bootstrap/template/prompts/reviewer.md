@@ -53,6 +53,12 @@ Do **not** propose new features or rewrite architecture.
 
 9. **Vague new tests** — New test suites whose **only** description pattern is `should …` without **`S-XXX AC-N`**? → **FAIL** if yes.
 
+**DDD (only when `.cursorrules` contains the `Bounded contexts and ubiquitous language` section — otherwise skip)**
+
+10. **Bounded context violation** — Diff calls another bounded context's domain types directly without an ACL listed in `project/docs/architecture.md` → **Anticorruption layers**? → **FAIL** if yes. (Heuristic: imports across context source folders bypassing the ACL row.)
+11. **Aggregate invariant** — Diff mutates aggregate state (sets a field on an aggregate root, transitions a state enum) without a matching invariant test referenced in the spec's **Invariants enforced or changed** table? → **FAIL** if yes.
+12. **Domain event naming** — Diff introduces a new domain event whose name is not in the glossary's **Domain events** catalog, or whose name violates `<PastTenseVerb><Aggregate>` (e.g. `OrderProcessor`, `paymentEvent`, `notify_order_placed`)? → **FAIL** if yes.
+
 ## Project-specific invariants (fill in `.cursorrules` and mirror here)
 
 Add rows **only** for rules your codebase defines. Examples (commented — delete or replace):

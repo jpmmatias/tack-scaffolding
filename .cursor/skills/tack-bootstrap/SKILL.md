@@ -31,6 +31,7 @@ You execute six phases in order. **Never jump phases.** Phase 2 is mandatory for
 10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, `project/scripts/tack-worktree.sh`, etc. Bootstrap-only helpers live at `${SKILL_DIR}/scripts/` (`detect-stack.sh`, `recon.sh`); invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
 11. Model routing convention: `[Opus]` = `claude-opus-4-7-thinking-xhigh`, `[Sonnet]` = `claude-4.6-sonnet-medium-thinking`, `[Composer]` = `composer-2-fast`. Always tag specialists with one of these.
 12. **Agent-agnostic routing.** The skill emits routing into `.cursorrules` (Cursor) and `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). Both are governed by `tack.routing.*`. Splice the `## Tack routing` H2 only — never overwrite other sections. Defaults: `auto = yes`, `surfaces = both` when either `AGENTS.md` / `.claude/` / `CLAUDE.md` is detected, else `agents`.
+13. **DDD profile.** Tack supports an opt-in **Domain-Driven Design** profile (`tack.ddd.profile = on | off`, default **off**). When **on**, Phase 2 layer 1 mines bounded contexts / aggregates / domain events / anticorruption layers; Phase 3 Block A asks the DDD subsection; Phase 5 emits the DDD sections in `domain-glossary.md`, `architecture.md`, `.cursorrules`, and `specs/_template.md`, and offers to run the `@domain-modeler.md` prompt to refine the strategic model. When **off**, every DDD section is omitted — output is byte-identical to pre-DDD Tack. **Never** silently flip the profile; ask in Phase 1 (suggesting **on** when DDD code signals are detected) and propagate the answer through later phases.
 
 ---
 
@@ -42,7 +43,12 @@ Before asking the user anything, gather facts.
 2. Read the main manifest. Infer language, framework, test runner, linter, build scripts, package manager.
 3. Count non-empty source files, excluding `node_modules`, `vendor`, `.venv`, `dist`, `build`, `.git`, `coverage`, `.next`, `.turbo`, `target`.
 4. Run `bash "${SKILL_DIR}/scripts/detect-stack.sh"` from the **consumer repository root** if the script exists — it outputs a JSON summary. Treat its output as a hint, not ground truth.
-5. **Classify the project**:
+5. **DDD signal scan.** Independently of the stack script, look for code-level signals that suggest the team is already practicing DDD. Use these to **suggest** (not force) the DDD profile default:
+   - Directory names anywhere under the source tree: `domain/`, `aggregates/`, `value-objects/`, `events/`, `bounded-contexts/`, `contexts/`, multi-module layouts where each top-level folder looks like a self-contained service (its own `domain/` + `application/` + `infra/`).
+   - Class / type name suffixes occurring 3+ times: `*Aggregate`, `*AggregateRoot`, `*ValueObject`, `*DomainEvent`, `*Event` paired with `*Handler`, `Anticorruption*`, `*Acl` / `*ACL` adapter classes.
+   - Documentation traces: existing mentions of "bounded context", "ubiquitous language", "aggregate root", "domain event", "anticorruption" in `README.md`, `docs/`, ADRs, or `CONTRIBUTING.md`.
+   - Default mapping: **two or more** distinct signals → suggest **`tack.ddd.profile = on`**; one or zero → suggest **`off`**. Always cite the matching `file:line` (or directory path) when suggesting **on**.
+6. **Classify the project**:
    - **NEW** — no source code beyond scaffolding (manifests, configs, README, possibly a single `index` or `main` file). Skip Phase 2, jump to Phase 3.
    - **EXISTING** — real source code present. Phase 2 is **mandatory**.
 
@@ -70,11 +76,14 @@ Then present a **detection summary** and ask the user to confirm or correct it. 
     .cursor/ dir  : present | absent
     .copilot/ dir : present | absent
 - Routing default: tack.routing.auto = yes, tack.routing.surfaces = both if any Claude marker present, else agents.
+- DDD profile (suggested): tack.ddd.profile = on | off
+    Signals matched: <list of file:line / directory citations or "none">
+    Reasoning (one line): <e.g. "two DDD folder names + Aggregate suffix in 4 classes" or "no DDD signals detected — defaulting off">
 
 Confirm or correct any field above before I proceed. Reply with corrections, or "correct" to accept.
 ```
 
-Do not advance until the user confirms or corrects. If they correct any field, restate the summary and ask again.
+Do not advance until the user confirms or corrects. If they correct any field, restate the summary and ask again. Treat **`tack.ddd.profile`** as a first-class output of Phase 1: persist it in your working memory and thread it through every subsequent phase. Phase 2 / 3 / 5 conditional steps below reference this flag explicitly.
 
 ---
 
@@ -93,6 +102,15 @@ Read the repo methodically in this priority order. For every finding, keep a not
 - `services/`, `usecases/`, `application/`, `commands/`, `handlers/`, `interactors/` — orchestration code.
 - `policies/`, `rules/`, `validators/`, `specifications/`, `guards/` — explicit rule code.
 - Files named after business concepts (`Order.ts`, `Subscription.py`, `Invoice.cs`, etc.).
+- **When `tack.ddd.profile = on` (DDD-conditional reconnaissance):**
+  - Cluster Layer-1 directories into **candidate bounded contexts**. Heuristics: top-level folder under the source tree that contains its own domain + application code; CODEOWNERS / git-blame ownership clusters; module names that recur across files; package boundaries (Java packages, Go modules, Python packages).
+  - Per cluster, classify as **core / supporting / generic** based on: signal density (how much custom logic vs. CRUD), product-criticality cues from docs / commit messages, and whether the cluster wraps a third-party (generic) or is plain-vanilla persistence (supporting).
+  - For each entity in Layer 1, mark it as **aggregate root** (owns transactional consistency, referenced by ID from outside its module) or **internal entity** (only mutated by its aggregate root). Cite the constructor / factory `file:line` and the persistence boundary that proves it.
+  - Identify **value objects**: types equal-by-value with no lifecycle (Money, Email, IBAN, DateRange). Look for absence of identity fields and presence of `equals` / `__eq__` / `Equatable` overrides.
+  - Identify **domain events**: classes / types ending in `Event` paired with handlers / subscribers; pub-sub `emit` / `publish` / `dispatch` calls inside Layer 1; outbox-table writes. Capture event name, emitting aggregate, payload sketch.
+  - Identify **anticorruption layer (ACL) locations**: adapter / mapper / translator code that wraps external SDKs (Layer 2 boundaries) before the result reaches Layer 1. Cite the file paths.
+  - Identify **context relationships**: which contexts call which, sync vs. async, who depends on whose vocabulary. This feeds the future Context map.
+  - Treat all DDD findings as `??? ASK USER` candidates when ambiguous — do **not** invent classifications. The user resolves them in Phase 2.3.
 
 **Layer 2 — Boundaries**
 - `controllers/`, `routes/`, `api/`, `handlers/`, `endpoints/` — HTTP/RPC inputs.
@@ -136,6 +154,14 @@ The required sections are:
 - **(i) Edge cases the code already handles** — concurrency, duplicates, partial failures, soft vs hard deletes, backfills.
 - **(j) Dead code & contradictions** — unused entities/methods/flags, code paths contradicting tests or DB schema, TODO/FIXME/HACK touching business logic.
 - **(k) Open questions / ambiguities** — every place code is ambiguous or contradictory becomes a numbered question for the user.
+- **(ddd) DDD strategic & tactical model** — *only when `tack.ddd.profile = on`*. Captures bounded contexts, aggregate classification, value objects, domain events, anticorruption layers, and context relationships found in Layer 1 reconnaissance. Subsections:
+  - **(ddd.1) Bounded contexts** — name, role (core / supporting / generic), source folder(s), primary aggregates.
+  - **(ddd.2) Aggregates & value objects** — per entity in section (a), the type (entity / aggregate root / value object / domain service) and the owning context.
+  - **(ddd.3) Domain events** — event name, emitting aggregate, payload sketch, downstream consumers / subscribers, and any link to a telemetry pipeline named in (h).
+  - **(ddd.4) Anticorruption layers** — for each external integration in (f), the path to the wrapping adapter / translator / mapper, plus a one-line note on what it translates.
+  - **(ddd.5) Context relationships** — pairwise mapping between contexts: customer-supplier, conformist, ACL, shared kernel, published language, partnership, separate ways.
+
+  Use the `references/business-rule-discovery-checklist.md` (ddd) section for the minimum-evidence rows. When the profile is `off`, omit this section entirely — do not write `??? ASK USER` placeholders just to fill it.
 
 ### 2.3 Confirm & deepen — iterative interview loop
 
@@ -203,7 +229,7 @@ For **NEW** projects: run every block in full.
 
 The full question bank lives in `references/discovery-questions.md`. Blocks, in order:
 
-- **Block A — Product & domain.** Business problem, personas/roles, 3–7 core entities (canonical + forbidden synonyms), surfaces (UI / API / jobs / channels), telemetry pipelines.
+- **Block A — Product & domain.** Business problem, personas/roles, 3–7 core entities (canonical + forbidden synonyms), surfaces (UI / API / jobs / channels), telemetry pipelines. **When `tack.ddd.profile = on`,** also run the **Block A — DDD subsection** in `references/discovery-questions.md` (bounded contexts, primary aggregates per context, expected domain events, ACL needs).
 - **Block B — Stack & quality.** Confirm/collect stack. Exact commands: `lint`, `test`, `typecheck`, `build`, `e2e`, `format`. Separate runners for integration / E2E? Required minimum coverage?
 - **Block C — Engineering invariants.** Boundary rules (e.g. "domain does not import from infra"), function/module size limits, mandatory architectural pattern (hexagonal, clean, feature folders, …), mock conventions and libraries.
 - **Block D — Architecture.** Topology (monolith, modular, microservices, serverless), persistence, messaging, jobs, auth/identity, critical external integrations.
@@ -287,8 +313,9 @@ Only after Phases 1–4 are confirmed. Generate or update each artifact below in
    - File exists → use **`${SKILL_DIR}/template/scripts/splice-tack-routing.sh`** to splice/replace only the H2 section titled `## Tack routing`, preserving every other byte. Run with `--check` first to preview the diff; then re-run without `--check` to apply once the user accepts. If no such heading exists, the helper appends the section at the end. Idempotent — re-running with the same `tack.routing.*` values and unchanged `routing-snippet.md` produces a no-op (`--check` exits 0).
 
    Show the unified diff (the `--check` output, or `diff -u` against the helper's preview) and ask **apply / skip / edit / apply all**, same protocol as step 3. Use `references/file-templates/agents-routing.md` as the worked shape. After Phase 5 the helper is available in the consumer repo at `project/scripts/splice-tack-routing.sh` for re-syncs after upstream `routing-snippet.md` changes.
-4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape.
-5. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape.
+4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape. **When `tack.ddd.profile = on`,** also fill the DDD sections (`## Bounded contexts`, typed `## Entities` table with `Type` and `Context` columns, `## Domain events`, `## Context relationships`) from Phase 2 section (ddd) and Phase 3 Block A — DDD answers.
+5. **`project/docs/architecture.md`** — boundaries, stack, integrations, topology drawn from Phase 2 + Phase 3. Use `references/file-templates/architecture.md` as the worked shape. **When `tack.ddd.profile = on`,** also fill `## Context map` and `## Anticorruption layers` from Phase 2 sections (ddd.5) and (ddd.4); add the per-context note to `## Layers / boundaries` (cross-context imports forbidden except through ACLs).
+5a. **`project/prompts/domain-modeler.md`** (DDD-conditional) — when `tack.ddd.profile = on`, after step 5 succeeds, offer to dispatch **`@domain-modeler.md`** as a one-off (via `tack-agent`) to refine the bounded-context table, context map, and ACL list using the Phase 2 (ddd) draft as input. Skipping is fine — the user can re-run later. The prompt itself is copied along with all other `template/prompts/*.md` in step 1.
 6. **`project/prompts/<name>.md`** — one per confirmed specialist. Fill from `project/prompts/_specialist-template.md`; use `references/file-templates/specialist.md` as the worked shape.
 7. **`project/prompts/auto-orchestrator.md`** — update the **Specialist routing — fill in** table only. Do not touch other sections.
 8. *(Optional, on user accept)* `project/docs/adr/0001-stack-baseline.md` recording stack + key invariants chosen here. Use `project/docs/adr/_template.md` as the shape.

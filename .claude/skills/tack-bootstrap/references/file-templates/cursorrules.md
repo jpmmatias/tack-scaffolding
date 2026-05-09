@@ -23,6 +23,16 @@ Worked example, **anonymized and trimmed** from the OrderFlow sample. Use as a s
 - **<INVARIANT_NAME_2>:** parity rule between two modules — e.g. "Behaviour edits to checkout orchestration must touch both `src/providers/legacy/**` and `src/providers/checkout/**` until legacy is retired."
 - **<INVARIANT_NAME_3>:** identity / claim resolution order — e.g. "Read `<sessionId>` from `<cookie>` first, fall back to `<claim>` in the signed JWT. Never use `sub`."
 
+## Bounded contexts and ubiquitous language (CRITICAL)
+
+> **DDD profile only.** Emit this section when `tack.ddd.profile = on`; omit entirely when off.
+
+- **Bounded contexts** are listed in `project/docs/domain-glossary.md` under **Bounded contexts**. Every spec MUST declare its bounded context (single value). Specs that span contexts need an ADR.
+- **New domain terms** must be added to `project/docs/domain-glossary.md` under a specific context in the same change. Reusing a term across contexts requires either an ADR or a **published language** event — never silent reuse.
+- **Cross-context calls** must go through an **anticorruption layer** listed in `project/docs/architecture.md` under **Anticorruption layers**. Importing another context's domain types directly is a review FAIL.
+- **Domain events** follow `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Names that don't match are a review FAIL. Domain events live in the glossary's **Domain events** catalog and are distinct from telemetry events (a single artifact MAY appear in both).
+- **Aggregate state changes** require an invariant test in the harness — every behavior change to an aggregate root cites the invariant it preserves or modifies (constructor check, DB constraint, or guard clause).
+
 ## Architecture rules
 
 - Canonical architecture: `project/docs/architecture.md` (link to your source of truth if it lives elsewhere).
@@ -53,3 +63,4 @@ Notes for the bootstrap skill:
 - Do not write `<TBD>` or `???` into `.cursorrules`. If a value is unknown, **ask** before generating the file.
 - The block headings (`Tech stack`, `Domain and naming`, `Engineering invariants`, `Architecture rules`, `SDD / TDD / harness`, `Quality commands`) are part of the contract — keep them verbatim.
 - If the consumer repo already has a `.cursorrules`, **diff** before overwriting and offer merge.
+- The `Bounded contexts and ubiquitous language` block is **conditional** on `tack.ddd.profile = on`. Emit it only when that flag is on — and when it is, fill the bullet text with the user's actual contexts (do **not** ship the literal "<Context A>" placeholders to the consumer). Reviewer / architect / PM prompts always read this section if present and skip the DDD checks if absent.

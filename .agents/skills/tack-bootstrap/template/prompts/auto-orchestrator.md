@@ -302,3 +302,5 @@ Optional human gates (not active by default): after Step 1, 2, 3, 5, or 6, pause
 7. **`[Opus]`** `@reviewer.md`
 
 Optional: **`[Opus]`** `@security-engineer.md` when triggers fire.
+
+**Out of band (not part of the per-feature pipeline):** `@domain-modeler.md` — refines the strategic DDD model (bounded contexts, context map, anticorruption layers) when `tack.ddd.profile = on`. Run via `tack-agent` at bootstrap and on demand whenever a context boundary moves; the per-feature pipeline does **not** invoke it. PM / architect / reviewer naturally consume the (now richer) glossary and architecture docs without calling `@domain-modeler.md` directly.

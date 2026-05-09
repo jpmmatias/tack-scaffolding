@@ -143,6 +143,54 @@ Minimum bar: at least one item from `(j)` should appear here as an open question
 
 ---
 
+## (ddd) DDD strategic & tactical model
+
+**Only when `tack.ddd.profile = on`.** Skip this section entirely when the profile is `off`; do not add `??? ASK USER` rows just to fill it.
+
+### (ddd.1) Bounded contexts
+
+- [ ] Each candidate context has a canonical name, source folder(s), and a one-line description of what it owns.
+- [ ] Each context is classified **core** / **supporting** / **generic**. Core contexts have a justification rooted in product strategy or the Phase 2 draft (e.g. "this is where competitive logic lives").
+- [ ] Each context lists 1–3 primary aggregate roots and the canonical names from section (a).
+
+Minimum bar: at least one citation per context — either a CODEOWNERS line, a folder path, or a class cluster.
+
+### (ddd.2) Aggregates & value objects
+
+- [ ] Every entity in section (a) is tagged **aggregate root** / **internal entity** / **value object** / **domain service**.
+- [ ] Every aggregate root has a constructor / factory citation that proves it owns transactional consistency (i.e. callers do not mutate its internal entities directly).
+- [ ] Every value object cited has either an explicit `equals` / `__eq__` override or a structural-equality language guarantee (e.g. Kotlin `data class`, Scala `case class`, Python `frozen dataclass`).
+- [ ] Cross-aggregate references use **IDs**, not object pointers (or, if they don't, that is flagged as a `[REFACTOR]` follow-up).
+
+Minimum bar: every entity in (a) appears here with a type tag.
+
+### (ddd.3) Domain events
+
+- [ ] Each event has a name in the form `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Names that don't match are flagged.
+- [ ] Each event has an emitting aggregate root cited (`file:line`).
+- [ ] Each event has a payload sketch (field names + types) and at least one consumer / subscriber path or `??? ASK USER` if no consumer is found.
+- [ ] Events that double as analytics events are cross-linked to (h) Telemetry — they are **not** the same artifact, but they may reuse a payload.
+
+Minimum bar: every `*Event` class in Layer 1 is listed here, plus every outbox / pub-sub emit site in Layer 1.
+
+### (ddd.4) Anticorruption layers
+
+- [ ] Every external integration listed in (f) has a wrapping adapter / mapper / translator path cited, or is explicitly marked **no ACL** with a justification.
+- [ ] Each ACL entry has a one-line note on what it translates (vocabulary, units, error model, identity).
+- [ ] Domain code that imports an external SDK directly (i.e. bypasses an ACL) is flagged as a `[REFACTOR]` follow-up.
+
+Minimum bar: one row per (f) integration.
+
+### (ddd.5) Context relationships
+
+- [ ] Pairwise table of context-to-context calls: which one calls which, sync vs. async, how vocabulary aligns.
+- [ ] Each pair is tagged with one of: **customer-supplier**, **conformist**, **ACL**, **shared kernel**, **published language**, **partnership**, **separate ways**.
+- [ ] Asymmetric or contested relationships (e.g. "downstream context wants vocabulary X, upstream uses Y") become numbered open questions.
+
+Minimum bar: every cross-context call discovered in (d) Workflows or (f) External integrations appears in this table.
+
+---
+
 ## Coverage summary the skill prints before re-prompting
 
 After each interview round, the skill prints:
@@ -159,3 +207,5 @@ After each interview round, the skill prints:
 A section reaches `covered` only when every required row above has at least one citation **and** every `??? ASK USER` marker has been raised in at least one interview round.
 
 Until **all eleven sections** reach `covered`, do not present the verbatim done-prompt. The user replying `complete` while sections are still partial is **ignored**: the skill must run another round of at least 3 questions targeting the lowest-coverage section before re-prompting.
+
+When `tack.ddd.profile = on`, the **(ddd)** section's five subsections (`ddd.1` through `ddd.5`) join the gate — they must all reach `covered` before the done-prompt fires. When the profile is `off`, omit `(ddd)` from the coverage table entirely (do not show it as `???`).

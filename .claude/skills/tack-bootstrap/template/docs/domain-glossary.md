@@ -16,13 +16,48 @@ Name each primary UI/API surface and **avoid** ambiguous alternatives.
 |----------------|------------|------|
 | | | |
 
+<!-- ## Bounded contexts
+DDD-only — emit this section when `tack.ddd.profile = on`. Each row is one bounded context.
+`Role` is `core` (competitive differentiator), `supporting` (needed but not differentiating), or `generic` (off-the-shelf candidate).
+
+| Canonical name | Role | Source folder(s) | Primary aggregates | Owns external integrations |
+|----------------|------|------------------|--------------------|----------------------------|
+|                |      |                  |                    |                            |
+-->
+
 ## Entities
 
-Core domain objects and how they relate in prose (one short paragraph), then a table:
+Core domain objects and how they relate in prose (one short paragraph), then a table.
+
+When `tack.ddd.profile = on`, use the typed table — `Type` is `aggregate root` / `entity` / `value object` / `domain service`; `Context` references a row in **Bounded contexts**; `Invariants enforced` cites the constructor / DB constraint that proves it.
+
+| Canonical term | Type | Context | Definition | Invariants enforced | Avoid |
+|----------------|------|---------|------------|---------------------|-------|
+|                |      |         |            |                     |       |
+
+When the DDD profile is `off`, use the simpler form (drop the `Type`, `Context`, and `Invariants` columns):
 
 | Canonical term | Definition | Avoid |
 |----------------|------------|------|
-| | | |
+|                |            |      |
+
+<!-- ## Domain events
+DDD-only — emit when `tack.ddd.profile = on`. Distinct from the **Telemetry vocabulary** below; an event MAY appear in both, but they are different artifacts (one carries domain meaning, the other carries product / engineering measurement).
+
+Naming convention: `<PastTenseVerb><Aggregate>` — e.g. `OrderPlaced`, `PaymentCaptured`.
+
+| Event name | Emitting aggregate | Payload sketch | Consumer(s) | Telemetry link |
+|------------|--------------------|----------------|-------------|----------------|
+|            |                    |                |             |                |
+-->
+
+<!-- ## Context relationships
+DDD-only — emit when `tack.ddd.profile = on`. One row per pair of contexts that talk. Pattern is one of: `customer-supplier`, `conformist`, `ACL`, `shared kernel`, `published language`, `partnership`, `separate ways`.
+
+| Upstream | Downstream | Pattern | Vocabulary alignment | Notes |
+|----------|------------|---------|----------------------|-------|
+|          |            |         |                      |       |
+-->
 
 ## Boundaries (external systems)
 

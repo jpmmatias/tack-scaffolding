@@ -6,6 +6,7 @@
 | **Status** | Draft \| Ready \| Superseded |
 | **Author** | |
 | **Date** | |
+| **Bounded context** | _DDD-only — name a context from `domain-glossary.md` when `tack.ddd.profile = on`; omit row when off_ |
 
 ## Problem
 
@@ -58,6 +59,30 @@ Every term below must already exist in [project/docs/domain-glossary.md](../docs
 | Term | Definition source |
 |------|-------------------|
 | | glossary section … |
+
+<!-- ## Aggregates touched
+DDD-only — emit when `tack.ddd.profile = on`. List each aggregate this spec reads or mutates; "Mode" is `read` | `mutate`. A `mutate` row implies AC-N or harness coverage of the invariant column.
+
+| Aggregate | Mode | Invariants touched |
+|-----------|------|--------------------|
+|           |      |                    |
+-->
+
+<!-- ## Domain events emitted
+DDD-only — emit when `tack.ddd.profile = on`. Distinct from **Telemetry contract** above; an artifact MAY appear in both. Names follow `<PastTenseVerb><Aggregate>` (see `.cursorrules`).
+
+| Event | Trigger (which AC) | Payload | Invariant that produces it |
+|-------|--------------------|---------|----------------------------|
+|       |                    |         |                            |
+-->
+
+<!-- ## Invariants enforced or changed
+DDD-only — emit when `tack.ddd.profile = on`. List every invariant this spec adds, removes, or mutates. Each row points at the AC that exercises the invariant and the harness test that asserts it.
+
+| Invariant | AC | Harness test |
+|-----------|----|--------------|
+|           |    |              |
+-->
 
 ## References
 

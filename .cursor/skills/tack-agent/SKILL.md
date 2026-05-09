@@ -2,7 +2,7 @@
 name: tack-agent
 version: 0.2.0
 license: MIT
-description: Use when invoking a single Tack SDD agent in a bootstrapped repo (product-manager, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, worktree-coordinator, diagnose, or a custom specialist under project/prompts/). Triggers on requests to run one step of the pipeline, audit with reviewer or security, debug regressions with diagnose, create a worktree, or "ask the architect/PM/QA". Dispatches one subagent via Task with the correct model; for the full pipeline use tack-run instead.
+description: Use when invoking a single Tack SDD agent in a bootstrapped repo (product-manager, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, worktree-coordinator, diagnose, domain-modeler, or a custom specialist under project/prompts/). Triggers on requests to run one step of the pipeline, audit with reviewer or security, debug regressions with diagnose, refine the strategic DDD model with domain-modeler, create a worktree, or "ask the architect/PM/QA". Dispatches one subagent via Task with the correct model; for the full pipeline use tack-run instead.
 ---
 
 # tack-agent
@@ -15,9 +15,10 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 
 ## When to use
 
-- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator, diagnose (bugs / regressions / flaky tests).
+- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator, diagnose (bugs / regressions / flaky tests), domain-modeler (refine strategic DDD model when `tack.ddd.profile = on`).
 - User references a specific file under `project/prompts/`.
 - User wants a security or reviewer pass on a diff.
+- User wants to refine bounded contexts, the context map, or anticorruption layers without running the full bootstrap.
 
 ## When **not** to use (redirect)
 
@@ -59,6 +60,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 | Reviewer | `reviewer.md` |
 | Diagnose | `diagnose.md` |
 | Security | `security-engineer.md` |
+| Domain modeler | `domain-modeler.md` (DDD profile only — bootstrap-time / re-run, not in the per-feature pipeline) |
 
 Do not dispatch `auto-orchestrator.md` through this skill for a full run — use **`tack-run`**. You **may** dispatch `orchestrator.md` if the user only wants the **passive checklist** text emitted (single Task that only produces that checklist per its Outputs).
 
