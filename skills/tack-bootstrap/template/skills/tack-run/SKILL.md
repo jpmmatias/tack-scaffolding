@@ -51,8 +51,10 @@ If the user wants **one** agent only, point them to the **`tack-agent`** skill i
 3. Run **Steps 0–7** and **7b** when triggered, dispatching each step with the **Dispatch protocol** wrapper (full prompt file + INPUTS).
 4. Enforce gates (red/green, traceability, reviewer PASS, etc.) per `auto-orchestrator.md`.
 5. Emit the **Final report** using `references/final-report-template.md`.
+6. **On `COMPLETED` with worktree** (Worktree ≠ `n/a` and `gh` on PATH), run **Step 8 — PR offer** per `auto-orchestrator.md`: ask the user, push + `gh pr create` on yes, and update the **PR** line of the report. Skip silently otherwise.
+7. **On `COMPLETED` with worktree** and `tack.worktree.cleanup` ≠ `never`, run **Step 9 — Worktree cleanup offer** per `auto-orchestrator.md`: only when the branch matches `feature/*`, lives under `tack.worktree.dir`, is clean, and is merged into base. Default answer is **No**. Delete via `tack-worktree.sh remove` (no `--force`); the script's hardcoded protected-branch denylist (`main`/`master`/`develop`/`staging`/`release/*`/`hotfix/*`/…) is the safety net. Update the **Worktree cleanup** line of the report.
 
-Stop on any condition in `references/stop-conditions.md` / `auto-orchestrator.md` **Stop conditions**.
+Stop on any condition in `references/stop-conditions.md` / `auto-orchestrator.md` **Stop conditions**. Step 8 (PR) and Step 9 (cleanup) failures only update their respective report fields — they do not change the run status.
 
 ---
 

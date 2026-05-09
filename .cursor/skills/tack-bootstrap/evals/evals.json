@@ -1,0 +1,38 @@
+{
+  "skill_name": "tack-bootstrap",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Bootstrap Tack into this existing TypeScript monorepo: governance docs, project/ template, .cursorrules, and specialist routing. Do not implement product features.",
+      "expected_output": "Starts six-phase bootstrap interview; never writes application feature code.",
+      "expectations": [
+        "Response describes a phased bootstrap (detection, discovery, routing, copy to project/, governance) rather than jumping straight to coding features",
+        "Response states or implies that application/product code is out of scope for this skill",
+        "Response references template under the skill directory or project/ layout rather than inventing an unrelated framework",
+        "Response does not implement a login, API route, or UI screen as the main deliverable for this request"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Implement JWT login with refresh tokens in our NestJS app. Ship production code and tests.",
+      "expected_output": "Does not treat this as bootstrap-only work; refuses or redirects to implementation / tack-run / normal dev—not six-phase Tack install.",
+      "expectations": [
+        "Response does not begin Phase 1 detection summary as if the only task were Tack installation",
+        "Response clarifies that feature implementation is outside tack-bootstrap or redirects to appropriate workflow",
+        "Response does not offer to copy project/template as the sole action without addressing the implementation ask",
+        "Response does not emit full NestJS module code as the primary completion of the bootstrap skill"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Phase 2 business-rule discovery for our EXISTING repo is done from my side—looks good, ok, ship it. Move on.",
+      "expected_output": "Does not advance phase on synonyms; runs more clarifying questions and re-prompts for literal `complete` per rule 9.",
+      "expectations": [
+        "Response does not accept ok, ship it, looks good, done, finished, go, or next as the Phase 2 done gate",
+        "Response asks at least one clarifying follow-up aligned with least-covered Phase 2 sections OR explicitly states the literal complete requirement",
+        "Response re-prompts for the exact token complete (or quotes the rule requiring that string)",
+        "Response does not jump to Phase 3 or Phase 5 immediately after only colloquial approval words"
+      ]
+    }
+  ]
+}

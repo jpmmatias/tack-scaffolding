@@ -107,6 +107,7 @@ Use **`Task`** with:
    - `tack.worktree.naming`: e.g. `feature/S-XXX-<slug>` — default **`feature/S-XXX-<slug>`**
    - `tack.worktree.base`: branch name, or `detect` — default **`detect`** (script tries `main` → `master` → current branch)
    - `tack.worktree.dir`: directory under repo root for linked worktrees — default **`.worktrees`**
+   - `tack.worktree.cleanup`: `prompt` | `always` | `never` — default **`prompt`** (controls Step 9 below)
 2. Decide:
    - **`never`** — skip Step −1 entirely. All steps use the current working directory. Go to **Step 0**.
    - **`always`** — run the coordinator (no user question).
@@ -272,9 +273,87 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Reviewer verdict:** PASS | FAIL
 - **Reviewer checklist:** (summary or enumerated)
 - **Security audit verdict:** PASS | FAIL | n/a (only present when Step 7b ran; `n/a` if no trigger fired)
-- **Next steps:** when Worktree is not `n/a`: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
+- **Next steps:** when Worktree is not `n/a` and **Step 8** was skipped or declined: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
+- **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
+- **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
 - **Status:** COMPLETED | STOPPED at Step N — <reason>
 ```
+
+---
+
+# Step 8 — PR offer (worktree-only, on COMPLETED)
+
+Run **only when** all of: Status is `COMPLETED`, Step −1 succeeded (Worktree ≠ `n/a`), and `gh` is available on PATH (`command -v gh`). Otherwise skip silently — the **Next steps** line in the Final report still tells the user how to do it manually. Set the **PR** field accordingly (`unavailable (gh missing)` or `n/a`).
+
+1. Ask the human via **AskQuestion** (Cursor) / **AskUserQuestion** (Claude Code):
+
+   > *Open a pull request for `<branch>` against `<base>` now?*
+   > Options: `Yes — push & open PR` (default) / `No — I'll do it later`.
+
+2. On **No** or `Other`: stop. Set **PR** field to `declined`. Final report already printed; just append/update the PR line.
+
+3. On **Yes**, in the **worktree directory** (`working_directory = worktree_path`):
+   - `git push -u origin <branch>` — on push failure (no remote, auth error, etc.) abort: set **PR** to `failed: <reason>`, print the error, do not call `gh`.
+   - Build PR title: `<spec_id>: <spec title>` (read from `project/specs/<spec_id>-*.md` first H1) — fall back to `<spec_id>: <slug>` if the spec title is unreadable.
+   - Build PR body from the Final report fields already in memory:
+
+     ```text
+     Spec: <spec path>
+     Plan: <plan path>
+     ADRs: <list or none>
+     Reviewer: PASS
+     Security audit: <PASS | n/a>
+
+     Files changed:
+     <git diff --name-only base..HEAD>
+     ```
+
+   - Run `gh pr create --base <base> --head <branch> --title "<title>" --body-file -` and pipe the body via stdin (heredoc) to preserve newlines. Do **not** pass `--draft` unless the user asks.
+   - On `gh` failure: set **PR** to `failed: <reason>`. On success: set **PR** to the returned URL.
+
+4. Update the Final report's **PR** line in chat with the resolved value.
+
+**Stop conditions:** push failure, `gh` failure, or user reply `cancel grill` → record the failure on the PR line and exit. The run is still `COMPLETED` — PR is post-pipeline and does **not** add a new entry to the Stop conditions list above.
+
+---
+
+# Step 9 — Worktree cleanup offer (worktree-only, on COMPLETED)
+
+Run **only when all of**: Status is `COMPLETED`, Step −1 succeeded (Worktree ≠ `n/a`), and `tack.worktree.cleanup` from `.cursorrules` is **not** `never` (default `prompt`). If `cleanup = never` set **Worktree cleanup** to `disabled` and skip; if Step −1 was skipped set it to `n/a`.
+
+This step is post-pipeline like Step 8: failures here only update the **Worktree cleanup** report line, never demote `COMPLETED`.
+
+## Pre-flight (before any prompt)
+
+Refuse to even *consider* cleanup unless every guard passes — surface no question if any fail:
+
+1. **Branch shape:** branch must match `^feature/`. Any other shape → set **Worktree cleanup** to `skipped (non-feature branch: <branch>)` and stop. (The orchestrator must never propose deleting a branch it did not create.)
+2. **Path containment:** `worktree_path` must be a strict descendant of `<repo_root>/<tack.worktree.dir>` (default `.worktrees`). Otherwise → `skipped (worktree outside <tack.worktree.dir>)`.
+3. **Clean tree:** `git -C <worktree_path> diff --quiet && git -C <worktree_path> diff --cached --quiet`. Dirty → `skipped (uncommitted changes — clean up manually)`.
+4. **Merged into base:** `git -C <worktree_path> merge-base --is-ancestor refs/heads/<branch> refs/heads/<base>`. Not merged → `skipped (branch not merged into <base>) — run after merge: bash project/scripts/tack-worktree.sh remove <slug>`. This is the **typical** outcome right after Step 8 opens a fresh PR; the user cleans up post-merge.
+
+## Decision
+
+- **`tack.worktree.cleanup = always`**: proceed without asking.
+- **`tack.worktree.cleanup = prompt`** (default): ask the human via **AskQuestion** (Cursor) / **AskUserQuestion** (Claude Code):
+
+  > *Delete worktree `<absolute path>` and merged branch `<branch>` now?*
+  > Options: `No — keep it` (default) / `Yes — delete worktree and branch`.
+
+  Default is **No** — cleanup is destructive even when "safe". On `No` or `Other`: set **Worktree cleanup** to `kept (user declined)` and stop.
+
+## Execution (only after pre-flight pass + confirmation)
+
+1. Run from the **primary repo root** (NOT inside the worktree — its directory is about to disappear):
+
+   ```bash
+   bash project/scripts/tack-worktree.sh remove "<absolute worktree path>"
+   ```
+
+   **Never** pass `--force`. The script's clean-tree + merged-into-base checks plus the hardcoded protected-branch denylist (`main`/`master`/`develop`/`staging`/`release/*`/`hotfix/*`/…) are the load-bearing safety. If any of those fail, the script exits non-zero — do **not** retry with `--force`; surface the error.
+2. Parse the script's single-line JSON. On success set **Worktree cleanup** to `removed: <path> (branch <branch>)`. On failure set it to `failed: <stderr>` and print the error verbatim.
+
+**Hard rule:** under no circumstance does this step run `git branch -D`, `git worktree remove --force`, or any raw destructive git command. The only deletion path is `tack-worktree.sh remove` without `--force`.
 
 ---
 

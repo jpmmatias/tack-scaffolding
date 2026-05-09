@@ -21,6 +21,9 @@ jobs:
       - name: Validate SKILL.md frontmatter
         run: npm run validate-skill
 
+      - name: Validate skill evals.json
+        run: npm run validate-skill-evals
+
       - name: Routing snippet matches all canonical copies
         run: npm run check-routing
 
@@ -43,6 +46,7 @@ jobs:
         uses: DavidAnson/markdownlint-cli2-action@v17
         with:
           globs: |
+            skills/README.md
             skills/tack-bootstrap/**/*.md
             skills/tack-run/**/*.md
             skills/tack-agent/**/*.md

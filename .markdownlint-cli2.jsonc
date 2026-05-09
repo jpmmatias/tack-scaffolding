@@ -13,6 +13,7 @@
     "MD060": false
   },
   "globs": [
+    "skills/README.md",
     "skills/tack-bootstrap/**/*.md",
     "skills/tack-run/**/*.md",
     "skills/tack-agent/**/*.md",

@@ -1,0 +1,38 @@
+{
+  "skill_name": "tack-agent",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Dispatch only the product-manager prompt for epic E-12: user wants STATUS output and acceptance criteria draft. Repo has project/prompts/product-manager.md.",
+      "expected_output": "Single Task dispatch to product-manager.md with assembled INPUTS; no multi-step pipeline.",
+      "expectations": [
+        "Response identifies exactly one target prompt (e.g. product-manager.md) under project/prompts/",
+        "Response describes one subagent/Task dispatch with model and working_directory rather than a sequence of all pipeline roles",
+        "Response does not map out PM → architect → QA → harness → worker → reviewer as the plan for this request",
+        "Response references single-dispatch protocol or equivalent wrapper discipline from the skill"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Run the entire Tack pipeline end-to-end from epic to reviewer for feature F-77. Use auto-orchestrator and all steps.",
+      "expected_output": "Redirects to tack-run; does not execute the full pipeline inside tack-agent.",
+      "expectations": [
+        "Response names tack-run or project/prompts/auto-orchestrator.md as the correct path for a full pipeline",
+        "Response does not claim to sequentially dispatch PM, architect, QA, harness, worker, and reviewer as tack-agent’s job for this request",
+        "Response does not treat this as a single-prompt Task to one file only",
+        "Response includes at most one optional line noting auto-orchestrator is the state machine—without replacing tack-run"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run the non-existent specialist project/prompts/unicorn-groomer.md for my repo.",
+      "expected_output": "Stop or ask: file missing; suggest listing project/prompts/*.md or choosing a valid specialist.",
+      "expectations": [
+        "Response states that project/prompts/unicorn-groomer.md does not exist or cannot be used as written",
+        "Response does not fabricate execution of unicorn-groomer.md",
+        "Response suggests discovery (list prompts) or a valid alternative specialist name",
+        "Response does not dispatch Task with a made-up prompt body as if the file were present"
+      ]
+    }
+  ]
+}

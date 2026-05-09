@@ -4,6 +4,8 @@
 
 Edit **only** the canonical skill trees under [`skills/`](skills/) — today [`skills/tack-bootstrap/`](skills/tack-bootstrap/), [`skills/tack-run/`](skills/tack-run/), and [`skills/tack-agent/`](skills/tack-agent/). Those directories are the single source of truth (the `tack-bootstrap` canonical includes its bundled template under `skills/tack-bootstrap/template/`, except for `skills/tack-bootstrap/template/skills/`, which is regenerated from the dispatcher canonicals — see below).
 
+Behavioral evals for the Anthropic **skill-creator** plugin live beside each skill as [`skills/<name>/evals/evals.json`](skills/tack-run/evals/evals.json). Install workflow, Eval/Improve/Benchmark notes, and line-budget guidance: [`skills/README.md`](skills/README.md).
+
 ## After you change the skill
 
 From the repository root:
@@ -23,7 +25,8 @@ Commit the canonical tree, the bundled copies, and the editor mirrors so CI stay
 
 ```bash
 npm run check-sync    # mirrors must match canonical
-npm run validate-skill  # SKILL.md frontmatter (all skills/*/SKILL.md; version matches package.json)
+npm run validate-skill  # SKILL.md frontmatter (all skills/*/SKILL.md; version matches package.json; Use when, Triggers, line budget)
+npm run validate-skill-evals  # evals/evals.json shape and skill_name match per skill
 npm run check-routing   # routing-snippet.md matches templates + worked examples
 npm test                # Bats: detect-stack, tack-worktree, recon, splice-tack-routing, tack-doctor, dispatch contract smoke (install bats-core: brew install bats-core / apt install bats)
 npm run check-shell     # shellcheck on every tracked *.sh (install: brew install shellcheck); CI policy is **zero warnings** (see [.shellcheckrc](.shellcheckrc))

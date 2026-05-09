@@ -30,7 +30,7 @@ You execute six phases in order. **Never jump phases.** Phase 2 is mandatory for
 9. The Phase 2 done-gate is the literal string `complete`. "looks good", "ok", "ship it", "done", "finished", "go", "next" — none of these advance the phase. If the user says any of those, run **one more round of at least 3 clarifying questions** targeting the least-covered Phase 2 sections, then re-prompt for `complete`.
 10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, `project/scripts/tack-worktree.sh`, etc. Bootstrap-only helpers live at `${SKILL_DIR}/scripts/` (`detect-stack.sh`, `recon.sh`); invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
 11. Model routing convention: `[Opus]` = `claude-opus-4-7-thinking-xhigh`, `[Sonnet]` = `claude-4.6-sonnet-medium-thinking`, `[Composer]` = `composer-2-fast`. Always tag specialists with one of these.
-12. **Agent-agnostic routing.** The skill emits routing into `.cursorrules` (Cursor) and `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). Both are governed by `tack.routing.*`. Splice the `## Tack routing` H2 only — never overwrite other sections. Defaults: `auto = yes`, `surfaces = both` when either `AGENTS.md` / `.claude/` / `CLAUDE.md` is detected, else `agents`.
+12. **Agent-driven scaffolding.** Surface-specific writes (`.cursorrules`, `.cursor/skills/`, `CLAUDE.md`, `.claude/skills/`, `AGENTS.md`, `.agents/skills/`) are governed by **`tack.agents.active`** — the explicit set of agents the user confirmed in Phase 1. Allowed values: `claude-code`, `cursor`, `copilot`, `codex`, `antigravity`. **Never write to a surface directory unless its agent appears in `tack.agents.active`.** A leftover `.cursor/` does not authorize Cursor scaffolding — only an explicit user confirmation does. The legacy `tack.routing.surfaces` is **derived** from `tack.agents.active` (see Phase 1) and only chooses between `claude` / `agents` / `both` / `none` for the splice in step 3b. Splice the `## Tack routing` H2 only — never overwrite other sections. Defaults: `auto = yes`.
 13. **DDD profile.** Tack supports an opt-in **Domain-Driven Design** profile (`tack.ddd.profile = on | off`, default **off**). When **on**, Phase 2 layer 1 mines bounded contexts / aggregates / domain events / anticorruption layers; Phase 3 Block A asks the DDD subsection; Phase 5 emits the DDD sections in `domain-glossary.md`, `architecture.md`, `.cursorrules`, and `specs/_template.md`, and offers to run the `@domain-modeler.md` prompt to refine the strategic model. When **off**, every DDD section is omitted — output is byte-identical to pre-DDD Tack. **Never** silently flip the profile; ask in Phase 1 (suggesting **on** when DDD code signals are detected) and propagate the answer through later phases.
 
 ---
@@ -70,20 +70,23 @@ Then present a **detection summary** and ask the user to confirm or correct it. 
 - Notable directories: src/, app/, tests/, infra/, migrations/, ...
 - Template location: project/ (assumed; correct me if you copied it elsewhere)
 - Agent surfaces detected:
-    CLAUDE.md     : present | absent
-    AGENTS.md     : present | absent
-    .claude/ dir  : present | absent
-    .cursor/ dir  : present | absent
-    .copilot/ dir : present | absent
-- Routing default: tack.routing.auto = yes, tack.routing.surfaces = both if any Claude marker present, else agents.
+    Claude Code   : CLAUDE.md / .claude/                  present | absent
+    Cursor        : .cursorrules / .cursor/               present | absent
+    Copilot CLI   : .github/copilot-cli/ / .copilot/      present | absent
+    Codex         : .codex/                               present | absent
+    Antigravity   : .antigravity/                         present | absent
+    Generic AGENTS.md (multi-agent)                       present | absent
+- Suggested `tack.agents.active`: <subset of {claude-code, cursor, copilot, codex, antigravity} matching the rows above; if zero rows match, suggest `claude-code` as the default — never empty>.
+  Reasoning (one line): <e.g. "CLAUDE.md and .cursor/ both present" or "no agent markers detected — defaulting claude-code">
+- Routing default: `tack.routing.auto = yes`. `tack.routing.surfaces` is **derived** from the confirmed `tack.agents.active` (see rule #12); do not set it independently.
 - DDD profile (suggested): tack.ddd.profile = on | off
     Signals matched: <list of file:line / directory citations or "none">
     Reasoning (one line): <e.g. "two DDD folder names + Aggregate suffix in 4 classes" or "no DDD signals detected — defaulting off">
 
-Confirm or correct any field above before I proceed. Reply with corrections, or "correct" to accept.
+Confirm or correct any field above before I proceed. **In particular, confirm or correct `tack.agents.active`** — list every AI coding agent you actively use in this repo, drawn from {`claude-code`, `cursor`, `copilot`, `codex`, `antigravity`}. If you use only one, say so explicitly. I will only scaffold surface files (`.cursorrules`, `CLAUDE.md`, `AGENTS.md`, `.claude/skills/`, `.cursor/skills/`, `.agents/skills/`) for the agents you confirm — a leftover directory does not authorize scaffolding. Reply with corrections, or "correct" to accept.
 ```
 
-Do not advance until the user confirms or corrects. If they correct any field, restate the summary and ask again. Treat **`tack.ddd.profile`** as a first-class output of Phase 1: persist it in your working memory and thread it through every subsequent phase. Phase 2 / 3 / 5 conditional steps below reference this flag explicitly.
+Do not advance until the user confirms or corrects. If they correct any field, restate the summary and ask again. Treat **`tack.ddd.profile`** and **`tack.agents.active`** as first-class outputs of Phase 1: persist them in your working memory and thread them through every subsequent phase. Phase 2 / 3 / 5 conditional steps below reference these flags explicitly. **`tack.agents.active` must be non-empty** — if the user insists on no agents, stop and explain that scaffolding without a target agent is not supported.
 
 ---
 
@@ -238,9 +241,20 @@ The full question bank lives in `references/discovery-questions.md`. Blocks, in 
   1. Should `@auto-orchestrator.md` ask before creating an isolated worktree per feature? Recommend **`prompt`** (confirm each run), alternatives **`always`** / **`never`** (legacy single-checkout flow).
   2. Branch naming: recommend **`feature/S-XXX-<slug>`** (ties branch to spec id); alternative **`feature/<slug>`** only if the team insists.
   3. Base branch for `git worktree add`: **`detect`** (script tries `main` → `master` → current) vs pinning **`main`** / **`master`** / another stable branch.
-- **Block G — Agent routing (auto-orchestration).** Two questions, max 3 per turn.
+- **Block G — Agent routing (auto-orchestration).** One question.
   1. Should this repo auto-route every feature/bug/task request to `@project/prompts/auto-orchestrator.md`? Recommend **`yes`**: the SDD pipeline becomes the default entry point in any agent that reads `AGENTS.md`/`CLAUDE.md` (Claude Code, Cursor, Copilot CLI, Codex, Antigravity). **`no`** keeps the passive flow (the human `@`-mentions prompts manually). Persist as `tack.routing.auto`.
-  2. Which surfaces should receive the routing block? Default to the detection from Phase 1: **`both`** (write `AGENTS.md` and `CLAUDE.md`) when any Claude marker is present; **`agents`** otherwise; **`claude`** for Claude-only repos; **`none`** to skip everything (forces `tack.routing.auto = no`). Persist as `tack.routing.surfaces`.
+
+  Do **not** ask which surfaces receive the routing block here — `tack.routing.surfaces` is **derived** from the `tack.agents.active` confirmed in Phase 1, using this table:
+
+  | `tack.agents.active` contains... | Derived `tack.routing.surfaces` |
+  |---|---|
+  | `claude-code` only | `claude` |
+  | `cursor` only (modern Cursor reads `AGENTS.md`) | `agents` |
+  | `claude-code` + any of {`cursor`, `copilot`, `codex`, `antigravity`} | `both` |
+  | Any of {`copilot`, `codex`, `antigravity`} without `claude-code` | `agents` |
+  | Empty (forbidden — Phase 1 rejects this) | n/a |
+
+  If the user wants to change which agents are active, return to Phase 1 and re-ask there — do not introduce a parallel control surface in Block G.
 
 When the user says "I don't know", offer 2–3 options with trade-offs (see Block-by-Block defaults in `references/discovery-questions.md`).
 
@@ -297,20 +311,21 @@ Only after Phases 1–4 are confirmed. Generate or update each artifact below in
 1. **`project/` from bundled template** — copy everything under `${SKILL_DIR}/template/` into `project/` in the consumer repo **except** `${SKILL_DIR}/template/skills/` (runtime dispatcher skills — step **1a** only). Preserve paths (`template/prompts/` → `project/prompts/`, `template/docs/` → `project/docs/`, `template/scripts/` → `project/scripts/`, etc.). For each destination file that already exists, show diff and offer merge or skip — never blind-overwrite. If the user already has a populated `project/`, offer to copy only missing paths.
 1a. **Runtime skills (`tack-run`, `tack-agent`)** — copy `${SKILL_DIR}/template/skills/tack-run/` and `${SKILL_DIR}/template/skills/tack-agent/` into the consumer repo’s editor skill directories so the team can invoke the full pipeline or a single agent via skills (not only `@`-mentions). Preserve paths (`SKILL.md`, `references/**`) byte-for-byte unless merging an existing file. For every file: show a unified diff, ask **apply / skip / edit / apply all**. Never blind-overwrite.
 
-   Use **`tack.routing.surfaces`** from Block G to choose **non-Cursor** targets:
+   Destinations are gated **strictly on `tack.agents.active` membership** (confirmed in Phase 1). Never write to a surface dir whose agent the user did not confirm — even if the dir already exists from a prior IDE install.
 
-   - **`agents`** — `.agents/skills/tack-run/` and `.agents/skills/tack-agent/` (create parent dirs if missing).
-   - **`claude`** — `.claude/skills/tack-run/` and `.claude/skills/tack-agent/`.
-   - **`both`** — write to **both** `.agents/skills/` and `.claude/skills/` targets above.
-   - **`none`** — do **not** write under `.agents/skills/` or `.claude/skills/` (routing surfaces skipped).
-
-   **Always:** if `.cursor/` exists at the consumer repo root, also copy into `.cursor/skills/tack-run/` and `.cursor/skills/tack-agent/` (all values of `tack.routing.surfaces`, including `none`).
+   - **`claude-code` ∈ `tack.agents.active`** → `.claude/skills/tack-run/` and `.claude/skills/tack-agent/` (create parent dirs if missing).
+   - **`cursor` ∈ `tack.agents.active`** → `.cursor/skills/tack-run/` and `.cursor/skills/tack-agent/`.
+   - **Any of {`cursor`, `copilot`, `codex`, `antigravity`} ∈ `tack.agents.active`** → also `.agents/skills/tack-run/` and `.agents/skills/tack-agent/` (universal AGENTS.md-aware skill home; covered once for these agents regardless of how many are active).
+   - **No agent matches a destination** → skip that destination silently.
 
 2. **`.gitignore` at consumer repo root** — ensure the worktree parent directory is ignored (default **`.worktrees/`**, or match `tack.worktree.dir` from Block F). If the line is missing, show a unified diff and ask **apply / skip**. Explain that `project/scripts/tack-worktree.sh` also appends this line on first `create`, but committing `.gitignore` upfront avoids accidental staging.
-3. **`.cursorrules`** — at the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape.
-3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. For each surface selected by `tack.routing.surfaces`:
-   - File missing → create from `AGENTS.md.template` / `CLAUDE.md.template`.
-   - File exists → use **`${SKILL_DIR}/template/scripts/splice-tack-routing.sh`** to splice/replace only the H2 section titled `## Tack routing`, preserving every other byte. Run with `--check` first to preview the diff; then re-run without `--check` to apply once the user accepts. If no such heading exists, the helper appends the section at the end. Idempotent — re-running with the same `tack.routing.*` values and unchanged `routing-snippet.md` produces a no-op (`--check` exits 0).
+3. **`.cursorrules`** — **only when `cursor` ∈ `tack.agents.active`**. At the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape. If Cursor is **not** active, skip this step entirely — the `.cursorrules.template` still lives under `project/` (from step 1) as a reference for future Cursor adoption, but no root `.cursorrules` is generated.
+3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. Per-file gating is driven by **`tack.agents.active`**:
+   - Write `CLAUDE.md` **only if** `claude-code` ∈ `tack.agents.active`.
+   - Write `AGENTS.md` **only if** any of {`cursor`, `copilot`, `codex`, `antigravity`} ∈ `tack.agents.active`.
+   - For each file you write:
+     - File missing → create from `AGENTS.md.template` / `CLAUDE.md.template`.
+     - File exists → use **`${SKILL_DIR}/template/scripts/splice-tack-routing.sh`** to splice/replace only the H2 section titled `## Tack routing`, preserving every other byte. Run with `--check` first to preview the diff; then re-run without `--check` to apply once the user accepts. If no such heading exists, the helper appends the section at the end. Idempotent — re-running with the same `tack.routing.*` values and unchanged `routing-snippet.md` produces a no-op (`--check` exits 0).
 
    Show the unified diff (the `--check` output, or `diff -u` against the helper's preview) and ask **apply / skip / edit / apply all**, same protocol as step 3. Use `references/file-templates/agents-routing.md` as the worked shape. After Phase 5 the helper is available in the consumer repo at `project/scripts/splice-tack-routing.sh` for re-syncs after upstream `routing-snippet.md` changes.
 4. **`project/docs/domain-glossary.md`** — populated from the Phase 2 draft (entities, surfaces, telemetry, forbidden synonyms). Use `references/file-templates/domain-glossary.md` as the worked shape. **When `tack.ddd.profile = on`,** also fill the DDD sections (`## Bounded contexts`, typed `## Entities` table with `Type` and `Context` columns, `## Domain events`, `## Context relationships`) from Phase 2 section (ddd) and Phase 3 Block A — DDD answers.
@@ -343,8 +358,8 @@ For every existing file that diverges from your generated draft: show diff, offe
    (optional) @project/prompts/security-engineer.md when triggers fire
    ```
 
-- [ ] (if routing enabled) Confirm ## Tack routing is present in AGENTS.md and/or CLAUDE.md and points at @project/prompts/auto-orchestrator.md (and mentions `tack-run` / `tack-agent` per `template/routing-snippet.md`).
-- [ ] (Phase 5 step 1a) Confirm `tack-run` and `tack-agent` skills exist under the installed skill dirs (`.cursor/skills/` when `.cursor/` exists; `.agents/skills/` / `.claude/skills/` per `tack.routing.surfaces`).
+- [ ] (if routing enabled) Confirm `## Tack routing` is present in `AGENTS.md` (when any of {cursor, copilot, codex, antigravity} ∈ `tack.agents.active`) and/or `CLAUDE.md` (when `claude-code` ∈ `tack.agents.active`), and points at `@project/prompts/auto-orchestrator.md` (mentions `tack-run` / `tack-agent` per `template/routing-snippet.md`).
+- [ ] (Phase 5 step 1a) Confirm `tack-run` and `tack-agent` skills exist under each agent's skill dir for every agent in `tack.agents.active`: `.claude/skills/` (claude-code), `.cursor/skills/` (cursor), `.agents/skills/` (any of cursor / copilot / codex / antigravity). Confirm **no** skill dirs were created for agents not in `tack.agents.active`.
 
 3. Suggest the next step: run **`tack-run`** with the first epic for an end-to-end pipeline, **or** `@project/prompts/product-manager.md` / **`tack-agent`** (product-manager) to draft `S-001`, ideally pulled from the highest-priority `[SPEC]`-tagged follow-up in the Phase 2 business-rules draft. If no follow-ups exist (NEW project), suggest the user paste their first epic.
 

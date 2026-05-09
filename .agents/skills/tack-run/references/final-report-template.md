@@ -16,6 +16,8 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Reviewer verdict:** PASS | FAIL
 - **Reviewer checklist:** (summary or enumerated)
 - **Security audit verdict:** PASS | FAIL | n/a (only present when Step 7b ran; `n/a` if no trigger fired)
-- **Next steps:** when Worktree is not `n/a`: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
+- **Next steps:** when Worktree is not `n/a` and **Step 8** was skipped or declined: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
+- **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
+- **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
 - **Status:** COMPLETED | STOPPED at Step N — <reason>
 ```

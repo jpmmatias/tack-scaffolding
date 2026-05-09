@@ -6,6 +6,10 @@ set -euo pipefail
 SPECS_GLOB="project/specs/S-*.md"
 WT_DIR_DEFAULT=".worktrees"
 
+# Branches that must NEVER be deleted by this script. Not bypassable by any flag.
+# Adjust only if your repo has a non-standard trunk; never relax to allow main/master/etc.
+PROTECTED_BRANCHES_RE='^(main|master|develop|dev|staging|stage|production|prod|trunk|HEAD|release(/.*)?|hotfix(/.*)?)$'
+
 die() {
   echo "tack-worktree: $*" >&2
   exit 1
@@ -196,9 +200,29 @@ cmd_remove() {
 
   git -C "$wt_path" rev-parse --git-dir >/dev/null 2>&1 || die "not a git worktree: $wt_path"
 
+  # Refuse to remove the primary worktree (the main checkout itself).
+  local primary_root
+  primary_root="$(git -C "$wt_path" rev-parse --show-toplevel)"
+  local common_dir
+  common_dir="$(git -C "$wt_path" rev-parse --git-common-dir)"
+  case "$common_dir" in
+    /*) ;;
+    *) common_dir="$primary_root/$common_dir" ;;
+  esac
+  local primary_checkout
+  primary_checkout="$(dirname "$common_dir")"
+  if [[ "$wt_path" == "$primary_checkout" ]]; then
+    die "refusing to remove the primary worktree (main checkout): $wt_path"
+  fi
+
   local branch
   branch="$(git -C "$wt_path" branch --show-current 2>/dev/null || true)"
   [[ -z "$branch" ]] && die "detached HEAD in $wt_path — remove manually"
+
+  # Hard protected-branch guard. Not bypassable by --force.
+  if [[ "$branch" =~ $PROTECTED_BRANCHES_RE ]]; then
+    die "refusing to delete protected branch: $branch (this guard is not bypassable; use raw git if you really mean it)"
+  fi
 
   if [[ $force -eq 0 ]]; then
     is_worktree_clean "$wt_path" || die "worktree has uncommitted changes (commit/stash or use --force)"
@@ -209,18 +233,11 @@ cmd_remove() {
     fi
   fi
 
-  local git_common
-  git_common="$(git -C "$wt_path" rev-parse --git-common-dir)"
-  case "$git_common" in
-    /*) ;;
-    *) git_common="$(git -C "$wt_path" rev-parse --show-toplevel)/$git_common" ;;
-  esac
-
   git -C "$wt_path" worktree remove "${wt_path}" --force
   if [[ $force -eq 1 ]]; then
-    git --git-dir="$git_common" branch -D "$branch" 2>/dev/null || true
+    git --git-dir="$common_dir" branch -D "$branch" 2>/dev/null || true
   else
-    git --git-dir="$git_common" branch -d "$branch" 2>/dev/null || echo "tack-worktree: branch $branch not deleted (not fully merged?)" >&2
+    git --git-dir="$common_dir" branch -d "$branch" 2>/dev/null || echo "tack-worktree: branch $branch not deleted (not fully merged?)" >&2
   fi
   echo "{\"removed\":$(json_escape "$wt_path"),\"branch\":$(json_escape "$branch")}"
 }

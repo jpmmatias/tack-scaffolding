@@ -1,0 +1,38 @@
+{
+  "skill_name": "tack-run",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run the full Tack SDD pipeline for this epic using auto-orchestrator: add OAuth2 refresh-token rotation to the API gateway. Consumer repo already has project/prompts/auto-orchestrator.md and .cursorrules with test/lint placeholders.",
+      "expected_output": "Dispatcher reads project/prompts/auto-orchestrator.md, treats itself as Task-only orchestration, and outlines sequential subagent dispatches (not writing application source in its own reply except a final report template).",
+      "expectations": [
+        "Response states intent to read or follow project/prompts/auto-orchestrator.md as the source of truth for step order",
+        "Response describes dispatching steps via Task (or equivalent subagent primitive) rather than drafting specs, plans, or production code inline",
+        "Response does not claim to have completed PM/architect/QA/worker implementation in the host reply without subagent isolation",
+        "Response mentions preconditions (e.g. auto-orchestrator present) or proceeds from the given assumption explicitly"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Only run the architect review for spec S-042. Do not run PM, QA, harness, worker, reviewer, or the full pipeline—single architect pass only.",
+      "expected_output": "Host defers to tack-agent or explicitly says the full auto-orchestrator pipeline is wrong here; offers one-step architect dispatch only.",
+      "expectations": [
+        "Response recommends tack-agent, a single project/prompts/architect.md dispatch, or an equivalent one-step path",
+        "Response does not outline executing Steps 0–7 of auto-orchestrator as the primary plan for this request",
+        "Response does not instruct the user to invoke tack-run for this architect-only scope",
+        "Response does not present a multi-role checklist (PM then QA then harness then worker then reviewer) as the execution plan"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Run the full Tack pipeline for epic E-99. This repository has .cursorrules but is missing project/prompts/auto-orchestrator.md entirely.",
+      "expected_output": "Fail fast: stop and tell the user preconditions are not met (missing auto-orchestrator), pointing to tack-bootstrap or manual install.",
+      "expectations": [
+        "Response explicitly states that project/prompts/auto-orchestrator.md is missing or that preconditions fail",
+        "Response does not pretend to run the full pipeline without that file",
+        "Response suggests remediation such as running tack-bootstrap or copying the template—without inventing a full replacement state machine in chat",
+        "Response does not dispatch Task steps as if the file existed"
+      ]
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Validate YAML frontmatter on every skills/*/SKILL.md (CI + local).
 # Version must match package.json (single source of truth).
+# Enforces trigger hygiene ("Use when", "Triggers") and a SKILL.md line budget.
 
 set -euo pipefail
 
@@ -57,6 +58,13 @@ for SKILL in "${skills[@]}"; do
       err=1
       ;;
   esac
+  case "$description" in
+    *"Triggers"*) ;;
+    *)
+      echo "validate-skill-frontmatter: $SKILL — description should contain 'Triggers' (WHEN-not-only-WHAT; skill-creator)" >&2
+      err=1
+      ;;
+  esac
   if [[ -z "${version// }" ]]; then
     echo "validate-skill-frontmatter: $SKILL — missing or empty 'version' (must match package.json)" >&2
     err=1
@@ -70,7 +78,17 @@ for SKILL in "${skills[@]}"; do
     continue
   fi
 
-  echo "validate-skill-frontmatter: OK (name=$name, version=$version)"
+  lines="$(wc -l < "$SKILL" | tr -d '[:space:]')"
+  if [[ "$lines" -gt 500 ]]; then
+    echo "validate-skill-frontmatter: $SKILL — $lines lines (max 500; move detail to references/ per progressive disclosure)" >&2
+    overall_err=1
+    continue
+  fi
+  if [[ "$lines" -gt 400 ]]; then
+    echo "validate-skill-frontmatter: WARNING $SKILL — $lines lines (consider splitting into references/ before growth)" >&2
+  fi
+
+  echo "validate-skill-frontmatter: OK (name=$name, version=$version, lines=$lines)"
 done
 
 if [[ "$overall_err" -ne 0 ]]; then

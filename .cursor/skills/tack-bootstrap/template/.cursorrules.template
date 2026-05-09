@@ -62,6 +62,7 @@ Tack can run each feature in an **isolated git worktree** + branch so multiple a
 - `tack.worktree.naming`: default **`feature/S-XXX-<slug>`** (branch example: `feature/S-001-login`). Alternative: **`feature/<slug>`** (no spec id in the branch name).
 - `tack.worktree.base`: `<main | master | develop | detect>` — branch to fork from; **`detect`** (default) lets the script pick an existing local branch (`main` → `master` → current).
 - `tack.worktree.dir`: **`.worktrees`** — parent directory for linked worktrees (must stay **gitignored**; the script appends `/.` to `.gitignore` on first use).
+- `tack.worktree.cleanup`: `<prompt | always | never>` — default **`prompt`**: after the pipeline finishes the auto-orchestrator asks whether to delete the feature worktree + branch when it is **safe** (clean tree + branch merged into base + branch matches `feature/*` + worktree under `tack.worktree.dir`). Use **`always`** to skip the question and auto-delete when safe; **`never`** to skip the offer entirely. Protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) are **never** deletable by the helper script regardless of this setting — that guard lives in `tack-worktree.sh` and is not bypassable.
 
 The directory `.worktrees/` must not be committed. If your repo already uses another location, set `tack.worktree.dir` and ignore that path in `.gitignore`.
 

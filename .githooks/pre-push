@@ -10,4 +10,5 @@ cd "$(git rev-parse --show-toplevel)"
 
 npm run --silent check-sync
 npm run --silent validate-skill
+npm run --silent validate-skill-evals
 npm run --silent check-routing
