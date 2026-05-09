@@ -20,7 +20,7 @@ while IFS= read -r line; do
   AGENT_FILES+=("$line")
 done < <(
   sed -n '/^## Stock agents$/,/^## /p' "$CATALOG" \
-    | grep -oE '`[a-zA-Z0-9_-]+\.md`' \
+    | grep -oE "\`[a-zA-Z0-9_-]+\.md\`" \
     | tr -d '`' | sort -u
 )
 
