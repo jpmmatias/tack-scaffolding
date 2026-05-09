@@ -1,53 +1,16 @@
 # Tack
 
-> Discipline scaffolding for multi-agent coding.
+> Spec-driven, multi-agent discipline for coding agents.
 
-Portable **spec-driven development** (SDD) and **isolated role prompts** for coding agents: numbered specs (`S-XXX`), acceptance criteria (`AC-N`), plans with traceability, ADRs (`ADR-NNNN`), strict TDD gates, and optional full-auto orchestration via subagents.
+Tack turns a coding agent loose on your repo into a deterministic pipeline: numbered specs, failing tests before code, and isolated agent roles (PM → architect → QA → worker → reviewer) so features ship traceably end-to-end.
 
-## What is Tack?
-
-Tack is a template — not a runtime. You install three small skills into your agent, run a one-time bootstrap on your repo, then ship features through a deterministic PM → architect → QA → worker → reviewer pipeline.
-
-Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**. The bootstrap detects which agent surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, `.cursor/`) and writes routing into each — you don't pick a platform up front.
-
-## Philosophy & when to use Tack
-
-Tack isn't a runtime — it's a set of constraints that turn an agent loose on your repo into a disciplined process. The principles below aren't aspirational; they're enforced by the prompts and `.cursorrules` the bootstrap writes. Read them as a fit test: if you don't want these constraints, Tack is the wrong tool.
-
-### What Tack enforces
-
-- **Specs before code, with traceability.** Numbered `S-XXX` specs with Gherkin `AC-N` are the unit of truth; tasks in `plan.md` map to closed ACs; commits cite `S-XXX#AC-N` so history is queryable. (see [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md))
-- **TDD red-green gate, enforced by the reviewer.** Failing tests are written before implementation; the reviewer role checks the gate is real, not a rubber-stamp. (see [`skills/tack-bootstrap/template/prompts/qa-tester.md`](skills/tack-bootstrap/template/prompts/qa-tester.md), [`reviewer.md`](skills/tack-bootstrap/template/prompts/reviewer.md))
-- **Role isolation prevents context bleed.** PM, architect, QA, harness engineer, worker, reviewer, security run as separate subagents; no role overlaps within a run. (see [`skills/tack-bootstrap/template/prompts/`](skills/tack-bootstrap/template/prompts/))
-- **Harness as feedforward + feedback.** `.cursorrules` guides agents *before* they write code; tests, lint, type checks, and the reviewer validate *after*. Both halves are the harness. (see [`skills/tack-bootstrap/template/docs/harness-engineering.md`](skills/tack-bootstrap/template/docs/harness-engineering.md))
-- **Durable decisions in ADRs, durable vocabulary in a glossary.** Hard-to-reverse choices land in `ADR-NNNN`; canonical terms and forbidden synonyms live in `domain-glossary.md` and are law for every role. (see [`skills/tack-bootstrap/template/docs/domain-glossary.md`](skills/tack-bootstrap/template/docs/domain-glossary.md))
-- **Parallel features without clobbering.** Optional `git worktree` mode reserves `S-XXX` across branches so multiple features run in isolated trees. (see [`tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh))
-- **Agent-agnostic by construction.** The same prompts drive Claude Code, Cursor, Copilot CLI, Codex, and Antigravity; opt-in profiles (auto-routing, DDD) keep the surface area honest.
-
-### When Tack is the right call — and when it isn't
-
-**Reach for Tack when:**
-
-- You're starting a project where you want spec discipline locked in from day one.
-- You have a real domain (rules, vocabulary, multiple stakeholders) and want agents to share one glossary.
-- You already write tests and want agents to honor TDD instead of skipping it.
-- Multiple agents or contributors work in parallel and you want isolated worktrees and traceable commits.
-
-**Skip Tack (or use only `tack-agent` ad hoc) when:**
-
-- It's a throwaway script, prototype, or one-shot tool — the spec → plan → red → green → review loop is overhead you'll pay every time.
-- The change is a typo, one-liner, or trivial fix — invoke `tack-agent` for a single role instead of `tack-run`.
-- The repo has no test harness yet — bootstrap assumes `<TEST_COMMAND>` and `<LINT_COMMAND>` exist or can be created; if neither does, build that first.
-- The team isn't willing to write specs — without a real spec, QA can't write meaningful ACs and the reviewer gate degrades to vibes.
-- The codebase has no domain to speak of (CRUD over a single table, a static site) — the glossary, ADRs, and DDD profile are dead weight.
-
-The philosophy lives in prompts and `.cursorrules`, not in tooling — after bootstrap, `project/docs/sdd.md` and `project/.cursorrules` are where the rules are written down for your repo.
+It's a **template, not a runtime** — install three small skills, run a one-time bootstrap on your repo, and ship features through the pipeline. Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**; the bootstrap detects which surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) and writes routing into each — you don't pick a platform up front.
 
 ## The three skills
 
 | Skill | When to use | Frequency |
 |---|---|---|
-| [`tack-bootstrap`](skills/tack-bootstrap/SKILL.md) | First time in a repo: 6-phase interview that fills `.cursorrules`, `project/docs/`, role prompts, and routing | Once per repo |
+| [`tack-bootstrap`](skills/tack-bootstrap/SKILL.md) | First time in a repo: 6-phase interview that fills project-rules files, `project/docs/`, role prompts, and routing | Once per repo |
 | [`tack-run`](skills/tack-run/SKILL.md) | Ship a feature end-to-end (epic → spec → plan → red → green → reviewer) | Per feature |
 | [`tack-agent`](skills/tack-agent/SKILL.md) | Invoke a single role: reviewer pass on a diff, `diagnose` a regression, `domain-modeler` to refine bounded contexts | Ad hoc |
 
@@ -59,7 +22,7 @@ Recommended — [`npx skills`](https://skills.sh/) installs into your agent's ex
 
 ```bash
 cd /path/to/your/repo
-npx skills add <github-owner>/<github-repo>
+npx skills add jpmmatias/tack-scaffolding
 ```
 
 Or copy `skills/tack-bootstrap/` manually into:
@@ -74,13 +37,12 @@ Or copy `skills/tack-bootstrap/` manually into:
 
 ### 2. Bootstrap your repo
 
-Open your agent and ask it to run **`tack-bootstrap`** (or describe the task: "bootstrap Tack on this repo / fill `.cursorrules` and `project/docs/`").
+Open your agent and ask it to run **`tack-bootstrap`** (or describe the task: "bootstrap Tack on this repo / fill the project-rules files and `project/docs/`").
 
 The 6-phase interview detects your stack and the agent surfaces in use, then writes:
 
 - `project/` — prompts, docs, specs, scripts, ADR template
-- `.cursorrules` at repo root
-- `## Tack routing` block spliced into `AGENTS.md` and/or `CLAUDE.md` per detection
+- **Project-rules files** at the repo root — `.cursorrules`, plus a `## Tack routing` block spliced into `AGENTS.md` and/or `CLAUDE.md` per detection. All three carry equivalent guidance; agents read whichever applies.
 - `tack-run` / `tack-agent` skill mirrors under `.claude/skills/`, `.agents/skills/`, `.cursor/skills/` — whichever surfaces apply
 
 Phase 2 mines business rules from existing code; Phase 5 writes the artifacts; Phase 6 runs `bash project/scripts/tack-doctor.sh` to verify no placeholders are left.
@@ -105,6 +67,37 @@ Run tack-agent reviewer on this diff
 Run tack-agent diagnose for the flaky test in tests/orders_spec.rb
 Run tack-agent domain-modeler to refine the Billing context
 ```
+
+## When to use Tack
+
+**Reach for Tack when:**
+
+- You're starting a project where you want spec discipline locked in from day one.
+- You have defined domain rules, vocabulary, and multiple stakeholders who need a shared glossary.
+- You already write tests and want agents to honor TDD instead of skipping it.
+- Multiple agents or contributors work in parallel and you want isolated worktrees and traceable commits.
+
+**Skip Tack (or use only `tack-agent` ad hoc) when:**
+
+- It's a throwaway script, prototype, or one-shot tool — the spec → plan → red → green → review loop is overhead you'll pay every time.
+- The change is a typo, one-liner, or trivial fix — invoke `tack-agent` for a single role instead of `tack-run`.
+- The repo has no test harness yet — bootstrap expects a test and lint command to exist; build them first if neither does.
+- The team isn't willing to write specs — without a real spec, QA can't write meaningful ACs and the reviewer gate loses rigor.
+- The codebase has no domain to speak of (CRUD over a single table, a static site) — the glossary, ADRs, and DDD profile are dead weight.
+
+## Philosophy
+
+Tack is a set of constraints that turn an agent loose on your repo into a disciplined process. The principles below aren't aspirational; they're enforced by the prompts and project-rules files the bootstrap writes (`.cursorrules`, `AGENTS.md`, `CLAUDE.md` — whichever your agent surfaces use).
+
+- **Specs before code, with traceability.** Numbered `S-XXX` specs with Gherkin `AC-N` are the unit of truth; tasks in `plan.md` map to closed ACs; commits cite `S-XXX#AC-N` so history is queryable. (see [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md))
+- **TDD red-green gate, enforced by the reviewer.** Failing tests are written before implementation; the reviewer role checks the gate is real, not a rubber-stamp. (see [`skills/tack-bootstrap/template/prompts/qa-tester.md`](skills/tack-bootstrap/template/prompts/qa-tester.md), [`reviewer.md`](skills/tack-bootstrap/template/prompts/reviewer.md))
+- **Role isolation prevents context bleed.** Each role runs as a separate subagent in sequence (PM, architect, QA, harness engineer, worker, reviewer, security), so no single agent mixes concerns. (see [`skills/tack-bootstrap/template/prompts/`](skills/tack-bootstrap/template/prompts/))
+- **Harness as feedforward + feedback.** Project-rules files guide agents *before* they write code; tests, lint, type checks, and the reviewer validate *after*. Both halves are the harness. (see [`skills/tack-bootstrap/template/docs/harness-engineering.md`](skills/tack-bootstrap/template/docs/harness-engineering.md))
+- **Decisions in ADRs, vocabulary in a glossary.** Hard-to-reverse choices land in `ADR-NNNN`; canonical terms and forbidden synonyms live in `domain-glossary.md` and are law for every role. (see [`skills/tack-bootstrap/template/docs/domain-glossary.md`](skills/tack-bootstrap/template/docs/domain-glossary.md))
+- **Parallel features without clobbering.** Optional `git worktree` mode reserves `S-XXX` across branches so multiple features run in isolated trees. (see [`tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh))
+- **Agent-agnostic by construction.** The same prompts drive Claude Code, Cursor, Copilot CLI, Codex, and Antigravity; opt-in profiles (auto-routing, DDD) keep the surface area honest.
+
+The philosophy lives in prompts and your project-rules files, not in tooling — after bootstrap, `project/docs/sdd.md` and the rules files at the repo root are where the rules are written down for your repo.
 
 ## What's in the bundled template
 
