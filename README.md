@@ -4,59 +4,119 @@
 
 Portable **spec-driven development** (SDD) and **isolated role prompts** for coding agents: numbered specs (`S-XXX`), acceptance criteria (`AC-N`), plans with traceability, ADRs (`ADR-NNNN`), strict TDD gates, and optional full-auto orchestration via subagents.
 
-The **machine-runnable bootstrap** is the agent skill **`tack-bootstrap`**, which interviews you, mines business rules from existing code when needed, and materializes governance docs under `project/` in your repository.
+## What is Tack?
 
-## Install the skill
+Tack is a template — not a runtime. You install three small skills into your agent, run a one-time bootstrap on your repo, then ship features through a deterministic PM → architect → QA → worker → reviewer pipeline.
 
-### 1. Recommended — `npx skills` (skills.sh)
+Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**. The bootstrap detects which agent surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, `.cursor/`) and writes routing into each — you don't pick a platform up front.
 
-Works with **Claude Code, Cursor, Google Antigravity, GitHub Copilot, and 50+ other agents** — the CLI installs into each tool’s expected path.
+## Philosophy & when to use Tack
+
+Tack isn't a runtime — it's a set of constraints that turn an agent loose on your repo into a disciplined process. The principles below aren't aspirational; they're enforced by the prompts and `.cursorrules` the bootstrap writes. Read them as a fit test: if you don't want these constraints, Tack is the wrong tool.
+
+### What Tack enforces
+
+- **Specs before code, with traceability.** Numbered `S-XXX` specs with Gherkin `AC-N` are the unit of truth; tasks in `plan.md` map to closed ACs; commits cite `S-XXX#AC-N` so history is queryable. (see [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md))
+- **TDD red-green gate, enforced by the reviewer.** Failing tests are written before implementation; the reviewer role checks the gate is real, not a rubber-stamp. (see [`skills/tack-bootstrap/template/prompts/qa-tester.md`](skills/tack-bootstrap/template/prompts/qa-tester.md), [`reviewer.md`](skills/tack-bootstrap/template/prompts/reviewer.md))
+- **Role isolation prevents context bleed.** PM, architect, QA, harness engineer, worker, reviewer, security run as separate subagents; no role overlaps within a run. (see [`skills/tack-bootstrap/template/prompts/`](skills/tack-bootstrap/template/prompts/))
+- **Harness as feedforward + feedback.** `.cursorrules` guides agents *before* they write code; tests, lint, type checks, and the reviewer validate *after*. Both halves are the harness. (see [`skills/tack-bootstrap/template/docs/harness-engineering.md`](skills/tack-bootstrap/template/docs/harness-engineering.md))
+- **Durable decisions in ADRs, durable vocabulary in a glossary.** Hard-to-reverse choices land in `ADR-NNNN`; canonical terms and forbidden synonyms live in `domain-glossary.md` and are law for every role. (see [`skills/tack-bootstrap/template/docs/domain-glossary.md`](skills/tack-bootstrap/template/docs/domain-glossary.md))
+- **Parallel features without clobbering.** Optional `git worktree` mode reserves `S-XXX` across branches so multiple features run in isolated trees. (see [`tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh))
+- **Agent-agnostic by construction.** The same prompts drive Claude Code, Cursor, Copilot CLI, Codex, and Antigravity; opt-in profiles (auto-routing, DDD) keep the surface area honest.
+
+### When Tack is the right call — and when it isn't
+
+**Reach for Tack when:**
+
+- You're starting a project where you want spec discipline locked in from day one.
+- You have a real domain (rules, vocabulary, multiple stakeholders) and want agents to share one glossary.
+- You already write tests and want agents to honor TDD instead of skipping it.
+- Multiple agents or contributors work in parallel and you want isolated worktrees and traceable commits.
+
+**Skip Tack (or use only `tack-agent` ad hoc) when:**
+
+- It's a throwaway script, prototype, or one-shot tool — the spec → plan → red → green → review loop is overhead you'll pay every time.
+- The change is a typo, one-liner, or trivial fix — invoke `tack-agent` for a single role instead of `tack-run`.
+- The repo has no test harness yet — bootstrap assumes `<TEST_COMMAND>` and `<LINT_COMMAND>` exist or can be created; if neither does, build that first.
+- The team isn't willing to write specs — without a real spec, QA can't write meaningful ACs and the reviewer gate degrades to vibes.
+- The codebase has no domain to speak of (CRUD over a single table, a static site) — the glossary, ADRs, and DDD profile are dead weight.
+
+The philosophy lives in prompts and `.cursorrules`, not in tooling — after bootstrap, `project/docs/sdd.md` and `project/.cursorrules` are where the rules are written down for your repo.
+
+## The three skills
+
+| Skill | When to use | Frequency |
+|---|---|---|
+| [`tack-bootstrap`](skills/tack-bootstrap/SKILL.md) | First time in a repo: 6-phase interview that fills `.cursorrules`, `project/docs/`, role prompts, and routing | Once per repo |
+| [`tack-run`](skills/tack-run/SKILL.md) | Ship a feature end-to-end (epic → spec → plan → red → green → reviewer) | Per feature |
+| [`tack-agent`](skills/tack-agent/SKILL.md) | Invoke a single role: reviewer pass on a diff, `diagnose` a regression, `domain-modeler` to refine bounded contexts | Ad hoc |
+
+## Quick start
+
+### 1. Install the skills into your agent
+
+Recommended — [`npx skills`](https://skills.sh/) installs into your agent's expected path automatically:
 
 ```bash
 cd /path/to/your/repo
 npx skills add <github-owner>/<github-repo>
-# explicit skill name (optional):
-npx skills add <github-owner>/<github-repo> --skill tack-bootstrap
 ```
 
-After install, open your agent and invoke the **tack-bootstrap** skill (or describe bootstrapping SDD / filling `.cursorrules` and `project/docs/`). The skill copies the bundled template into `project/` and walks the six-phase flow described in `skills/tack-bootstrap/SKILL.md`.
+Or copy `skills/tack-bootstrap/` manually into:
 
-Browse more skills at [skills.sh](https://skills.sh/).
-
-### 2. Manual — copy the skill folder
-
-Copy `skills/tack-bootstrap/` into your editor’s skills directory, for example:
-
-| Agent / editor        | Typical path |
-|----------------------|--------------|
+| Agent / editor        | Path |
+|----------------------|------|
 | Claude Code          | `.claude/skills/tack-bootstrap/` |
 | Cursor               | `.cursor/skills/tack-bootstrap/` |
 | Antigravity (project)| `.agents/skills/tack-bootstrap/` |
 
-Each folder should contain `SKILL.md`, `references/`, `scripts/`, and `template/`.
+> **Note.** `npx skills add` installs the skill into your *agent's* path. The bootstrap step below handles routing inside your *target repo* (writing `AGENTS.md` / `CLAUDE.md` / `.cursorrules`). Two different mechanisms.
 
-### 3. Working on this repository (contributors)
+### 2. Bootstrap your repo
 
-The **canonical** skill lives only at [`skills/tack-bootstrap/`](skills/tack-bootstrap/). Mirrored copies under `.claude/skills/`, `.cursor/skills/`, and `.agents/skills/` are generated — do not edit those by hand.
+Open your agent and ask it to run **`tack-bootstrap`** (or describe the task: "bootstrap Tack on this repo / fill `.cursorrules` and `project/docs/`").
 
-```bash
-npm run sync        # refresh mirrors after editing skills/tack-bootstrap/
-npm run check-sync  # verify mirrors match canonical (also run in CI)
+The 6-phase interview detects your stack and the agent surfaces in use, then writes:
+
+- `project/` — prompts, docs, specs, scripts, ADR template
+- `.cursorrules` at repo root
+- `## Tack routing` block spliced into `AGENTS.md` and/or `CLAUDE.md` per detection
+- `tack-run` / `tack-agent` skill mirrors under `.claude/skills/`, `.agents/skills/`, `.cursor/skills/` — whichever surfaces apply
+
+Phase 2 mines business rules from existing code; Phase 5 writes the artifacts; Phase 6 runs `bash project/scripts/tack-doctor.sh` to verify no placeholders are left.
+
+### 3. Ship a feature
+
+Paste an epic and ask your agent to run **`tack-run`**:
+
+```text
+Run tack-run for this epic:
+"As a customer I want to cancel an order before it ships so I can…"
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+The skill reads `project/prompts/auto-orchestrator.md` and dispatches each role as an isolated subagent. You get a spec (`S-XXX`), failing tests (red), passing implementation (green), and a reviewer report — with `S-XXX` / `AC-N` traceability throughout.
 
-## What’s in the bundled template
+### 4. One-off agent invocations
 
-After the skill runs Phase 5, your consumer repo has under `project/`:
+For tasks that don't need the full pipeline:
+
+```text
+Run tack-agent reviewer on this diff
+Run tack-agent diagnose for the flaky test in tests/orders_spec.rb
+Run tack-agent domain-modeler to refine the Billing context
+```
+
+## What's in the bundled template
+
+After Phase 5, your consumer repo has under `project/`:
 
 | Path | Purpose |
 |------|---------|
-| `project/.cursorrules.template` | Rename to `.cursorrules` at **repo root** (or generate `.cursorrules` directly during bootstrap). |
+| `project/.cursorrules.template` | Renamed/generated to `.cursorrules` at repo root during bootstrap. |
 | `project/docs/sdd.md` | SDD lifecycle, 7-step pipeline, and **Parallel features** (`git worktree`). |
-| `project/scripts/tack-worktree.sh` | Helper to create/list/remove linked worktrees + reserve `S-XXX` across branches (`.cursorrules`: `tack.worktree.*`). |
-| `project/scripts/splice-tack-routing.sh` | Deterministic helper used by Phase 5 (and re-runnable by you) to splice `## Tack routing` into `AGENTS.md` / `CLAUDE.md`; idempotent, with `--check` mode for CI. |
-| `project/scripts/tack-doctor.sh` | Post-bootstrap validator (Phase 6 step 1a): fails on leftover `<UPPERCASE>` placeholders in `.cursorrules` and `<fill>` rows in `auto-orchestrator.md`. |
+| `project/scripts/tack-worktree.sh` | Create/list/remove linked worktrees + reserve `S-XXX` across branches. |
+| `project/scripts/splice-tack-routing.sh` | Idempotent helper that splices `## Tack routing` into `AGENTS.md` / `CLAUDE.md`; supports `--check` for CI. |
+| `project/scripts/tack-doctor.sh` | Post-bootstrap validator: fails on leftover `<UPPERCASE>` placeholders and `<fill>` rows in routing tables. |
 | `project/docs/harness-engineering.md` | Guides vs sensors, steering loop. |
 | `project/docs/test-harness.md` | Test harness intent and boundary doubles. |
 | `project/docs/domain-glossary.md` | Skeleton glossary — **must** be filled for your domain. |
@@ -66,12 +126,6 @@ After the skill runs Phase 5, your consumer repo has under `project/`:
 | `project/prompts/_specialist-template.md` | Duplicate for stack-specific roles. |
 | `project/specs/_template.md` | Product spec template. |
 | `project/examples/` | Fictitious **OrderFlow** examples. |
-
-`AGENTS.md` at this repo’s root is a lightweight router for tools that support it; see [`AGENTS.md`](AGENTS.md).
-
-## Listing on skills.sh
-
-This repo follows the multi-skill layout (`skills/<name>/SKILL.md`) expected by the [Vercel skills CLI](https://vercel.com/docs/agent-resources/skills). To appear in the public directory, submit or update metadata via the process described on [skills.sh](https://skills.sh/) (community registry).
 
 ## Multi-platform agent support
 
@@ -84,7 +138,7 @@ Tack ships one canonical `auto-orchestrator.md` written with **Cursor** tool nam
 | Pinned working dir | `working_directory` | `cwd` (or `cd <path> && …` in the prompt) | host-specific; otherwise prepend `cd <worktree_path>` |
 | Ask the human | `AskQuestion` | `AskUserQuestion` | post the question in chat verbatim |
 
-The bundled `tack-run` / `tack-agent` skills do this translation when called via the host's skill system (Claude Code, Cursor, Antigravity). For details see [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) → **Platform tool mapping**.
+The `tack-run` / `tack-agent` skills do this translation when called via the host's skill system. For details see [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) → **Platform tool mapping**.
 
 ## Conventions (summary)
 
@@ -93,6 +147,14 @@ The bundled `tack-run` / `tack-agent` skills do this translation when called via
 - **Plans:** `plan.md` with first line `Spec: S-XXX` and a `## Traceability` table (tasks ↔ ACs).
 - **ADRs:** `ADR-0001`, … — files under `project/docs/adr/`.
 - **Commits / PRs:** cite `S-XXX` and closed `AC-N` where applicable (e.g. `Closes: S-001#AC-1`).
+
+## Listing on skills.sh
+
+This repo follows the multi-skill layout (`skills/<name>/SKILL.md`) expected by the [Vercel skills CLI](https://vercel.com/docs/agent-resources/skills). To appear in the public directory, submit or update metadata via [skills.sh](https://skills.sh/) (community registry).
+
+## Contributing
+
+Working on Tack itself? See [CONTRIBUTING.md](CONTRIBUTING.md) — covers the canonical skill location under `skills/`, the `npm run sync` mirror workflow, and CI checks.
 
 ## References
 
