@@ -9,16 +9,16 @@ Prioritized improvement opportunities for this repository (canonical skill at [`
 | Theme | P0 | P1 | P2 | Total |
 |-------|----|----|----|-------|
 | 2. Script hardening & tests | 0 | 0 | 0 | 0 |
-| 3. Skill correctness & safeguards | 1 | 2 | 1 | 4 |
+| 3. Skill correctness & safeguards | 0 | 0 | 0 | 0 |
 | 4. Template content & onboarding | 0 | 2 | 2 | 4 |
 | 5. Tooling / CLI | 0 | 1 | 1 | 2 |
 | 6. Repo hygiene | 1 | 1 | 1 | 3 |
 | 7. Worktree polish | 0 | 0 | 2 | 2 |
-| **Total** | **2** | **6** | **7** | **15** |
+| **Total** | **1** | **4** | **6** | **11** |
 
-Done so far: **13** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-25, B-26, B-27, B-28 — see [Done](#done)).
+Done so far: **17** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-10, B-11, B-12, B-13, B-25, B-26, B-27, B-28 — see [Done](#done)).
 
-> **Last refresh:** Theme 2 (**B-05**–**B-09**, **B-28**) moved to **Done**: Bats coverage for `detect-stack.sh`, `tack-worktree.sh`, and `recon.sh`; `shellcheck` + dispatch contract in CI; `recon.sh` truncation flags fixed (subshell bug); `auto-orchestrator` / `pipeline-state-machine` Step→model parity; `package.json` **0.2.0**.
+> **Last refresh:** Theme 3 (**B-10**–**B-13**) moved to **Done**: deterministic `splice-tack-routing.sh` helper (idempotent `## Tack routing` H2 splice, `--check` mode); `tack-doctor.sh` validator (rejects `<UPPERCASE>` in `.cursorrules` + `<fill>` rows in `auto-orchestrator.md`); auto-orchestrator gains a **Platform tool mapping** preamble translating Cursor names (`Task` / `AskQuestion` / `working_directory` / `subagent_type: generalPurpose`) to Claude Code / generic equivalents; root README adds a multi-platform support table.
 
 ## Theme 2 — Script hardening & tests
 
@@ -28,29 +28,7 @@ Done so far: **13** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-25,
 
 ## Theme 3 — Skill correctness & safeguards
 
-### B-10 — Deterministic `splice-routing` helper
-
-- **Priority:** P0 · **Effort:** M
-- **Rationale:** Phase 5 in [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) (step 3b, lines 274–278) requires replacing only `## Tack routing` in `AGENTS.md`/`CLAUDE.md`; today this relies on agent behavior. [`references/file-templates/agents-routing.md`](skills/tack-bootstrap/references/file-templates/agents-routing.md) documents idempotency but provides no executable tool.
-- **Acceptance:** Script (e.g. `scripts/splice-tack-routing.sh`) reads consumer file + `routing-snippet.md`, replaces or appends the H2 deterministically, exits 0 on no-op when unchanged; documented for bootstrap or contributors.
-
-### B-11 — Phase-5 placeholder validator for `.cursorrules`
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** SKILL behavior rule 3 ([`SKILL.md:24`](skills/tack-bootstrap/SKILL.md)) forbids invented placeholders; generated `.cursorrules` from [`.cursorrules.template`](skills/tack-bootstrap/template/.cursorrules.template) can still ship with `<PLACEHOLDER>` if validation is skipped.
-- **Acceptance:** Validator script or checklist step fails on `<...>` patterns in `.cursorrules` at consumer root; optional integration into `npm run` scripts.
-
-### B-12 — Validator for Specialist routing table
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** Template still contains literal `<fill>` rows ([`auto-orchestrator.md:207–210`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md)).
-- **Acceptance:** CI or `doctor` command fails if `project/prompts/auto-orchestrator.md` (or template) contains `<fill>` after bootstrap; or document grep in CONTRIBUTING.
-
-### B-13 — Decouple Cursor-specific tools in auto-orchestrator
-
-- **Priority:** P2 · **Effort:** M
-- **Rationale:** [`auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) names Cursor `Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose` (e.g. lines 30–31, 75–82, 121–124). Other agents use different dispatch APIs.
-- **Acceptance:** Additional prompt variant(s) (e.g. Claude-oriented) or a preamble that maps tool names per platform; README table of which file to use where.
+*(No pending items — shipped entries are in [Done](#done).)*
 
 ---
 
@@ -175,6 +153,22 @@ Items below have shipped. Kept here (rather than deleted) so each acceptance cri
 ### B-09 — `--wt-dir` vs `ensure_gitignore_worktrees` · P1 · S
 
 - **Shipped:** Regression in [`test/bats/tack-worktree.bats`](test/bats/tack-worktree.bats) (`create --wt-dir custom-wt` → `.gitignore` contains `custom-wt/`). Naming `case` in [`skills/tack-bootstrap/template/scripts/tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh) refactored for ShellCheck + clarity. Acceptance met.
+
+### B-10 — Deterministic `splice-routing` helper · P0 · M
+
+- **Shipped:** [`skills/tack-bootstrap/template/scripts/splice-tack-routing.sh`](skills/tack-bootstrap/template/scripts/splice-tack-routing.sh) reads a target (`AGENTS.md` / `CLAUDE.md`) plus a `routing-snippet.md` (default: sibling `../routing-snippet.md` of the script, so it works both as `${SKILL_DIR}/template/scripts/...` during bootstrap and as `project/scripts/...` after Phase 5). Algorithm: awk replaces from `## Tack routing` until the next H1/H2 (`^##? `) or EOF; appends with a blank-line separator if the heading is missing. Idempotent — `--check` mode prints a diff and exits 1 only when a write would change bytes; otherwise exits 0 with `unchanged`. Wired into [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) Phase 5 step 3b (helper named, `--check` first, then apply on user accept) and into the **Additional resources** index. Bats coverage in [`test/bats/splice-tack-routing.bats`](test/bats/splice-tack-routing.bats) (12 cases): byte-equal no-op against both stock templates, append when heading is missing, replace mid-document with byte-for-byte preservation of the trailing section, replace as last section, `--check` exit code on drift, snippet-without-heading rejection, missing-file errors, `--help`, and H1-after-routing termination. Idempotence asserted in two tests by re-running `--check` after the first apply. ShellCheck clean.
+
+### B-11 — Phase-5 placeholder validator for `.cursorrules` · P1 · S
+
+- **Shipped:** Combined with **B-12** into [`skills/tack-bootstrap/template/scripts/tack-doctor.sh`](skills/tack-bootstrap/template/scripts/tack-doctor.sh). Check 1 fails when `.cursorrules` matches `<[A-Z][A-Z0-9_]*>` (i.e. `<UPPERCASE_PLACEHOLDER>` like `<TEST_COMMAND>`, `<PROJECT_NAME>`); deliberately ignores schema annotations like `<yes | no>` and `<agents | claude | both | none>` so the documentation lines in the **Auto-orchestration routing** section don't trip the check. `--rules` overrides the default path. Wired into [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) Phase 6 step 1a as the post-bootstrap verification gate (re-route to Phase 5 step 3 on failure). Bats coverage in [`test/bats/tack-doctor.bats`](test/bats/tack-doctor.bats): clean fixtures pass; leftover `<TEST_COMMAND>` and `<PROJECT_NAME>` each fail with cited line numbers; missing file fails with actionable message; sanity check that the stock `.cursorrules.template` still trips the regex (so the validator has bite once shipped to consumers). ShellCheck clean.
+
+### B-12 — Validator for Specialist routing table · P1 · S
+
+- **Shipped:** Same `tack-doctor.sh` as B-11. Check 2 fails on any `<fill>` substring in `project/prompts/auto-orchestrator.md` (covers the literal Specialist-routing table rows at [`auto-orchestrator.md:228–231`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md)). `--orchestrator` overrides the default path. Phase 6 step 1a in [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) routes failures back to Phase 5 step 7 (Specialist routing fill-in). Documented in [`CONTRIBUTING.md`](CONTRIBUTING.md) under **Consumer-side scripts**. Bats coverage: leftover `<fill>` row fails with cited line number; sanity check that the stock template still trips the check.
+
+### B-13 — Decouple Cursor-specific tools in auto-orchestrator · P2 · M
+
+- **Shipped:** Added a **Platform tool mapping** preamble to [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) (after the Role section, before Model routing). The preamble translates Cursor names — `Task`, `subagent_type: generalPurpose`, `working_directory`, `AskQuestion`, `model` — to **Claude Code** (`Agent`, `subagent_type: general-purpose`, `cwd`, `AskUserQuestion`) and to a **generic / Copilot CLI / Codex / Antigravity** column (post the question in chat, prepend `cd <worktree_path>` to the dispatched prompt when no `cwd` parameter exists). Calls out the `AskQuestion` ↔ `AskUserQuestion` swap as the only contract change downstream prompts care about, and points hosts without subagent dispatch at `@orchestrator.md` as a fallback. Brief cross-references added to [`skills/tack-run/SKILL.md`](skills/tack-run/SKILL.md) (rule 8) and [`skills/tack-agent/SKILL.md`](skills/tack-agent/SKILL.md) (rule 9) so dispatcher skills surface the mapping at the entry point. Public-facing summary added to [`README.md`](README.md) under **Multi-platform agent support** as the requested README table.
 
 ### B-28 — Contract tests for `tack-run` / `tack-agent` against bundled prompts · P1 · M
 

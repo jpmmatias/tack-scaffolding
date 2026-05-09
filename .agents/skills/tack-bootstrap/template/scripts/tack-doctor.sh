@@ -65,7 +65,7 @@ else
   matches="$(grep -nE '<[A-Z][A-Z0-9_]*>' "$RULES" || true)"
   if [[ -n "$matches" ]]; then
     fail "$RULES still contains uppercase placeholders:"
-    echo "$matches" | sed 's/^/  /' >&2
+    printf '  %s\n' "${matches//$'\n'/$'\n  '}" >&2
   else
     note "$RULES placeholders OK"
   fi
@@ -77,7 +77,7 @@ else
   matches="$(grep -nF '<fill>' "$ORCH" || true)"
   if [[ -n "$matches" ]]; then
     fail "$ORCH still contains <fill> rows in Specialist routing table:"
-    echo "$matches" | sed 's/^/  /' >&2
+    printf '  %s\n' "${matches//$'\n'/$'\n  '}" >&2
   else
     note "$ORCH Specialist routing OK"
   fi
