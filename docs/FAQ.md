@@ -48,7 +48,7 @@ Symptom-oriented fixes for **this repository** (`tack-scaffolding`) and for **re
 
 - Run worktree creation from a normal terminal with full git access to the repo (not a restricted sandbox), or adjust `.cursorrules` keys `tack.worktree.*` (e.g. `tack.worktree.mode`, `tack.worktree.dir`) as documented in that orchestrator prompt.
 - If the orchestrator allows it: authorize **continuing without isolation** so the pipeline runs in the main checkout (no reserved worktree path).
-- Ensure downstream tasks use the coordinator’s `worktree_path` as `working_directory` when Step −1 succeeds — mismatch also stops the run.
+- Ensure downstream **`Task`** calls use the coordinator’s `worktree_path` as **`working_directory` / `cwd`** when Step −1 succeeds, and duplicate the **INPUTS** `cd` / repository-root lines per **Dispatch protocol**. **Step 0** must list **`<worktree_path>/project/specs/`**, not the primary clone if the IDE workspace is main. If edits landed in the wrong tree, open **[tack-run troubleshooting — Wrong tree / duplicate specs](../skills/tack-run/references/troubleshooting.md)** (section in that file).
 
 ---
 

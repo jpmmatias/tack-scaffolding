@@ -7,7 +7,7 @@ description: Use when running the full Tack SDD/TDD pipeline end-to-end in a boo
 
 # tack-run
 
-You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-orchestrator.md`** in the **consumer** repository. You are a **dispatcher only**: you read prompts from disk, run gates, and use the **`Task`** tool (`subagent_type: generalPurpose`) with the correct `model` and `working_directory`. You do **not** write specs, plans, tests, or application source in your own reply except the **Final report**.
+You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-orchestrator.md`** in the **consumer** repository. You are a **dispatcher only**: you read prompts from disk, run gates, and use the **`Task`** tool (`subagent_type: generalPurpose`) with the correct `model` and `working_directory`. Do **not** use file or shell tools to create specs, plans, tests, or application code yourself — only subagents do, per that orchestrator’s **Outputs** section. You do **not** write specs, plans, tests, or application source in your own reply except the **Final report**.
 
 **`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `skills/tack-run`, `.cursor/skills/tack-run`). Runtime paths below are relative to the **consumer repo root** (where `.cursorrules` lives).
 
@@ -42,8 +42,9 @@ When the user reports **errors, unexpected stops, or confusion between the `tack
 4. **Model slugs:** run **`auto-orchestrator.md`** **Preflight** first — load every key from **`project/docs/tack-pipeline-models.md`**. Each **`Task`** uses `models.<key>` from that file; **Upward fallback** per **Model routing** in `auto-orchestrator.md`. Stock tier defaults in `references/pipeline-state-machine.md` apply only when explaining legacy behavior.
 5. **PM Step 1:** on `STATUS: NEEDS_INPUT`, use **`AskQuestion`** exactly as specified in `auto-orchestrator.md` (options + `Other - I'll explain in chat`). On `cancel grill`, stop per stop conditions.
 6. **Isolation:** retain only spec id, paths, step outcomes, and snippets needed for the next dispatch and the Final report (same as auto-orchestrator **Isolation** section).
-7. **No auto-retry** of failed steps in this version.
-8. **Platform tool mapping.** `auto-orchestrator.md` uses Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). On Claude Code use `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`; on hosts without a subagent primitive, fall back to `@orchestrator.md`. Full table: `auto-orchestrator.md` → **Platform tool mapping**.
+7. **Worktree:** When Step −1 succeeds, follow **auto-orchestrator.md** **Worktree anchor** and **Dispatch protocol**: every **Step 1–7** and **7b** `Task` pins **`working_directory` / `cwd` to absolute `worktree_path`** and prepends the **`cd` + repository-root lines** to **INPUTS** (**including PM iteration 1**). **Step 0** spec-id listing uses **`<worktree_path>/project/specs/`**, not the IDE workspace root when that root is the primary clone. If edits may have landed in the wrong checkout, run **`git -C <worktree_path> status`** and **`git -C <repo_root> status`** and reconcile per **Wrong-tree detection and recovery** in that file before continuing.
+8. **No auto-retry** of failed steps in this version.
+9. **Platform tool mapping.** `auto-orchestrator.md` uses Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). On Claude Code use `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`; on hosts without a subagent primitive, fall back to `@orchestrator.md`. Full table: `auto-orchestrator.md` → **Platform tool mapping**.
 
 ---
 

@@ -20,7 +20,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 # Outputs (only write here)
 
 - A **single final markdown report** in the chat reply — use the format in **Final report**. Nothing else counts as deliverable from this agent.
-- Do **not** write `specs/S-XXX-*.md`, `plan.md`, task files, ADRs, tests, or application source yourself. Each downstream prompt owns its Outputs; you **dispatch** them via the `Task` tool only (where available).
+- Do **not** use editor file tools (`Write`, `StrReplace`, and the like), terminal edits, or any direct mutation of `specs/S-XXX-*.md`, `plan.md`, task files, ADRs, tests, or application source in **either** the primary clone or the worktree. Each downstream prompt owns its Outputs; you **dispatch** them via the `Task` tool only (where available), with pinned cwd and prompt-line `cd` per **Dispatch protocol** when Step −1 succeeded. Post-pipeline **Step 8 / Step 9** shell actions remain scoped as written below (worktree vs primary root).
 
 ---
 
@@ -33,8 +33,8 @@ Unlike `@orchestrator.md` (passive checklist only), you **execute** the SDD/TDD 
 Your job:
 
 1. Run **Preflight** — load and validate **`project/docs/tack-pipeline-models.md`** (see **Preflight**). **No `Task` before this succeeds.**
-2. Optionally run **Step −1** (worktree isolation). When active, every downstream **`Task`** runs with **`working_directory`** set to the created worktree path (when your platform supports it).
-3. Resolve the next free spec id `S-XXX` under `project/specs/` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7.
+2. Optionally run **Step −1** (worktree isolation). When it succeeds, apply the **Worktree anchor** (see Step −1): every downstream **`Task`** for Steps **1–7** and **7b** uses **`working_directory`** = absolute `worktree_path` **and** the prompt-line `cd` duplicate in **INPUTS** (see **Dispatch protocol**) — including **iteration 1** of the PM grill loop.
+3. Resolve the next free spec id `S-XXX` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7. When Step −1 succeeded, resolve spec paths only under **`${worktree_path}/project/specs/`** (absolute prefix); do **not** rely on the IDE workspace root if it is the primary clone (see **Step 0**).
 4. Run Steps 1–7 in order (see **Dispatch protocol**).
 5. Validate gates between steps (red / green / invariants / reviewer).
 6. Emit the **Final report**.
@@ -61,7 +61,7 @@ This document is written with **Cursor** tool names (`Task`, `AskQuestion`, `wor
 |---------|-------------------------|-------------|----------------------------------------------|
 | Dispatch a subagent | `Task` tool | `Agent` tool (also called `Task` in older versions) | host-specific subagent / dispatch primitive |
 | Subagent type | `subagent_type: generalPurpose` | `subagent_type: general-purpose` | omit if your host has no notion of agent types |
-| Pinned working directory | `working_directory` parameter | `cwd` parameter, or `cd <path> && …` inside the dispatched prompt | host-specific; otherwise prepend `cd <worktree_path>` to the prompt's instructions |
+| Pinned working directory | `working_directory` parameter | `cwd` parameter, or `cd <path> && …` inside the dispatched prompt | host-specific; otherwise prepend `cd <worktree_path>` to the prompt's instructions. **After Step −1 succeeds:** always pass **`working_directory` / `cwd` *and* the first **INPUTS** line `cd <absolute worktree_path> &&`** (or equivalent) on **every** Step 1–7 / 7b `Task` — some hosts ignore the parameter on the first dispatch. |
 | Interactive question to the human | `AskQuestion` tool | `AskUserQuestion` tool | post the question in chat verbatim and wait for the next user message |
 | Per-step model | `model` parameter | `model` parameter | host-specific; if unsupported, document the chosen model in the prompt and rely on the upward fallback rule under **Model routing** |
 
@@ -101,6 +101,8 @@ Step → **key** (read slug from `models.<key>`):
 
 Build each subagent **`prompt`** like this (adapt paths and extras per step):
 
+When Step −1 **succeeded**, the **`=== INPUTS ===` section must begin** with the two lines below (same absolute path as the Task’s `working_directory` / `cwd` — **mandatory on every** Step 1–7 / 7b dispatch, including **PM iteration 1**), then step-specific content. When Step −1 was **skipped**, omit those two lines; **INPUTS** begins with step-specific content only.
+
 ```text
 You are the agent defined by the PROMPT FILE below. Treat it as your complete instruction set. Execute it on the INPUTS section. Do not merge instructions from this wrapper except where INPUTS extend context.
 
@@ -108,6 +110,8 @@ You are the agent defined by the PROMPT FILE below. Treat it as your complete in
 <full file contents read from disk>
 
 === INPUTS ===
+cd <absolute worktree_path> &&
+Repository root for this step: <absolute worktree_path> — all relative paths below are under this directory; use `git -C <absolute worktree_path>` when running git in a shell.
 <step-specific: epic text, spec path, plan path, git diff summary, prior failure output, etc.>
 ```
 
@@ -117,8 +121,8 @@ Use **`Task`** with:
 - `description`: short unique title per step (e.g. `SDD Step 3 QA red S-001`)
 - `model`: **`models.<key>`** for that step (see **Model routing**; apply **Upward fallback** if the host rejects the slug)
 - `prompt`: as built above
-- **`working_directory`** (required when Step −1 succeeded): absolute `worktree_path` from the coordinator JSON — every Step 1–7 dispatch **must** use this cwd so edits and `git diff` stay isolated. Omit only when Step −1 was skipped or failed fallback.
-- `run_in_background`: `false` unless the platform requires otherwise — you need the subagent result before the next step.
+- **`working_directory`** (required when Step −1 succeeded): absolute `worktree_path` from the coordinator JSON — **every** Step **1–7** and **Step 7b** dispatch **must** use this cwd so edits and `git diff` stay isolated (**including the first PM dispatch** in the Step 1 loop — never omit). Omit only when Step −1 was skipped or failed fallback.
+- **`run_in_background`:** `false` unless the platform requires otherwise — you need the subagent result before the next step.
 
 ## Step −1 — Worktree setup (optional)
 
@@ -135,13 +139,14 @@ Use **`Task`** with:
 3. If proceeding: derive a **slug** from the epic (kebab-case, e.g. `change-background`). If the epic is ambiguous, ask one clarifying question.
 4. Dispatch **`@worktree-coordinator.md`** with `model: models.worktree_coordinator` (**`[Composer]`** tier), passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
 5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract). If `error` is non-null → **STOP** (Stop conditions) unless the human instructs you to continue without isolation; in that case fall back to **Step 0** in the current directory and **do not** use a reserved spec id.
-6. All **subsequent** `Task` calls for Steps 1–7 **must** use `working_directory = worktree_path`.
+6. **Worktree anchor (Steps 0–7 and 7b).** Store the verbatim **absolute** `worktree_path`. Until the **Final report** is emitted, treat that directory as the **only** checkout for pipeline artifacts (specs, plan, tests, implementation): **every** `Task` for Steps **1–7** and **7b** **MUST** set pinned cwd to `worktree_path` **and** must include the **INPUTS** `cd` / path-prefix rule in **Dispatch protocol** — **including iteration 1** of the PM grill loop (**never** omit `working_directory` or the prompt-line anchor on the first dispatch).
+7. **Wrong-tree detection and recovery:** If there is any chance files were created in the **primary clone** instead of `worktree_path`, **before continuing** run and surface **`git -C <worktree_path> status`** and **`git -C <repo_root> status`** (`repo_root` = the directory you used as `working_directory` for the Step −1 coordinator `Task`). **Reconcile:** move or replay edits so specs, plan, tests, and app code changes exist **only** under the worktree; **remove duplicates from main** (e.g. uncommitted: copy into the worktree, then restore/remove paths on main; committed: revert or cherry-pick per team practice). Do **not** leave duplicate specs or parallel plans on main.
 
 ## Step 0 — Spec id
 
 1. If Step −1 produced **`spec_id_reserved`**, treat it as the canonical **`S-XXX`** for this run. Continue to Step 1 and instruct **`@product-manager.md`** to use exactly that id in **INPUTS** (`Reserved spec id: S-XXX`).
-2. Otherwise: list `project/specs/` (excluding `_template.md`), determine the lowest unused `S-XXX`. If collision or ambiguity → **STOP** (Stop conditions).
-3. After Step 1, **discover** the created file `project/specs/S-XXX-<slug>.md`. If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
+2. Otherwise: if Step −1 **succeeded**, list **`<worktree_path>/project/specs/`** (absolute path), excluding `_template.md`, and determine the lowest unused `S-XXX`. If Step −1 was **skipped**, list `project/specs/` relative to the active checkout. If collision or ambiguity → **STOP** (Stop conditions).
+3. After Step 1, **discover** the created file under the same tree: **`project/specs/S-XXX-<slug>.md`** (i.e. `<worktree_path>/project/specs/S-XXX-<slug>.md` when Step −1 succeeded). If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
 
 ## Step 1 — `@product-manager.md`
 
@@ -167,21 +172,21 @@ Use **`Task`** with:
        - If the human replies exactly `cancel grill` (in chat or as the free-form follow-up) → **STOP** (Stop conditions).
        - Append `{ question: next_question, recommendation, options, answer }` to `qa_history` (`options` = PM's list only, not the appended `Other` row), then continue the loop.
      - `STATUS: SPEC_WRITTEN`:
-       - Discover the new file `project/specs/S-XXX-<slug>.md`.
+       - Discover the new file under the worktree anchor when Step −1 succeeded: `<worktree_path>/project/specs/S-XXX-<slug>.md` (otherwise `project/specs/S-XXX-<slug>.md` relative to the active checkout).
        - Confirm it exists and contains numbered **AC-1**, **AC-2**, … If missing → **STOP**.
        - If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
        - Proceed to Step 2.
      - Anything else → **STOP** (Stop conditions).
 - Note: this loop may require **N+1** PM dispatches for **N** questions, by design.
 
-- **Steps 2–7:** use the same **`working_directory`** as Step 1 whenever Step −1 created a worktree (isolation of `git diff`, tests, and edits).
+- **Steps 2–7 and 7b:** use the same **`working_directory`** and the same **INPUTS** `cd` / path-prefix rule as Step 1 whenever Step −1 created a worktree (isolation of `git diff`, tests, and edits).
 
 ## Step 2 — `@architect.md`
 
 - Model: **`models.architect`** (`[Opus]`).
 - Inputs: absolute path to the spec file from Step 1 + architect Inputs (architecture, ADR folder, sdd).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
-- After dispatch: locate `plan.md` (repo root or under `project/specs/` — **first line must be** `Spec: S-XXX` per architect rules). Confirm `## Traceability` table exists with **Task id**, **Description**, **ACs covered**. Every AC from the spec appears at least once. If architect stops asking for PM first, or outputs invalid plan → **STOP**.
+- After dispatch: locate `plan.md` under the worktree anchor when Step −1 succeeded (`<worktree_path>/plan.md` or `<worktree_path>/project/specs/plan.md` — **first line must be** `Spec: S-XXX` per architect rules). Confirm `## Traceability` table exists with **Task id**, **Description**, **ACs covered**. Every AC from the spec appears at least once. If architect stops asking for PM first, or outputs invalid plan → **STOP**.
 
 ## Step 3 — `@qa-tester.md` (red)
 
@@ -384,6 +389,8 @@ Refuse to even *consider* cleanup unless every guard passes — surface no quest
 # Isolation
 
 You do **not** persist full subagent transcripts in your working memory across steps. Retain only: **spec id**, **paths**, **step outcomes**, **git/test snippets** needed for the next dispatch and for **Final report**. This limits context rot in the parent chat.
+
+If worktree isolation is active and something went to the wrong checkout, follow **Wrong-tree detection and recovery** in **Step −1** before proceeding.
 
 ---
 

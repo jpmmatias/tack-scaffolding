@@ -33,7 +33,7 @@ Use **`Task`** with:
 - `subagent_type`: `generalPurpose`
 - `description`: short unique title per step
 - `model`: **`models.<key>`** from **`project/docs/tack-pipeline-models.md`** (see **Preflight**)
-- `working_directory`: absolute `worktree_path` after Step −1 succeeds (required for Steps 1–7); omit only when Step −1 skipped
+- `working_directory`: absolute `worktree_path` after Step −1 succeeds (required for **Step 1–7 and 7b** subagent dispatches). **Step 0** is lead-side: resolve `project/specs/` under **`<worktree_path>/project/specs/`** when isolation is active — do not list from the primary clone by mistake. Duplicate pinned cwd inside the prompt `=== INPUTS ===` (`cd` + repository-root line) per **Dispatch protocol** in `auto-orchestrator.md`. Omit `working_directory` only when Step −1 was skipped.
 - `run_in_background`: `false` unless the platform requires otherwise
 
 ## Step −1 — Worktree (optional)

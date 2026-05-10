@@ -43,6 +43,24 @@ Common reasons:
 
 ---
 
+## Wrong tree / duplicate specs after Step −1
+
+**Symptoms**
+
+- Step −1 succeeded and `worktree_path` exists, but the first pipeline edits (e.g. new spec) appeared in the **primary clone** or IDE workspace root instead of under the linked worktree.
+- Duplicate `project/specs/` files or divergent `git status` between main and worktree.
+
+**Why**
+
+- Some hosts ignore **`working_directory` / `cwd`** on the first subagent dispatch; **Step 0** listing may follow the IDE’s default root (often the primary checkout).
+
+**What to do**
+
+- Follow **Wrong-tree detection and recovery** in your consumer **`project/prompts/auto-orchestrator.md`** (dual **`git -C <worktree_path> status`** and **`git -C <repo_root> status`**, reconcile so specs/plan/tests live only in the worktree — remove duplicates from main).
+- For the rest of the run: keep **`working_directory`** pinned and prepend the **INPUTS** `cd` / repository-root lines on **every** Step 1–7 / 7b `Task` per **Dispatch protocol** in that file.
+
+---
+
 ## Why a single agent fails (tack-agent)
 
 | Symptom | Cause | Next steps |
