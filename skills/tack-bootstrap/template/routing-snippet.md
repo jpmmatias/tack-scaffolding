@@ -1,6 +1,6 @@
-<!-- DEPRECATED: Tack keeps SDD entry points and routing in repo-root TACK.md (see TACK.md.template → "## SDD entry points"). Bootstrap no longer splices this into AGENTS.md / CLAUDE.md. Kept for manual migration reference only. -->
-
 ## Tack routing
+
+<!-- DEPRECATED: Tack keeps SDD entry points and routing in repo-root TACK.md (see TACK.md.template → "## SDD entry points"). Bootstrap no longer splices this into AGENTS.md / CLAUDE.md. Kept for manual migration reference only. -->
 
 Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo unless explicitly told otherwise.
 
