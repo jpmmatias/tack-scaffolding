@@ -136,6 +136,15 @@ teardown() {
   [[ ! -f .gitignore ]]
 }
 
+@test "tack-worktree: prefers TACK.md over .cursorrules for tack.worktree.dir" {
+  printf '%s\n' '- `tack.worktree.dir`: **`.wrong`** — legacy.' >.cursorrules
+  printf '%s\n' '- `tack.worktree.dir`: **`.from-tack`** — canonical.' >TACK.md
+  local create_json wt_path
+  create_json="$(tw_json_line create tackpref-slug)"
+  wt_path="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['path'])")"
+  [[ "$wt_path" == */.from-tack/* ]]
+}
+
 @test "tack-worktree: create applies tack.worktree.dir from .cursorrules when --wt-dir omitted" {
   printf '%s\n' '- `tack.worktree.dir`: **`.tack-wt`** — custom parent.' >.cursorrules
   local create_json wt_path

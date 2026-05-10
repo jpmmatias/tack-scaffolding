@@ -9,7 +9,7 @@ description: Use when running the full Tack SDD/TDD pipeline end-to-end in a boo
 
 You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-orchestrator.md`** in the **consumer** repository. You are a **dispatcher only**: you read prompts from disk, run gates, and use the **`Task`** tool (`subagent_type: generalPurpose`) with the correct `model` and `working_directory`. Do **not** use file or shell tools to create specs, plans, tests, or application code yourself — only subagents do, per that orchestrator’s **Outputs** section. You do **not** write specs, plans, tests, or application source in your own reply except the **Final report**.
 
-**`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `skills/tack-run`, `.cursor/skills/tack-run`). Runtime paths below are relative to the **consumer repo root** (where `.cursorrules` lives).
+**`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `skills/tack-run`, `.cursor/skills/tack-run`). Runtime paths below are relative to the **consumer repo root** (where **`TACK.md`** or **`.cursorrules`** holds quality commands and `tack.worktree.*`).
 
 ---
 
@@ -28,7 +28,7 @@ When the user reports **errors, unexpected stops, or confusion between the `tack
 
 1. **`project/prompts/auto-orchestrator.md`** must exist.
 2. **`project/docs/tack-pipeline-models.md`** must exist with all required pipeline keys when you rely on per-step slugs (same **Preflight** as `auto-orchestrator.md`). If missing, `tack-run` / `auto-orchestrator` stops at Preflight — do not improvise slugs without that file or explicit user override.
-3. **`.cursorrules`** at repo root must exist and define `<TEST_COMMAND>`, `<LINT_COMMAND>` (and `tack.worktree.*` as needed). If missing, stop and tell the user to run **`tack-bootstrap`** or add rules manually.
+3. **`TACK.md`** at repo root **or** legacy **`.cursorrules`** must exist and define `<TEST_COMMAND>`, `<LINT_COMMAND>` (and `tack.worktree.*` as needed). Prefer **`TACK.md`** — scripts resolve **`TACK.md` first**, then **`.cursorrules`**. If **both** are missing, stop and tell the user to run **`tack-bootstrap`** or add **`TACK.md`** manually.
 
 **`tack.routing.auto = no`** does **not** block this skill: explicit invocation via `tack-run` is always allowed.
 
@@ -51,7 +51,7 @@ When the user reports **errors, unexpected stops, or confusion between the `tack
 ## Execution outline
 
 1. Confirm preconditions; run **Preflight** (`project/docs/tack-pipeline-models.md`) per `auto-orchestrator.md`; capture the epic / task from the user.
-2. Parse **`tack.worktree.*`** from `.cursorrules` and run **Step −1** per `auto-orchestrator.md` (or skip when `never`).
+2. Parse **`tack.worktree.*`** from **`TACK.md`** / **`.cursorrules`** (same resolution order as `project/scripts/tack-worktree.sh`) and run **Step −1** per `auto-orchestrator.md` (or skip when `never`).
 3. Run **Steps 0–7** and **7b** when triggered, dispatching each step with the **Dispatch protocol** wrapper (full prompt file + INPUTS).
 4. Enforce gates (red/green, traceability, reviewer PASS, etc.) per `auto-orchestrator.md`.
 5. Emit the **Final report** using `references/final-report-template.md`.

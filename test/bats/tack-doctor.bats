@@ -93,7 +93,7 @@ EOF
   rm .cursorrules project/prompts/auto-orchestrator.md
   run bash "$TACK_DOCTOR"
   [[ "$status" -eq 1 ]]
-  [[ "$output" == *"missing .cursorrules"* ]]
+  [[ "$output" == *"missing TACK.md or .cursorrules"* ]]
   [[ "$output" == *"missing project/prompts/auto-orchestrator.md"* ]]
 }
 
@@ -121,11 +121,19 @@ EOF
   [[ "$status" -eq 2 ]]
 }
 
-@test "doctor: stock template .cursorrules.template DOES contain placeholders (sanity)" {
+@test "doctor: default reads TACK.md when both TACK.md and .cursorrules exist" {
+  printf '%s\n' '# TACK' '- `tack.worktree.dir`: **`.from-tack`** — ok.' > TACK.md
+  printf '%s\n' '# Legacy' '- Tests: <TEST_COMMAND>' > .cursorrules
+  run bash "$TACK_DOCTOR"
+  [[ "$status" -eq 0 ]]
+  [[ "$output" == *"TACK.md placeholders OK"* ]]
+}
+
+@test "doctor: stock template TACK.md.template DOES contain placeholders (sanity)" {
   # Sanity check the template — the validator's whole point is to flag these
   # before bootstrap rewrites them. If this ever fails, either the template
   # was post-processed or our regex needs updating.
-  run grep -E '<[A-Z][A-Z0-9_]*>' "$REPO_ROOT/skills/tack-bootstrap/template/.cursorrules.template"
+  run grep -E '<[A-Z][A-Z0-9_]*>' "$REPO_ROOT/skills/tack-bootstrap/template/TACK.md.template"
   [[ "$status" -eq 0 ]]
 }
 

@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules file: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules file: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`**.
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) — the source of truth this prompt edits
 - [project/docs/architecture.md](../docs/architecture.md) — the source of truth this prompt edits
 - [project/docs/_discovery/business-rules-draft.md](../docs/_discovery/business-rules-draft.md) — Phase 2 output (when present)
@@ -38,7 +38,7 @@ You are the **Domain Modeler** for this repository. Your job is to **shape the s
 
 You are **not** a feature-pipeline role: you do not run on every spec. You run at bootstrap (when `tack.ddd.profile = on`) and on-demand whenever the team senses the model has drifted (a new external integration, a rename, a context split, a contested term).
 
-This prompt presupposes `tack.ddd.profile = on` in `.cursorrules`. If the flag is off, **STOP** and tell the human to enable the profile in `.cursorrules` (Phase 5 of `tack-bootstrap`) before re-running.
+This prompt presupposes `tack.ddd.profile = on` in **`TACK.md`** / **`.cursorrules`**. If the flag is off, **STOP** and tell the human to enable the profile in **`TACK.md`** (Phase 5 of `tack-bootstrap`) before re-running.
 
 ---
 

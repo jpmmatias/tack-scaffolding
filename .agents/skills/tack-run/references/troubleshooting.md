@@ -6,7 +6,7 @@ User-facing guide when the **tack-run** or **tack-agent** skill stops, errors, o
 
 ## What you are actually running
 
-- **`tack run` / `tack agent` in the IDE** refer to the **tack-run** and **tack-agent** skills: the assistant reads prompts from your **consumer** repository (where `.cursorrules` lives), runs **Preflight** when required, and dispatches **subagents**. Failed steps are **not** auto-retried in the current skill version.
+- **`tack run` / `tack agent` in the IDE** refer to the **tack-run** and **tack-agent** skills: the assistant reads prompts from your **consumer** repository (repo-root **`TACK.md`** or **`.cursorrules`** plus `project/`), runs **Preflight** when required, and dispatches **subagents**. Failed steps are **not** auto-retried in the current skill version.
 - **The `tack` npm binary** (see the `tack` package `bin/tack.mjs`) implements **`tack doctor`**, **`tack init`**, and **`tack specialist add`** only. It does **not** implement `tack run` or `tack agent`. If the shell says `unknown command` or similar for `tack run`, you meant the **skill** in chat, not the CLI—or you need `tack --help` to see supported subcommands.
 
 **If the failure is the CLI:** run `tack --help` from the repo root and use **`tack doctor`** for environment checks once `project/scripts/tack-doctor.sh` exists (after bootstrap).
@@ -19,7 +19,7 @@ User-facing guide when the **tack-run** or **tack-agent** skill stops, errors, o
 |--------|----------------|------------|
 | Stops at **Preflight** | Missing or incomplete `project/docs/tack-pipeline-models.md` | Run **tack-bootstrap** or restore that file; ensure every pipeline model key required by `project/prompts/auto-orchestrator.md` is present. |
 | Stops before any step | **`project/prompts/auto-orchestrator.md` missing** (full pipeline) | Bootstrap the repo or materialize `project/` (e.g. `tack init` plus bootstrap skill). |
-| Lacks test/lint commands | **`.cursorrules` missing** or missing `<TEST_COMMAND>` / `<LINT_COMMAND>` | Add root `.cursorrules` per bootstrap; gates depend on these for red/green. |
+| Lacks test/lint commands | **`TACK.md`** / **`.cursorrules`** missing or missing `<TEST_COMMAND>` / `<LINT_COMMAND>` | Add **`TACK.md`** at repo root per bootstrap (canonical); legacy repos may use **`.cursorrules`** only; gates depend on these for red/green. |
 
 ---
 
@@ -39,7 +39,7 @@ Common reasons:
 
 5. **Models** — **Model unavailable after upward fallback** (see `references/stop-conditions.md`). **Next steps:** Adjust `project/docs/tack-pipeline-models.md` to models your host supports; retry the step.
 
-6. **Worktree (Step −1)** — Coordinator error, path unusable, or fallback not authorized. **Next steps:** Fix `tack.worktree.*` in `.cursorrules`, use a valid worktree path, or run from the main repo if policy allows.
+6. **Worktree (Step −1)** — Coordinator error, path unusable, or fallback not authorized. **Next steps:** Fix `tack.worktree.*` in **`TACK.md`** / **`.cursorrules`**, use a valid worktree path, or run from the main repo if policy allows.
 
 ---
 

@@ -42,7 +42,7 @@ Then …
 
 ## Telemetry contract
 
-List every analytics / observability artifact this change must emit or preserve. Rename columns to match your stack (see `.cursorrules` and `project/docs/domain-glossary.md`).
+List every analytics / observability artifact this change must emit or preserve. Rename columns to match your stack (see **`TACK.md`** / **`.cursorrules`** and `project/docs/domain-glossary.md`).
 
 | Pipeline | Name | When | Payload / attributes |
 |----------|------|------|----------------------|
@@ -69,7 +69,7 @@ DDD-only — emit when `tack.ddd.profile = on`. List each aggregate this spec re
 -->
 
 <!-- ## Domain events emitted
-DDD-only — emit when `tack.ddd.profile = on`. Distinct from **Telemetry contract** above; an artifact MAY appear in both. Names follow `<PastTenseVerb><Aggregate>` (see `.cursorrules`).
+DDD-only — emit when `tack.ddd.profile = on`. Distinct from **Telemetry contract** above; an artifact MAY appear in both. Names follow `<PastTenseVerb><Aggregate>` (see **`TACK.md`** / **`.cursorrules`**).
 
 | Event | Trigger (which AC) | Payload | Invariant that produces it |
 |-------|--------------------|---------|----------------------------|

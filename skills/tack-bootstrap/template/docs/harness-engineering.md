@@ -4,9 +4,9 @@ This repo uses **harness engineering** in the sense of [Harness engineering for 
 
 ## Core ideas
 
-- **Guides (feedforward)** steer before implementation: `project/.cursorrules`, `specs/S-XXX-*.md`, `project/prompts/*.md`.
+- **Guides (feedforward)** steer before implementation: **`TACK.md`** (repo root), `specs/S-XXX-*.md`, `project/prompts/*.md`.
 - **Sensors (feedback)** check after: your test runner, linter, type checker, the reviewer checklist.
-- **Computational** sensors are deterministic (CPU, fast). **Inferential** sensors (e.g. optional LLM review) are slower and probabilistic—they **never** replace hard failures on invariants defined in `.cursorrules` or the spec.
+- **Computational** sensors are deterministic (CPU, fast). **Inferential** sensors (e.g. optional LLM review) are slower and probabilistic—they **never** replace hard failures on invariants defined in **`TACK.md`** / **`.cursorrules`** or the spec.
 - **Steering loop:** when the same mistake repeats, improve **both** guides and sensors so the next agent self-corrects earlier (fewer tokens, higher quality).
 
 ## Three regulation categories
@@ -14,7 +14,7 @@ This repo uses **harness engineering** in the sense of [Harness engineering for 
 See the table in [test-harness.md](./test-harness.md). In short:
 
 1. **Maintainability** — linting, typing, test naming tied to `S-XXX AC-N`.
-2. **Architecture fitness** — ADRs, module boundaries, stack-specific invariants from `.cursorrules`.
+2. **Architecture fitness** — ADRs, module boundaries, stack-specific invariants from **`TACK.md`** / **`.cursorrules`**.
 3. **Behaviour** — Gherkin ACs, telemetry contracts, approved fixtures for upstream payloads.
 
 ## Harnessability (ambient affordances)

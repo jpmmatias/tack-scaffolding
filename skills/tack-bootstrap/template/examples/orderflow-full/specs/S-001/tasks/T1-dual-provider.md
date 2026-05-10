@@ -19,7 +19,7 @@ Introduce a shared helper so **legacy** and **refactored** checkout paths apply 
 
 ## Invariants
 
-- Align with `.cursorrules` parity / naming rules for checkout modules if present in the consumer repo.
+- Align with **`TACK.md`** / **`.cursorrules`** parity / naming rules for checkout modules if present in the consumer repo.
 
 ## Done when
 

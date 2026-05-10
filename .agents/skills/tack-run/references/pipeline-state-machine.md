@@ -4,7 +4,7 @@
 
 ## Preconditions
 
-- Consumer repo root has `.cursorrules` with quality commands and `tack.worktree.*` (and optionally `tack.routing.*`).
+- Consumer repo root has **`TACK.md`** or **`.cursorrules`** with quality commands and `tack.worktree.*` (and optionally `tack.routing.*`). **`TACK.md` is preferred** (`project/scripts/tack-resolve-config.sh` resolution).
 - `project/prompts/auto-orchestrator.md` exists.
 - `project/docs/tack-pipeline-models.md` exists with required YAML keys when running the pipeline (see **Preflight** in `auto-orchestrator.md`).
 
@@ -38,7 +38,7 @@ Use **`Task`** with:
 
 ## Step −1 — Worktree (optional)
 
-Follow **Step −1** in `auto-orchestrator.md`: parse `tack.worktree.*` from `.cursorrules`, decide `never` / `always` / `prompt`, dispatch `@worktree-coordinator.md` with `working_directory` at primary repo root when the tool distinguishes it.
+Follow **Step −1** in `auto-orchestrator.md`: parse `tack.worktree.*` from **`TACK.md`** / **`.cursorrules`**, decide `never` / `always` / `prompt`, dispatch `@worktree-coordinator.md` with `working_directory` at primary repo root when the tool distinguishes it.
 
 ## Steps 0–7 and 7b
 

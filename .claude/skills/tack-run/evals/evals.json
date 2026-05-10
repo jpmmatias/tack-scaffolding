@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Run the full Tack SDD pipeline for this epic using auto-orchestrator: add OAuth2 refresh-token rotation to the API gateway. Consumer repo already has project/prompts/auto-orchestrator.md and .cursorrules with test/lint placeholders.",
+      "prompt": "Run the full Tack SDD pipeline for this epic using auto-orchestrator: add OAuth2 refresh-token rotation to the API gateway. Consumer repo already has project/prompts/auto-orchestrator.md and TACK.md (or .cursorrules) with test/lint placeholders.",
       "expected_output": "Dispatcher reads project/prompts/auto-orchestrator.md, treats itself as Task-only orchestration, and outlines sequential subagent dispatches (not writing application source in its own reply except a final report template).",
       "expectations": [
         "Response states intent to read or follow project/prompts/auto-orchestrator.md as the source of truth for step order",
@@ -25,7 +25,7 @@
     },
     {
       "id": 3,
-      "prompt": "Run the full Tack pipeline for epic E-99. This repository has .cursorrules but is missing project/prompts/auto-orchestrator.md entirely.",
+      "prompt": "Run the full Tack pipeline for epic E-99. This repository has TACK.md (or legacy .cursorrules) but is missing project/prompts/auto-orchestrator.md entirely.",
       "expected_output": "Fail fast: stop and tell the user preconditions are not met (missing auto-orchestrator), pointing to tack-bootstrap or manual install.",
       "expectations": [
         "Response explicitly states that project/prompts/auto-orchestrator.md is missing or that preconditions fail",

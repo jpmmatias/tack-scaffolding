@@ -1,0 +1,77 @@
+# Project: <PROJECT_NAME>
+
+Fill this file and save it as **`TACK.md`** at the **repository root** (IDE-agnostic Tack configuration). Merge sections into an existing `TACK.md` if you already have one.
+
+Cursor users may keep a short **`.cursorrules`** at the repo root that points here (see `project/.cursorrules.template`); tools read **`TACK.md` first**, then fall back to `.cursorrules`.
+
+## Tech stack
+
+- <PRIMARY_LANGUAGE_OR_RUNTIME> (e.g. TypeScript / Python / Go)
+- <FRAMEWORKS> (e.g. web framework, test runner — be explicit)
+
+## Domain and naming (CRITICAL)
+
+Define **stable vocabulary** for agents and humans. Prefer short bullets; expand in `project/docs/domain-glossary.md`.
+
+- **Product / brand:** <BRAND_RULES>
+- **Core entities:** list canonical nouns and **forbidden** synonyms.
+- **Boundaries:** name external systems (payment, identity, data warehouse) and how you refer to them in code/docs.
+
+## Engineering invariants (CRITICAL)
+
+List non-negotiable rules for this codebase:
+
+- <INVARIANT_1> (e.g. spelling of a feature flag that must not be auto-corrected)
+- <INVARIANT_2> (e.g. identity claim order, parity between legacy and new modules)
+- <INVARIANT_3>
+
+<!-- ## Bounded contexts and ubiquitous language (CRITICAL)
+DDD-only — emit this section when `tack.ddd.profile = on`. Omit entirely when off.
+
+- **Bounded contexts** are listed in `project/docs/domain-glossary.md` under **Bounded contexts**. Every spec MUST declare its bounded context (single value).
+- **New domain terms** must be added to `project/docs/domain-glossary.md` under a specific context in the same change. Reusing a term across contexts requires either an ADR or a published-language event — never silent reuse.
+- **Cross-context calls** must go through an **anticorruption layer** listed in `project/docs/architecture.md` under **Anticorruption layers**. Importing another context's domain types directly is a review FAIL.
+- **Domain events** follow `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Names that don't match are a review FAIL.
+- **Aggregate state changes** require an invariant test in the harness — every behavior change to an aggregate root cites the invariant it preserves or modifies.
+-->
+
+## Architecture rules
+
+- Where the canonical architecture description lives: `project/docs/architecture.md` → link to your real doc.
+- Module / layer boundaries: <BOUNDARY_RULES>
+
+## SDD / TDD / harness
+
+- **Specs:** Number product specs `S-001`, `S-002`, … (`project/specs/S-XXX-<slug>.md`). Reference the active spec id in plans and PRs when changing behaviour.
+- **ADRs:** Number architecture decisions `ADR-0001`, `ADR-0002`, … New ADRs in `project/docs/adr/` using `project/docs/adr/_template.md`. Reference ADRs in prose as `ADR-NNNN`.
+- **Traceability:** Tasks should cite which acceptance criteria (`AC-N`) they satisfy; commits may use `Closes: S-XXX#AC-N`.
+- **Glossary:** New domain nouns belong in `project/docs/domain-glossary.md` (or reuse existing terms). Do not invent parallel vocabulary.
+- **Harness:** Prefer typed boundaries, glossary alignment, and shared test harness factories/doubles under `<TEST_HARNESS_ROOT>` so agents and humans share the same seams — see `project/docs/test-harness.md`.
+- **Pipeline models:** Subagent/Task `model` slugs for PM, architect, QA, harness, worker, reviewer, security, and worktree coordinator live in **`project/docs/tack-pipeline-models.md`** (YAML). Set during **tack-bootstrap** Phase 1b; see `project/prompts/orchestrator.md` and `project/prompts/auto-orchestrator.md`.
+
+## Quality commands (fill with your repo’s scripts)
+
+- Lint: `<LINT_COMMAND>` (e.g. `npm run lint`)
+- Tests: `<TEST_COMMAND>` (e.g. `npm test` or `vitest run`)
+- Typecheck (if applicable): `<TYPECHECK_COMMAND>`
+
+The orchestrator prompts assume a **red** then **green** test gate using `<TEST_COMMAND>` unless you override them per task.
+
+## Parallel execution (worktrees)
+
+Tack can run each feature in an **isolated git worktree** + branch so multiple agent sessions do not clobber the same working tree. The helper is `project/scripts/tack-worktree.sh` (see `project/docs/sdd.md` — **Parallel features**). Configure:
+
+- `tack.worktree.mode`: `<prompt | always | never>` — default **`prompt`**: the auto-orchestrator asks before creating a worktree. Use **`always`** to skip the question, **`never`** to keep the legacy single-worktree flow.
+- `tack.worktree.naming`: default **`feature/S-XXX-<slug>`** (branch example: `feature/S-001-login`). Alternative: **`feature/<slug>`** (no spec id in the branch name).
+- `tack.worktree.base`: `<main | master | develop | detect>` — branch to fork from; **`detect`** (default) lets the script pick an existing local branch (`main` → `master` → current).
+- `tack.worktree.dir`: **`.worktrees`** — parent directory for linked worktrees (must stay **gitignored**; the script appends `/.` to `.gitignore` on first use).
+- `tack.worktree.cleanup`: `<prompt | always | never>` — default **`prompt`**: after the pipeline finishes the auto-orchestrator asks whether to delete the feature worktree + branch when it is **safe** (clean tree + branch merged into base + branch matches `feature/*` + worktree under `tack.worktree.dir`). Use **`always`** to skip the question and auto-delete when safe; **`never`** to skip the offer entirely. Protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) are **never** deletable by the helper script regardless of this setting — that guard lives in `tack-worktree.sh` and is not bypassable.
+
+The directory `.worktrees/` must not be committed. If your repo already uses another location, set `tack.worktree.dir` and ignore that path in `.gitignore`.
+
+## Auto-orchestration routing
+
+Tack can auto-route every feature/bug/task in agents that read `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). The bootstrap skill writes a `## Tack routing` H2 block into those files; this section configures whether and where.
+
+- `tack.routing.auto`: `<yes | no>` — default **`yes`**: every feature/bug/task is dispatched through `@project/prompts/auto-orchestrator.md` (the active SDD pipeline). Set to **`no`** to keep the passive flow where the human `@`-mentions `@project/prompts/orchestrator.md` manually.
+- `tack.routing.surfaces`: `<agents | claude | both | none>` — default **`both`** when any Claude marker (`AGENTS.md`, `.claude/`, `CLAUDE.md`) is detected; **`agents`** otherwise. **`agents`** writes only `AGENTS.md` (read by every modern surface). **`claude`** writes only `CLAUDE.md`. **`both`** writes both. **`none`** skips writing the routing block (forces `tack.routing.auto = no`).

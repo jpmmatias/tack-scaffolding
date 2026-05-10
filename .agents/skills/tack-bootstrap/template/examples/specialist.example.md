@@ -1,6 +1,6 @@
 # Example specialist: `project/prompts/payments-api.md`
 
-Copied from `_specialist-template.md` for the fictitious OrderFlow service. **Install:** save as `project/prompts/payments-api.md` so relative links (`../.cursorrules`, `../docs/...`) resolve like the other prompts.
+Copied from `_specialist-template.md` for the fictitious OrderFlow service. **Install:** save as `project/prompts/payments-api.md` so relative links (`../TACK.md.template`, `../docs/...`) resolve like the other prompts.
 
 ---
 
@@ -12,7 +12,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`**
 - Active **spec** / **task** for this change
 
 ---
@@ -32,7 +32,7 @@ You are a **Payments API engineer** for OrderFlow.
 
 Before coding:
 
-1. Read `.cursorrules` and the governing task.
+1. Read **`TACK.md`** at repo root first; if absent, read **`.cursorrules`**. Then read the governing task.
 2. **Boundaries:** Never call `InventoryService` from UI components — only from BFF handlers when explicitly tasked.
 3. **Invariants:** Preserve **`IDEMPOTENT_RETRY_V2`** spelling; honour **Customer Session** resolution order (`of_session` cookie → `csid` claim).
 

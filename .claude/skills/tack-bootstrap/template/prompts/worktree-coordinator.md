@@ -6,9 +6,9 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: `.cursorrules` at the **repository root** (generated from [project/.cursorrules.template](../.cursorrules.template)) — read optional keys `tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`.
+- Repository rules: **`TACK.md`** at the **repository root** first (from [project/TACK.md.template](../TACK.md.template)); if absent, **`.cursorrules`** ([stub template](../.cursorrules.template)) — read optional keys `tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`.
 - **Slug** for this feature — short kebab-case derived from the epic (or explicitly supplied by the human). Examples: `login`, `change-background`.
-- Optional overrides from the caller: `--spec S-XXX`, `--base <branch>`, `--wt-dir <path>` (defaults come from `.cursorrules` or [`scripts/tack-worktree.sh`](../scripts/tack-worktree.sh)).
+- Optional overrides from the caller: `--spec S-XXX`, `--base <branch>`, `--wt-dir <path>` (defaults come from **`TACK.md`** / **`.cursorrules`** or [`scripts/tack-worktree.sh`](../scripts/tack-worktree.sh)).
 
 ---
 
@@ -35,7 +35,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 You are the **Worktree Coordinator** — a thin `[Composer]` helper.
 
-Your **only** job is to run `bash project/scripts/tack-worktree.sh` from the **repository root** with the correct arguments and return the JSON above. The script applies the same **`tack.worktree.dir`** / **`base`** / **`naming`** defaults from `.cursorrules` when you omit the matching CLI flags (you may still pass overrides explicitly).
+Your **only** job is to run `bash project/scripts/tack-worktree.sh` from the **repository root** with the correct arguments and return the JSON above. The script applies the same **`tack.worktree.dir`** / **`base`** / **`naming`** defaults from **`TACK.md`** / **`.cursorrules`** when you omit the matching CLI flags (you may still pass overrides explicitly).
 
 ---
 
@@ -43,7 +43,7 @@ Your **only** job is to run `bash project/scripts/tack-worktree.sh` from the **r
 
 1. `cd` to the git repository root (`git rev-parse --show-toplevel`).
 2. Resolve defaults:
-   - **Naming:** from `.cursorrules` line `tack.worktree.naming` if present; otherwise `feature/S-XXX-<slug>` (Tack default).
+   - **Naming:** from **`TACK.md`** / **`.cursorrules`** line `tack.worktree.naming` if present; otherwise `feature/S-XXX-<slug>` (Tack default).
    - **Worktree directory:** from `tack.worktree.dir` if present; otherwise `.worktrees`.
    - **Base branch:** from `tack.worktree.base` if set to a concrete branch name; if `detect` or absent, **omit** `--base` and let the script auto-detect (`main` → `master` → current branch).
 3. Build command:
@@ -52,7 +52,7 @@ Your **only** job is to run `bash project/scripts/tack-worktree.sh` from the **r
 bash project/scripts/tack-worktree.sh create "<slug>" \
   [--spec S-XXX] \
   [--base <branch>] \
-  [--naming "<value-from-cursorrules>"] \
+  [--naming "<value-from-TACK.md-or-.cursorrules>"] \
   [--wt-dir <dir>]
 ```
 

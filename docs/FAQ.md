@@ -46,7 +46,7 @@ Symptom-oriented fixes for **this repository** (`tack-scaffolding`) and for **re
 
 **What to do**
 
-- Run worktree creation from a normal terminal with full git access to the repo (not a restricted sandbox), or adjust `.cursorrules` keys `tack.worktree.*` (e.g. `tack.worktree.mode`, `tack.worktree.dir`) as documented in that orchestrator prompt.
+- Run worktree creation from a normal terminal with full git access to the repo (not a restricted sandbox), or adjust **`TACK.md`** / **`.cursorrules`** keys `tack.worktree.*` (e.g. `tack.worktree.mode`, `tack.worktree.dir`) as documented in that orchestrator prompt.
 - If the orchestrator allows it: authorize **continuing without isolation** so the pipeline runs in the main checkout (no reserved worktree path).
 - Ensure downstream **`Task`** calls use the coordinator’s `worktree_path` as **`working_directory` / `cwd`** when Step −1 succeeds, and duplicate the **INPUTS** `cd` / repository-root lines per **Dispatch protocol**. **Step 0** must list **`<worktree_path>/project/specs/`**, not the primary clone if the IDE workspace is main. If edits landed in the wrong tree, open **[tack-run troubleshooting — Wrong tree / duplicate specs](../skills/tack-run/references/troubleshooting.md)** (section in that file).
 
@@ -80,13 +80,13 @@ Symptom-oriented fixes for **this repository** (`tack-scaffolding`) and for **re
 
 **Why**
 
-- [`tack-doctor.sh`](../skills/tack-bootstrap/template/scripts/tack-doctor.sh) fails if `.cursorrules` still contains `<UPPERCASE_PLACEHOLDER>` tokens or if **`Specialist routing`** in `project/prompts/auto-orchestrator.md` still has `<fill>` rows (template ships empty until you customize).
+- [`tack-doctor.sh`](../skills/tack-bootstrap/template/scripts/tack-doctor.sh) fails if **`TACK.md`** (default), **`--rules`** path, or fallback **`.cursorrules`** still contains `<UPPERCASE_PLACEHOLDER>` tokens or if **`Specialist routing`** in `project/prompts/auto-orchestrator.md` still has `<fill>` rows (template ships empty until you customize).
 - Empty or generic routing tables mean the auto-orchestrator cannot dispatch stack-specific work to the right prompt.
 
 **What to do**
 
 - Replace every `<fill>` row in **Specialist routing** with conditions and `@prompt.md` paths for your repo (see [`auto-orchestrator.md`](../skills/tack-bootstrap/template/prompts/auto-orchestrator.md) — section **Specialist routing — fill in**).
-- Remove placeholder tokens from `.cursorrules` per Phase 5 of [`SKILL.md`](../skills/tack-bootstrap/SKILL.md).
+- Remove placeholder tokens from **`TACK.md`** (or legacy **`.cursorrules`**) per Phase 5 of [`SKILL.md`](../skills/tack-bootstrap/SKILL.md).
 - Re-run `bash project/scripts/tack-doctor.sh` from the consumer repo root until it passes.
 
 ---

@@ -3,6 +3,10 @@
 # Run from the repository root (consumer repo). See project/docs/sdd.md § Parallel features.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tack-resolve-config.sh
+source "$SCRIPT_DIR/tack-resolve-config.sh"
+
 SPECS_GLOB="project/specs/S-*.md"
 WT_DIR_DEFAULT=".worktrees"
 
@@ -23,41 +27,14 @@ repo_root() {
   git rev-parse --show-toplevel 2>/dev/null || die "not inside a git repository"
 }
 
-# Optional defaults from repo-root `.cursorrules` (same keys as `worktree-coordinator.md`).
-apply_worktree_dir_from_cursorrules() {
+# Optional defaults from repo-root Tack config (`TACK.md` preferred, `.cursorrules` fallback — same keys as `worktree-coordinator.md`).
+apply_worktree_dir_from_config() {
   local root="$1"
   local line val
-  line="$(cursorrules_line_for_key "$root" "tack.worktree.dir")" || return 0
-  val="$(cursorrules_value_after_colon "$line")" || return 0
+  line="$(tack_config_line_for_key "$root" "tack.worktree.dir")" || return 0
+  val="$(tack_config_value_after_colon "$line")" || return 0
   [[ -n "$val" ]] || return 0
   WT_DIR_DEFAULT="$val"
-}
-
-cursorrules_line_for_key() {
-  local root="$1"
-  local needle="$2"
-  local f="$root/.cursorrules"
-  [[ -f "$f" ]] || return 1
-  grep -F "$needle" "$f" | head -n1 || return 1
-}
-
-# Strip common Markdown noise and trailing prose after an em dash (template lines).
-cursorrules_value_after_colon() {
-  local line="$1"
-  local val="${line#*:}"
-  val="${val//\`/}"
-  val="${val//\*\*/}"
-  val="${val//\"/}"
-  val="${val#"${val%%[![:space:]]*}"}"
-  val="${val%"${val##*[![:space:]]}"}"
-  case "$val" in
-    *" — "*)
-      val="${val%% — *}"
-      val="${val%"${val##*[![:space:]]}"}"
-      ;;
-  esac
-  [[ -n "$val" ]] || return 1
-  printf '%s' "$val"
 }
 
 # Branch fork target: `detect` / placeholders → leave unset (caller runs detect_base_branch).
@@ -211,7 +188,7 @@ cmd_path() {
   require_git
   local root slug out
   root="$(repo_root)"
-  apply_worktree_dir_from_cursorrules "$root"
+  apply_worktree_dir_from_config "$root"
   [[ -z "${1:-}" ]] && die "usage: tack-worktree.sh path <slug>"
   slug="$(sanitize_slug "$1")"
   out="$(resolve_wt_path_by_slug "$root" "$slug")" || die "no worktree under $WT_DIR_DEFAULT matching slug '$slug'"
@@ -222,7 +199,7 @@ cmd_list() {
   require_git
   local root wt_dir
   root="$(repo_root)"
-  apply_worktree_dir_from_cursorrules "$root"
+  apply_worktree_dir_from_config "$root"
   wt_dir="$root/$WT_DIR_DEFAULT"
   echo '['
   local first=1
@@ -250,7 +227,7 @@ cmd_remove() {
   require_git
   local root="${TACK_REPO_ROOT:-}"
   [[ -z "$root" ]] && root="$(repo_root)"
-  apply_worktree_dir_from_cursorrules "$root"
+  apply_worktree_dir_from_config "$root"
   local target="${1:-}"
   [[ -n "$target" ]] || die "usage: tack-worktree.sh remove <path-or-slug> [--force]"
   shift || true
@@ -352,7 +329,7 @@ cmd_create() {
   [[ -n "$slug" ]] || die "usage: tack-worktree.sh create <slug> [--spec S-XXX] [--base <branch>] [--naming <scheme>] [--wt-dir DIR] [--dry-run]"
 
   if [[ $wt_dir_explicit -eq 0 ]]; then
-    apply_worktree_dir_from_cursorrules "$root"
+    apply_worktree_dir_from_config "$root"
   fi
 
   slug="$(sanitize_slug "$slug")"
@@ -364,9 +341,9 @@ cmd_create() {
   fi
 
   if [[ $base_explicit -eq 0 ]]; then
-    line="$(cursorrules_line_for_key "$root" "tack.worktree.base")" || true
+    line="$(tack_config_line_for_key "$root" "tack.worktree.base")" || true
     if [[ -n "${line:-}" ]]; then
-      cr_val="$(cursorrules_value_after_colon "$line")" || cr_val=""
+      cr_val="$(tack_config_value_after_colon "$line")" || cr_val=""
       parsed="$(parse_base_branch_cursorrules "${cr_val:-}")" || parsed=""
       [[ -n "$parsed" ]] && base="$parsed"
     fi
@@ -376,9 +353,9 @@ cmd_create() {
   fi
 
   if [[ $naming_explicit -eq 0 ]]; then
-    line="$(cursorrules_line_for_key "$root" "tack.worktree.naming")" || true
+    line="$(tack_config_line_for_key "$root" "tack.worktree.naming")" || true
     if [[ -n "${line:-}" ]]; then
-      cr_val="$(cursorrules_value_after_colon "$line")" || cr_val=""
+      cr_val="$(tack_config_value_after_colon "$line")" || cr_val=""
       parsed="$(parse_naming_scheme_cursorrules "${cr_val:-}")" || parsed=""
       [[ -n "$parsed" ]] && naming="$parsed"
     fi

@@ -29,7 +29,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 ## Preconditions
 
 1. Target file **`project/prompts/<name>.md`** must exist (discover specialists by listing `project/prompts/*.md`).
-2. **`.cursorrules`** at repo root should exist for agents that depend on it; if missing, warn and proceed only if the user accepts.
+2. **`TACK.md`** at repo root **or** legacy **`.cursorrules`** should exist for prompts that read `<TEST_COMMAND>` / invariants; if **both** are missing, warn and proceed only if the user accepts.
 
 ---
 

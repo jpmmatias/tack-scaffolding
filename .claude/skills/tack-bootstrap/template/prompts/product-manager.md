@@ -6,7 +6,7 @@ Ignore prior conversation **except** for any `qa_history` included in **Inputs**
 
 # Inputs (read-only)
 
-- Repository rules file: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap; or equivalent rules file if your layout differs)
+- Repository rules file: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`** (legacy).
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md)
 - [specs/_template.md](../specs/_template.md)
@@ -52,7 +52,7 @@ Each spec **must** include:
 2. **User stories** — concise role / want / so that bullets.
 3. **Acceptance criteria** — Gherkin `Given / When / Then`, numbered **AC-1**, **AC-2**, …
 4. **Non-goals** — explicit exclusions.
-5. **Telemetry contract** — rows for each telemetry pipeline your project defines in `.cursorrules` / glossary (e.g. product analytics, engineering observability, local trace); state **None** if truly none.
+5. **Telemetry contract** — rows for each telemetry pipeline your project defines in **`TACK.md`** / **`.cursorrules`** / glossary (e.g. product analytics, engineering observability, local trace); state **None** if truly none.
 6. **Domain terms used** — every term must appear in the glossary or be added.
 
 Do **not** write implementation code or invent file paths under `src/` unless the human asked for illustrative examples—and never as mandatory scope.

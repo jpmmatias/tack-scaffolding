@@ -35,6 +35,7 @@ teardown() {
 @test "cli: doctor proxies to tack-doctor.sh" {
   mkdir -p project/prompts project/scripts
   cp "$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-doctor.sh" project/scripts/
+  cp "$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-resolve-config.sh" project/scripts/
   cat > .cursorrules <<'EOF'
 # Project
 

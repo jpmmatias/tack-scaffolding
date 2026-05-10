@@ -4,7 +4,7 @@
 
 Tack turns a coding agent loose on your repo into a deterministic pipeline: numbered specs, failing tests before code, and isolated agent roles (PM → architect → QA → worker → reviewer) so features ship traceably end-to-end.
 
-It's a **template, not a runtime** — install three small skills, run a one-time bootstrap on your repo, and ship features through the pipeline. Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**; the bootstrap detects which surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) and writes routing into each — you don't pick a platform up front.
+It's a **template, not a runtime** — install three small skills, run a one-time bootstrap on your repo, and ship features through the pipeline. Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**; the bootstrap detects which surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, **`TACK.md`**, optional **`.cursorrules`** for Cursor) and writes routing into each — you don't pick a platform up front.
 
 **Portuguese (Brazil):** [README.pt-BR.md](README.pt-BR.md)
 
@@ -66,7 +66,7 @@ Or copy `skills/tack-bootstrap/` manually into:
 | Cursor               | `.cursor/skills/tack-bootstrap/` |
 | Antigravity (project)| `.agents/skills/tack-bootstrap/` |
 
-> **Note.** `npx skills add` installs the skill into your *agent's* path. The bootstrap step below handles routing inside your *target repo* (writing `AGENTS.md` / `CLAUDE.md` / `.cursorrules`). Two different mechanisms.
+> **Note.** `npx skills add` installs the skill into your *agent's* path. The bootstrap step below handles routing inside your *target repo* (writing `AGENTS.md` / `CLAUDE.md` / **`TACK.md`** / optional **`.cursorrules`**). Two different mechanisms.
 
 ### 2. Bootstrap your repo
 
@@ -75,7 +75,7 @@ Open your agent and ask it to run **`tack-bootstrap`** (or describe the task: "b
 The 6-phase interview detects your stack and the agent surfaces in use, then writes:
 
 - `project/` — prompts, docs, specs, scripts, ADR template
-- **Project-rules files** at the repo root — `.cursorrules`, plus a `## Tack routing` block spliced into `AGENTS.md` and/or `CLAUDE.md` per detection. All three carry equivalent guidance; agents read whichever applies.
+- **Project-rules files** at the repo root — **`TACK.md`** (canonical IDE-agnostic commands and `tack.*` keys), optional **`.cursorrules`** stub when Cursor is active, plus a `## Tack routing` block spliced into `AGENTS.md` and/or `CLAUDE.md` per detection. Agents read **`TACK.md` first**; legacy repos may use **`.cursorrules`** only (fallback).
 - `tack-run` / `tack-agent` skill mirrors under `.claude/skills/`, `.agents/skills/`, `.cursor/skills/` — whichever surfaces apply
 
 Phase 2 mines business rules from existing code; Phase 5 writes the artifacts; Phase 6 runs `bash project/scripts/tack-doctor.sh` to verify no placeholders are left.
@@ -150,7 +150,7 @@ Mirror drift, `git worktree` / sandbox issues, bootstrap Phase 2 gates, empty sp
 
 ## Philosophy
 
-Tack is a set of constraints that turn an agent loose on your repo into a disciplined process. The principles below aren't aspirational; they're enforced by the prompts and project-rules files the bootstrap writes (`.cursorrules`, `AGENTS.md`, `CLAUDE.md` — whichever your agent surfaces use).
+Tack is a set of constraints that turn an agent loose on your repo into a disciplined process. The principles below aren't aspirational; they're enforced by the prompts and project-rules files the bootstrap writes (**`TACK.md`**, optional **`.cursorrules`**, `AGENTS.md`, `CLAUDE.md` — whichever your agent surfaces use).
 
 - **Specs before code, with traceability.** Numbered `S-XXX` specs with Gherkin `AC-N` are the unit of truth; tasks in `plan.md` map to closed ACs; commits cite `S-XXX#AC-N` so history is queryable. (see [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md))
 - **TDD red-green gate, enforced by the reviewer.** Failing tests are written before implementation; the reviewer role checks the gate is real, not a rubber-stamp. (see [`skills/tack-bootstrap/template/prompts/qa-tester.md`](skills/tack-bootstrap/template/prompts/qa-tester.md), [`reviewer.md`](skills/tack-bootstrap/template/prompts/reviewer.md))
@@ -168,11 +168,12 @@ After Phase 5, your consumer repo has under `project/`:
 
 | Path | Purpose |
 |------|---------|
-| `project/.cursorrules.template` | Renamed/generated to `.cursorrules` at repo root during bootstrap. |
+| `project/TACK.md.template` | Filled as **`TACK.md`** at repo root during bootstrap (canonical quality commands, `tack.worktree.*`, `tack.routing.*`, invariants). |
+| `project/.cursorrules.template` | Optional Cursor stub at repo root when Cursor is active — points at **`TACK.md`** (do not duplicate Tack keys). |
 | `project/docs/sdd.md` | SDD lifecycle, 7-step pipeline, **Multi-platform agent support** (single-chat inlining, `/agents` vs prompt files, orchestrator preamble), and **Parallel features** (`git worktree`). |
-| `project/scripts/tack-worktree.sh` | Create/list/remove linked worktrees + reserve `S-XXX` across branches. |
+| `project/scripts/tack-worktree.sh` | Create/list/remove linked worktrees + reserve `S-XXX` across branches (reads **`TACK.md`** / **`.cursorrules`** defaults). |
 | `project/scripts/splice-tack-routing.sh` | Idempotent helper that splices `## Tack routing` into `AGENTS.md` / `CLAUDE.md`; supports `--check` for CI. |
-| `project/scripts/tack-doctor.sh` | Post-bootstrap validator: fails on leftover `<UPPERCASE>` placeholders and `<fill>` rows in routing tables. |
+| `project/scripts/tack-doctor.sh` | Post-bootstrap validator: **`TACK.md`** (default) or `--rules`; warns when both **`TACK.md`** and **`.cursorrules`** exist; fails on leftover `<UPPERCASE>` placeholders and `<fill>` rows in routing tables. |
 | `project/docs/harness-engineering.md` | Guides vs sensors, steering loop. |
 | `project/docs/test-harness.md` | Test harness intent and boundary doubles. |
 | `project/docs/domain-glossary.md` | Skeleton glossary — **must** be filled for your domain. |

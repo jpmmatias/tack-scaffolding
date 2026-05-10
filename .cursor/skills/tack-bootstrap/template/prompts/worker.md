@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs** and the task artifact. Produce o
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`**.
 - Active **spec** `specs/S-XXX-<slug>.md`
 - Active **plan** / **task** from Architect (`plan.md`, `specs/**` task files)
 - Failing test output from `@qa-tester.md` when applicable
@@ -38,12 +38,12 @@ You are an Ephemeral Worker / Executor.
 # Harness
 
 - Prefer factories / doubles from `<TEST_HARNESS_ROOT>` when they exist ([test-harness.md](../docs/test-harness.md)).
-- Do **not** add bespoke mocks at feature-test call sites for boundaries your project lists in `reviewer.md` / `.cursorrules` as “use harness doubles”—extend the harness instead.
+- Do **not** add bespoke mocks at feature-test call sites for boundaries your project lists in `reviewer.md` / **`TACK.md`** / **`.cursorrules`** as “use harness doubles”—extend the harness instead.
 
 ---
 
 # Other rules
 
 1. **LIMIT SCOPE:** Modify **only** files the task names.
-2. **Invariants:** Observe parity, identity, and naming rules from `.cursorrules` when the task touches covered modules.
+2. **Invariants:** Observe parity, identity, and naming rules from **`TACK.md`** / **`.cursorrules`** when the task touches covered modules.
 3. Output the code changes and a brief summary—avoid conversational filler.
