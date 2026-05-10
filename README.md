@@ -14,6 +14,28 @@ It's a **template, not a runtime** — install three small skills, run a one-tim
 | [`tack-run`](skills/tack-run/SKILL.md) | Ship a feature end-to-end (epic → spec → plan → red → green → reviewer) | Per feature |
 | [`tack-agent`](skills/tack-agent/SKILL.md) | Invoke a single role: reviewer pass on a diff, `diagnose` a regression, `domain-modeler` to refine bounded contexts | Ad hoc |
 
+## Pipeline at a glance
+
+End-to-end feature work follows this role sequence (step through role prompts or run `tack-run`).
+
+```mermaid
+flowchart LR
+    Idea --> PM[ProductManager writes S-XXX spec]
+    PM --> Arch[Architect plan plus traceability]
+    Arch --> ADR{Architectural decision?}
+    ADR -->|yes| ADRDoc[ADR-NNNN]
+    ADR -->|no| QA
+    ADRDoc --> QA[QA-Tester failing tests by AC]
+    QA --> Harness[Harness-Engineer fixtures or mocks gap?]
+    Harness --> Worker[Worker green plus refactor]
+    Worker --> QA2[QA-Tester confirm green]
+    QA2 --> Reviewer[Reviewer checks]
+    Reviewer -->|fail| Worker
+    Reviewer -->|pass| Done[Merge]
+```
+
+Full numbered lifecycle, orchestrators, and optional worktree coordination live in [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md).
+
 ## Quick start
 
 ### 1. Install the skills into your agent
@@ -67,6 +89,10 @@ Run tack-agent reviewer on this diff
 Run tack-agent diagnose for the flaky test in tests/orders_spec.rb
 Run tack-agent domain-modeler to refine the Billing context
 ```
+
+## Troubleshooting
+
+Mirror drift, `git worktree` / sandbox issues, bootstrap Phase 2 gates, empty specialist routing, model routing, and orchestrator stop reasons are covered in [docs/FAQ.md](docs/FAQ.md).
 
 ## When to use Tack
 
@@ -147,7 +173,7 @@ This repo follows the multi-skill layout (`skills/<name>/SKILL.md`) expected by 
 
 ## Contributing
 
-Working on Tack itself? See [CONTRIBUTING.md](CONTRIBUTING.md) — covers the canonical skill location under `skills/`, the `npm run sync` mirror workflow, and CI checks.
+Working on Tack itself? See [CONTRIBUTING.md](CONTRIBUTING.md) — covers the canonical skill location under `skills/`, the `npm run sync` mirror workflow, and CI checks. See also [docs/FAQ.md](docs/FAQ.md) for common failures (mirrors, worktrees, bootstrap, orchestrator stops).
 
 ## References
 

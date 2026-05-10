@@ -34,17 +34,6 @@ Done so far: **17** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-10,
 
 ## Theme 4 — Template content & onboarding UX
 
-### B-14 — End-to-end OrderFlow demo
-
-- **Priority:** P1 · **Effort:** M
-- **Rationale:** [`skills/tack-bootstrap/template/examples/`](skills/tack-bootstrap/template/examples/) provides isolated examples (spec, plan, ADR, etc.) but not a full traced run from PM through reviewer.
-- **Acceptance:** Branch or `examples/orderflow-full/` with coherent `S-001` spec, `plan.md`, task files, and sample test names matching `S-001 AC-N`; README walkthrough.
-
-### B-15 — Mermaid pipeline in root README
-
-- **Priority:** P1 · **Effort:** S
-- **Rationale:** Diagram exists in [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md) (lines 19–33) but [`README.md`](README.md) does not surface it for GitHub visitors.
-- **Acceptance:** README section with the same (or simplified) mermaid flowchart linking to SDD doc.
 
 ### B-16 — FAQ + Troubleshooting
 
