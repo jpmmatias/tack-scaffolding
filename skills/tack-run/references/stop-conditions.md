@@ -4,6 +4,8 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 
 **Canonical list:** `project/prompts/auto-orchestrator.md` section **Stop conditions (irrecoverable errors)**. Summary:
 
+**Preflight** — `project/docs/tack-pipeline-models.md` missing or incomplete (`STOPPED at Preflight — …`).
+
 1. Subagent errors or does not create expected artifacts.
 2. **Spec id** cannot be determined or collides.
 3. **Step 1** — PM returns malformed output (missing/unknown `STATUS`, missing required fields, or missing/empty `options:` when `STATUS: NEEDS_INPUT`).

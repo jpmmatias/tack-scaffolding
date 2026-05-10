@@ -29,7 +29,7 @@ You execute six phases in order. **Never jump phases.** Phase 2 is mandatory for
 8. **Always cite `file:line`** when you reference existing code or docs in the consumer repo.
 9. The Phase 2 done-gate is the literal string `complete`. "looks good", "ok", "ship it", "done", "finished", "go", "next" — none of these advance the phase. If the user says any of those, run **one more round of at least 3 clarifying questions** targeting the least-covered Phase 2 sections, then re-prompt for `complete`.
 10. **Paths.** Stock files ship under `${SKILL_DIR}/template/` (source). After Phase 5 copy, the live template in the consumer repo is under `project/...`: `project/.cursorrules.template`, `project/prompts/auto-orchestrator.md`, `project/docs/domain-glossary.md`, `project/scripts/tack-worktree.sh`, etc. Bootstrap-only helpers live at `${SKILL_DIR}/scripts/` (`detect-stack.sh`, `recon.sh`); invoke them with **consumer repository root** as the current working directory (they inspect the whole consumer repo, not only `project/`).
-11. Model routing convention: `[Opus]` = `claude-opus-4-7-thinking-xhigh`, `[Sonnet]` = `claude-4.6-sonnet-medium-thinking`, `[Composer]` = `composer-2-fast`. Always tag specialists with one of these.
+11. **Pipeline model slugs** live in **`project/docs/tack-pipeline-models.md`** (YAML keys → Cursor `Task` slugs), set in **Phase 1b**. Tier tags `[Opus]` / `[Sonnet]` / `[Composer]` in prompts remain **hints**; stock defaults match `project/prompts/auto-orchestrator.md` / `template/skills/tack-agent/references/agent-catalog.md` until the consumer file overrides them. Always tag specialists in routing tables with one of the three tier tags.
 12. **Agent-driven scaffolding.** Surface-specific writes (`.cursorrules`, `.cursor/skills/`, `CLAUDE.md`, `.claude/skills/`, `AGENTS.md`, `.agents/skills/`) are governed by **`tack.agents.active`** — the explicit set of agents the user confirmed in Phase 1. Allowed values: `claude-code`, `cursor`, `copilot`, `codex`, `antigravity`. **Never write to a surface directory unless its agent appears in `tack.agents.active`.** A leftover `.cursor/` does not authorize Cursor scaffolding — only an explicit user confirmation does. The legacy `tack.routing.surfaces` is **derived** from `tack.agents.active` (see Phase 1) and only chooses between `claude` / `agents` / `both` / `none` for the splice in step 3b. Splice the `## Tack routing` H2 only — never overwrite other sections. Defaults: `auto = yes`.
 13. **DDD profile.** Tack supports an opt-in **Domain-Driven Design** profile (`tack.ddd.profile = on | off`, default **off**). When **on**, Phase 2 layer 1 mines bounded contexts / aggregates / domain events / anticorruption layers; Phase 3 Block A asks the DDD subsection (see `references/discovery-questions.md` — **greenfield path** defers tactical DDD to `@event-stormer.md` when there is no Phase 2 **(ddd)** draft); Phase 5 emits the DDD sections in `domain-glossary.md`, `architecture.md`, `.cursorrules`, and `specs/_template.md`, and offers **`@event-stormer.md`** before **`@domain-modeler.md`** when no `business-rules-draft.md` exists, then `@domain-modeler.md` to refine the strategic model. When **off**, every DDD section is omitted — output is byte-identical to pre-DDD Tack. **Never** silently flip the profile; ask in Phase 1 (suggesting **on** when DDD code signals are detected) and propagate the answer through later phases.
 
@@ -87,6 +87,39 @@ Confirm or correct any field above before I proceed. **In particular, confirm or
 ```
 
 Do not advance until the user confirms or corrects. If they correct any field, restate the summary and ask again. Treat **`tack.ddd.profile`** and **`tack.agents.active`** as first-class outputs of Phase 1: persist them in your working memory and thread them through every subsequent phase. Phase 2 / 3 / 5 conditional steps below reference these flags explicitly. **`tack.agents.active` must be non-empty** — if the user insists on no agents, stop and explain that scaffolding without a target agent is not supported.
+
+---
+
+## Phase 1b — Pipeline models (Task slugs)
+
+Run **once** immediately after Phase 1 is accepted — **before** Phase 2 (EXISTING) or Phase 3 (NEW).
+
+**Curated slugs** (offer these on every `AskQuestion` for a pipeline key; hosts may rename them — see consumer `project/prompts/auto-orchestrator.md`):
+
+- `claude-opus-4-7-thinking-xhigh`
+- `claude-4.6-sonnet-medium-thinking`
+- `composer-2-fast`
+- `gpt-5.3-codex`
+- `gpt-5.5-medium`
+- **`Custom — I'll type the slug in chat`** — if the user picks this, ask them to send the slug in the **next** message; reject empty or whitespace-only input.
+
+1. **AskQuestion:** *Use Tack default model slugs for every pipeline step (tier mapping from the bundled template)?*  
+   Options: **`Yes — use defaults`** / **`No — pick per step`**.
+2. If **`Yes`**: set `tack.pipeline_models.mode = defaults` in working memory. Do not ask per-key questions. The file **`${SKILL_DIR}/template/docs/tack-pipeline-models.md`** is copied verbatim in Phase 5.
+3. If **`No`**: set `tack.pipeline_models.mode = custom`. For **each** key below, run **`AskQuestion`** with the curated slug list plus **`Custom — I'll type the slug in chat`**. Record `key → slug` (trimmed).
+
+   | Key | Step | Tier hint (guidance only) |
+   |-----|------|---------------------------|
+   | `worktree_coordinator` | −1 | `[Composer]` |
+   | `product_manager` | 1 | `[Opus]` |
+   | `architect` | 2 | `[Opus]` |
+   | `qa_tester` | 3 and 6 | `[Sonnet]` |
+   | `harness_engineer` | 4 | `[Sonnet]` |
+   | `worker` | 5 | `[Composer]` |
+   | `reviewer` | 7 | `[Opus]` |
+   | `security_engineer` | 7b | `[Opus]` |
+
+4. Persist the map in working memory for Phase 5. Do not advance to Phase 2 / 3 until Phase 1b is complete.
 
 ---
 
@@ -318,6 +351,8 @@ Only after Phases 1–4 are confirmed. Generate or update each artifact below in
    - **Any of {`cursor`, `copilot`, `codex`, `antigravity`} ∈ `tack.agents.active`** → also `.agents/skills/tack-run/` and `.agents/skills/tack-agent/` (universal AGENTS.md-aware skill home; covered once for these agents regardless of how many are active).
    - **No agent matches a destination** → skip that destination silently.
 
+1b. **`project/docs/tack-pipeline-models.md`** — copied in step 1 from `${SKILL_DIR}/template/docs/tack-pipeline-models.md`. If Phase 1b was **`defaults`**, keep the file as copied. If **`custom`**, replace the YAML front matter (all eight keys: `worktree_coordinator`, `product_manager`, `architect`, `qa_tester`, `harness_engineer`, `worker`, `reviewer`, `security_engineer`) with the slugs gathered in Phase 1b; preserve the markdown body below the closing `---` or regenerate it from `${SKILL_DIR}/template/docs/tack-pipeline-models.md` with updated YAML only. Show a unified diff; ask **apply / skip / edit**. If the destination already exists, offer merge like any other doc.
+
 2. **`.gitignore` at consumer repo root** — ensure the worktree parent directory is ignored (default **`.worktrees/`**, or match `tack.worktree.dir` from Block F). If the line is missing, show a unified diff and ask **apply / skip**. Explain that `project/scripts/tack-worktree.sh` also appends this line on first `create`, but committing `.gitignore` upfront avoids accidental staging.
 3. **`.cursorrules`** — **only when `cursor` ∈ `tack.agents.active`**. At the consumer repo root, derived from `project/.cursorrules.template` (from step 1). Replace every `<PLACEHOLDER>` with values gathered in Phases 1–3. Fill **Parallel execution (worktrees)** from Block F (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`). Use `references/file-templates/cursorrules.md` as the worked shape. If Cursor is **not** active, skip this step entirely — the `.cursorrules.template` still lives under `project/` (from step 1) as a reference for future Cursor adoption, but no root `.cursorrules` is generated.
 3b. **`AGENTS.md` and/or `CLAUDE.md`** — at the consumer repo root, only when `tack.routing.auto = yes`. Source: `${SKILL_DIR}/template/routing-snippet.md` embedded in the matching surface template. Per-file gating is driven by **`tack.agents.active`**:
@@ -343,7 +378,7 @@ For every existing file that diverges from your generated draft: show diff, offe
 ## Phase 6 — Smoke test
 
 1. Ask the user to run the `<TEST_COMMAND>` and `<LINT_COMMAND>` recorded in the new `.cursorrules`. Confirm both succeed (or, for an empty NEW project, report that they succeed against the scaffolding).
-1a. Run **`bash project/scripts/tack-doctor.sh`** from the consumer repo root. It fails if `.cursorrules` still contains `<UPPERCASE_PLACEHOLDER>` tokens or if `project/prompts/auto-orchestrator.md` still has `<fill>` rows in the **Specialist routing** table. If it reports issues, return to Phase 5 step 3 (`.cursorrules`) or step 7 (Specialist routing) and fix before continuing.
+1a. Run **`bash project/scripts/tack-doctor.sh`** from the consumer repo root. It fails if `.cursorrules` still contains `<UPPERCASE_PLACEHOLDER>` tokens, if `project/prompts/auto-orchestrator.md` still has `<fill>` rows in the **Specialist routing** table, or if **`tack.routing.auto`** is **not** explicitly `no` (see `project/.cursorrules.template` — default is **yes** when absent) while **`project/docs/tack-pipeline-models.md`** is missing or its YAML front matter lacks a required pipeline key. If it reports issues, return to Phase 5 step 3 (`.cursorrules`), step 7 (Specialist routing), or step **1b** (pipeline models) and fix before continuing.
 2. Print the SDD 7-step pipeline as a final checklist:
 
    ```text
@@ -386,6 +421,6 @@ Stop the skill here. Report the artifacts created and any items the user explici
 - `scripts/recon.sh` — Phase 2.1 reconnaissance helper, dumps `recon.json` bucketed into the six layers.
 - `template/scripts/tack-worktree.sh` — copied to `project/scripts/` in the consumer repo; `git worktree` helper for parallel SDD runs.
 - `template/scripts/splice-tack-routing.sh` — Phase 5 step 3b helper; deterministically replaces or appends the `## Tack routing` H2 in `AGENTS.md` / `CLAUDE.md` from `routing-snippet.md`. Supports `--check` for CI / preview. Copied to `project/scripts/` for consumer re-syncs.
-- `template/scripts/tack-doctor.sh` — Phase 6 step 1a verification; fails on leftover `<UPPERCASE_PLACEHOLDER>` tokens in `.cursorrules` and `<fill>` rows in `project/prompts/auto-orchestrator.md`. Copied to `project/scripts/` for ongoing post-bootstrap checks.
+- `template/scripts/tack-doctor.sh` — Phase 6 step 1a verification; fails on leftover `<UPPERCASE_PLACEHOLDER>` tokens in `.cursorrules`, `<fill>` rows in `project/prompts/auto-orchestrator.md` **Specialist routing**, and incomplete **`project/docs/tack-pipeline-models.md`** when auto-orchestration is active. Copied to `project/scripts/` for ongoing post-bootstrap checks.
 
-When in doubt about path conventions, model tags, or the **Specialist routing** table schema — re-read `project/prompts/auto-orchestrator.md` lines 148–159 in the consumer repo. Never edit other sections of that file.
+When in doubt about path conventions, **pipeline model keys**, model tags, or the **Specialist routing** table schema — re-read `project/docs/tack-pipeline-models.md` and `project/prompts/auto-orchestrator.md` in the consumer repo. Never edit sections of `auto-orchestrator.md` other than **Specialist routing — fill in** during Phase 5 step 7.
