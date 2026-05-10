@@ -69,5 +69,6 @@ Do not dispatch `auto-orchestrator.md` through this skill for a full run — use
 
 ## Additional resources
 
+- **Errors, stops, CLI vs chat:** the **tack-run** skill’s `references/troubleshooting.md` (in this repo: `skills/tack-run/references/troubleshooting.md`; bundled copy under `skills/tack-bootstrap/template/skills/tack-run/references/` after sync). Use the section **Why a single agent fails** for tack-agent-specific recovery.
 - `${SKILL_DIR}/references/agent-catalog.md` — models, triggers, specialist discovery.
 - `${SKILL_DIR}/references/single-dispatch-protocol.md` — Task wrapper template.

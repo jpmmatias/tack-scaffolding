@@ -20,6 +20,8 @@ You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-
 
 If the user wants **one** agent only, point them to the **`tack-agent`** skill instead.
 
+When the user reports **errors, unexpected stops, or confusion between the `tack` CLI and chat skills**, use **`${SKILL_DIR}/references/troubleshooting.md`** as the user-facing runbook (CLI vs skill, Preflight, gates, recovery checklist).
+
 ---
 
 ## Preconditions (fail fast)
@@ -61,6 +63,7 @@ Stop on any condition in `references/stop-conditions.md` / `auto-orchestrator.md
 
 ## Additional resources
 
+- `${SKILL_DIR}/references/troubleshooting.md` — errors, stops, CLI vs skill, recovery checklist.
 - `${SKILL_DIR}/references/pipeline-state-machine.md` — step index and Task parameters.
 - `${SKILL_DIR}/references/stop-conditions.md` — when to STOP.
 - `${SKILL_DIR}/references/final-report-template.md` — report shape.
