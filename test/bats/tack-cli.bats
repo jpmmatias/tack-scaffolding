@@ -37,7 +37,7 @@ teardown() {
   cp "$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-doctor.sh" project/scripts/
   cp "$REPO_ROOT/skills/tack-bootstrap/template/scripts/tack-resolve-config.sh" project/scripts/
   cp "$REPO_ROOT/skills/tack-bootstrap/template/docs/tack-pipeline-models.md" project/docs/
-  cat > .cursorrules <<'EOF'
+  cat > TACK.md <<'EOF'
 # Project
 
 ## Tech stack

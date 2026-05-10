@@ -145,8 +145,8 @@ teardown() {
   [[ "$wt_path" == */.from-tack/* ]]
 }
 
-@test "tack-worktree: create applies tack.worktree.dir from .cursorrules when --wt-dir omitted" {
-  printf '%s\n' '- `tack.worktree.dir`: **`.tack-wt`** — custom parent.' >.cursorrules
+@test "tack-worktree: create applies tack.worktree.dir from TACK.md when --wt-dir omitted" {
+  printf '%s\n' '- `tack.worktree.dir`: **`.tack-wt`** — custom parent.' >TACK.md
   local create_json wt_path
   create_json="$(tw_json_line create crs-dir-slug)"
   grep -qF '.tack-wt/' .gitignore
@@ -154,9 +154,9 @@ teardown() {
   [[ "$wt_path" == */.tack-wt/* ]]
 }
 
-@test "tack-worktree: create applies tack.worktree.base from .cursorrules" {
+@test "tack-worktree: create applies tack.worktree.base from TACK.md" {
   git branch develop HEAD
-  printf '%s\n' '- `tack.worktree.base`: **develop**' >.cursorrules
+  printf '%s\n' '- `tack.worktree.base`: **develop**' >TACK.md
   local create_json base br
   create_json="$(tw_json_line create crs-base-slug --spec S-003)"
   base="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['base'])")"
@@ -165,8 +165,8 @@ teardown() {
   git merge-base --is-ancestor "refs/heads/$br" "refs/heads/develop"
 }
 
-@test "tack-worktree: create applies tack.worktree.naming feature/<slug> from .cursorrules" {
-  printf '%s\n' '- `tack.worktree.naming`: **`feature/<slug>`** no spec id.' >.cursorrules
+@test "tack-worktree: create applies tack.worktree.naming feature/<slug> from TACK.md" {
+  printf '%s\n' '- `tack.worktree.naming`: **`feature/<slug>`** no spec id.' >TACK.md
   local create_json branch
   create_json="$(tw_json_line create crs-name-slug --spec S-002)"
   branch="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['branch'])")"
