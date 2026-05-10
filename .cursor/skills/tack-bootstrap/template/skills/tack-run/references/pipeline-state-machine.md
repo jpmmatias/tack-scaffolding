@@ -6,8 +6,13 @@
 
 - Consumer repo root has `.cursorrules` with quality commands and `tack.worktree.*` (and optionally `tack.routing.*`).
 - `project/prompts/auto-orchestrator.md` exists.
+- `project/docs/tack-pipeline-models.md` exists with required YAML keys when running the pipeline (see **Preflight** in `auto-orchestrator.md`).
 
 ## Model routing (Cursor slugs)
+
+**Canonical:** `Task` **`model`** = slug from **`project/docs/tack-pipeline-models.md`** for the step’s key (`models.<key>`). See **`auto-orchestrator.md` → Preflight** and **Model routing**. **Upward fallback** uses distinct slugs from the same YAML in tier order — never downward.
+
+Stock **tier reference** (when bootstrap used defaults):
 
 | Orchestrator tag | Cursor model slug |
 |------------------|-------------------|
@@ -15,15 +20,9 @@
 | `[Sonnet]` | `claude-4.6-sonnet-medium-thinking` |
 | `[Composer]` | `composer-2-fast` |
 
-If the model is unavailable, fall back **upward** (Composer → Sonnet → Opus), never downward.
-
 ## Step → model
 
-- Step −1 (worktree): `[Composer]`
-- Steps 1, 2, 7: `[Opus]`
-- Steps 3, 4, 6: `[Sonnet]`
-- Step 5 (implementation / specialists): `[Composer]`
-- Step 7b (security, optional): `[Opus]`
+Resolve **`models.<key>`** per **`auto-orchestrator.md`** — Step −1: `worktree_coordinator`; Steps 1–7 and 7b: keys listed in **Model routing** there.
 
 ## Dispatch wrapper
 
@@ -33,7 +32,7 @@ Use **`Task`** with:
 
 - `subagent_type`: `generalPurpose`
 - `description`: short unique title per step
-- `model`: from table above
+- `model`: **`models.<key>`** from **`project/docs/tack-pipeline-models.md`** (see **Preflight**)
 - `working_directory`: absolute `worktree_path` after Step −1 succeeds (required for Steps 1–7); omit only when Step −1 skipped
 - `run_in_background`: `false` unless the platform requires otherwise
 

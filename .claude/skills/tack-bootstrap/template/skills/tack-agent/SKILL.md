@@ -38,7 +38,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 1. **Detect language** from the user’s first message (PT or EN). Direct tone, no fluff, no emojis (except `[ ]` / `[x]` in checklists).
 2. **Read** the full chosen `project/prompts/<name>.md` before dispatching.
 3. Follow **`${SKILL_DIR}/references/single-dispatch-protocol.md`** for the Task `prompt` wrapper and parameters.
-4. Follow **`${SKILL_DIR}/references/agent-catalog.md`** for default model tags and trigger hints. If the prompt’s Inputs disagree with the table, **the prompt file wins**.
+4. Follow **`${SKILL_DIR}/references/agent-catalog.md`** for pipeline keys and tier tags. **Resolve `model`:** read **`project/docs/tack-pipeline-models.md`** (YAML) for the agent’s pipeline key; if missing, use **Model routing convention (fallback)** in the catalog and **warn** the user. If the prompt’s Inputs disagree with the table, **the prompt file wins**.
 5. **Ambiguous agent:** use **`AskQuestion`** — options: each stock agent from the catalog, plus discovered specialist files (short list or "Other — I’ll type the filename"), plus **Full pipeline — use tack-run** (non-dispatch; explain redirect).
 6. **Gather INPUTS** before dispatch (e.g. architect needs spec path; reviewer needs `git diff` or scope; diagnose needs symptom + optional spec path; PM needs epic and `mode: manual` | `autonomous` and `qa_history` when autonomous). Ask minimal clarifying questions if required paths are missing.
 7. **working_directory:** default to consumer repo root; use the user-supplied **worktree** path if they are in an isolated worktree session.

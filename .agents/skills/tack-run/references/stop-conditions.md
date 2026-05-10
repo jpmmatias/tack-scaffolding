@@ -1,8 +1,10 @@
 # Stop conditions (irrecoverable errors)
 
-Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <reason>` when any of the following holds. **Do not auto-retry** failed steps; document the failure and stop.
+Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <reason>` or **`STOPPED at Preflight — …`** when any of the following holds. **Do not auto-retry** failed steps; document the failure and stop.
 
 **Canonical list:** `project/prompts/auto-orchestrator.md` section **Stop conditions (irrecoverable errors)**. Summary:
+
+**Preflight** — `project/docs/tack-pipeline-models.md` missing or incomplete (`STOPPED at Preflight — …`).
 
 1. Subagent errors or does not create expected artifacts.
 2. **Spec id** cannot be determined or collides.

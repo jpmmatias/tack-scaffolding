@@ -7,6 +7,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 # Inputs (read-only)
 
 - [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap; or the repository’s equivalent rules file)
+- [project/docs/tack-pipeline-models.md](../docs/tack-pipeline-models.md) — **required** YAML front matter: pipeline keys → `Task` model slugs (see **Preflight**)
 - [project/docs/sdd.md](../docs/sdd.md)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/specs/_template.md](../specs/_template.md)
@@ -31,11 +32,24 @@ Unlike `@orchestrator.md` (passive checklist only), you **execute** the SDD/TDD 
 
 Your job:
 
-1. Optionally run **Step −1** (worktree isolation). When active, every downstream **`Task`** runs with **`working_directory`** set to the created worktree path (when your platform supports it).
-2. Resolve the next free spec id `S-XXX` under `project/specs/` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7.
-3. Run Steps 1–7 in order (see **Dispatch protocol**).
-4. Validate gates between steps (red / green / invariants / reviewer).
-5. Emit the **Final report**.
+1. Run **Preflight** — load and validate **`project/docs/tack-pipeline-models.md`** (see **Preflight**). **No `Task` before this succeeds.**
+2. Optionally run **Step −1** (worktree isolation). When active, every downstream **`Task`** runs with **`working_directory`** set to the created worktree path (when your platform supports it).
+3. Resolve the next free spec id `S-XXX` under `project/specs/` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7.
+4. Run Steps 1–7 in order (see **Dispatch protocol**).
+5. Validate gates between steps (red / green / invariants / reviewer).
+6. Emit the **Final report**.
+
+---
+
+# Preflight — Pipeline models (before Step −1)
+
+Do **not** dispatch any subagent until this passes.
+
+1. Read **`project/docs/tack-pipeline-models.md`** from disk (relative to the active checkout — use the **same tree** as `working_directory` once a worktree exists).
+2. Parse the **YAML front matter** between the first pair of `---` lines. You need a non-empty slug string for **each** key:
+   - `worktree_coordinator`, `product_manager`, `architect`, `qa_tester`, `harness_engineer`, `worker`, `reviewer`, `security_engineer`
+3. If the file is missing, malformed, or any key is missing/blank → **STOP**. Emit **Final report** with `**Status:** STOPPED at Preflight — incomplete project/docs/tack-pipeline-models.md` and tell the human to run **tack-bootstrap Phase 1b** (or copy from the bundled `template/docs/tack-pipeline-models.md` and edit).
+4. Keep the map in memory as **`models.<key>`** for the rest of the run. Every **`Task`** below uses `model: models.<key>` for that step’s key unless **Upward fallback** applies.
 
 ---
 
@@ -59,21 +73,27 @@ The **`AskQuestion` ↔ `AskUserQuestion`** swap is the only contract change dow
 
 # Model routing
 
-Dispatch each subagent with `model` set from this table. If the model is unavailable on the human's plan, fall back **upward** (Composer → Sonnet → Opus), never downward — same rule as `@orchestrator.md`.
+**Primary:** each **`Task`** uses `model` = the slug from **`models.<key>`** (see **Preflight**).
 
-| Orchestrator tag | Cursor model slug |
-|------------------|-------------------|
+**Tier tags** (`[Opus]` / `[Sonnet]` / `[Composer]`) are checklist hints only.
+
+Stock **defaults** when the consumer chose “use defaults” at bootstrap (reference — real values come from `tack-pipeline-models.md`):
+
+| Tier tag | Stock default slug |
+|----------|-------------------|
 | `[Opus]` | `claude-opus-4-7-thinking-xhigh` |
 | `[Sonnet]` | `claude-4.6-sonnet-medium-thinking` |
 | `[Composer]` | `composer-2-fast` |
 
-Step → tag mapping:
+Step → **key** (read slug from `models.<key>`):
 
-- Step −1 (worktree): **`[Composer]`**
-- Steps 1, 2, 7: **`[Opus]`**
-- Steps 3, 4, 6: **`[Sonnet]`**
-- Step 5 (implementation / specialists): **`[Composer]`**
-- Step 7b (security, optional): **`[Opus]`**
+- Step −1 (worktree): **`worktree_coordinator`**
+- Steps 1, 2, 7: **`product_manager`**, **`architect`**, **`reviewer`**
+- Steps 3, 4, 6: **`qa_tester`**, **`harness_engineer`**, **`qa_tester`**
+- Step 5 (implementation / specialists): **`worker`**
+- Step 7b (security, optional): **`security_engineer`**
+
+**Upward fallback** when the host rejects the primary slug or the model is unavailable: try **other distinct slugs from the same `tack-pipeline-models.md`** in tier order **`[Composer]`** keys (`worktree_coordinator`, `worker`) → **`[Sonnet]`** keys (`qa_tester`, `harness_engineer`) → **`[Opus]`** keys (`product_manager`, `architect`, `reviewer`, `security_engineer`), **skipping** slugs already attempted for this dispatch. If every attempt fails → **STOP** (Stop conditions). Never fall downward.
 
 ---
 
@@ -95,7 +115,7 @@ Use **`Task`** with:
 
 - `subagent_type`: `generalPurpose`
 - `description`: short unique title per step (e.g. `SDD Step 3 QA red S-001`)
-- `model`: from **Model routing** for that step
+- `model`: **`models.<key>`** for that step (see **Model routing**; apply **Upward fallback** if the host rejects the slug)
 - `prompt`: as built above
 - **`working_directory`** (required when Step −1 succeeded): absolute `worktree_path` from the coordinator JSON — every Step 1–7 dispatch **must** use this cwd so edits and `git diff` stay isolated. Omit only when Step −1 was skipped or failed fallback.
 - `run_in_background`: `false` unless the platform requires otherwise — you need the subagent result before the next step.
@@ -113,7 +133,7 @@ Use **`Task`** with:
    - **`always`** — run the coordinator (no user question).
    - **`prompt`** — ask the human once: *Run this feature in an isolated git worktree/branch?* **Default: yes.** If the human declines → skip Step −1.
 3. If proceeding: derive a **slug** from the epic (kebab-case, e.g. `change-background`). If the epic is ambiguous, ask one clarifying question.
-4. Dispatch **`@worktree-coordinator.md`** with model **`[Composer]`**, passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
+4. Dispatch **`@worktree-coordinator.md`** with `model: models.worktree_coordinator` (**`[Composer]`** tier), passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
 5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract). If `error` is non-null → **STOP** (Stop conditions) unless the human instructs you to continue without isolation; in that case fall back to **Step 0** in the current directory and **do not** use a reserved spec id.
 6. All **subsequent** `Task` calls for Steps 1–7 **must** use `working_directory = worktree_path`.
 
@@ -125,7 +145,7 @@ Use **`Task`** with:
 
 ## Step 1 — `@product-manager.md`
 
-- Model: Opus.
+- Model: **`models.product_manager`** (`[Opus]`).
 - This step is an **iterative grilling loop** (one question at a time) until a spec is written.
 - **`working_directory`:** `worktree_path` when Step −1 succeeded.
 - Initialize `qa_history = []`.
@@ -158,14 +178,14 @@ Use **`Task`** with:
 
 ## Step 2 — `@architect.md`
 
-- Model: Opus.
+- Model: **`models.architect`** (`[Opus]`).
 - Inputs: absolute path to the spec file from Step 1 + architect Inputs (architecture, ADR folder, sdd).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch: locate `plan.md` (repo root or under `project/specs/` — **first line must be** `Spec: S-XXX` per architect rules). Confirm `## Traceability` table exists with **Task id**, **Description**, **ACs covered**. Every AC from the spec appears at least once. If architect stops asking for PM first, or outputs invalid plan → **STOP**.
 
 ## Step 3 — `@qa-tester.md` (red)
 
-- Model: Sonnet.
+- Model: **`models.qa_tester`** (`[Sonnet]`).
 - Inputs: spec path + plan path + qa-tester Inputs (test-harness, glossary).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch:
@@ -176,14 +196,14 @@ Use **`Task`** with:
 ## Step 4 — `@harness-engineer.md` (conditional)
 
 - Run **only if** `plan.md` or task files explicitly assign harness work, or Step 3 failed for missing factories/doubles and the architect task said to extend harness first (if ambiguous, prefer running harness when traceability mentions `<TEST_HARNESS_ROOT>`).
-- Model: Sonnet.
+- Model: **`models.harness_engineer`** (`[Sonnet]`).
 - Inputs: harness-engineer Inputs + spec/plan context.
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch: re-run Step 3 red confirmation if harness changed test setup (minimal re-run of affected tests).
 
 ## Step 5 — Specialist implementation (`@worker.md` and/or your specialist prompts)
 
-- Model: Composer (fallback per **Model routing**).
+- Model: **`models.worker`** (`[Composer]`; **Upward fallback** per **Model routing**).
 - Choose prompt(s) via **Specialist routing — fill in** below. If multiple categories apply, dispatch **sequentially** in a deterministic order you define in that section.
 - Inputs: spec path + plan path + verbatim or summarized **red** `<TEST_COMMAND>` output from Step 3 (required for TDD contract in `worker.md`).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
@@ -191,14 +211,14 @@ Use **`Task`** with:
 
 ## Step 6 — `@qa-tester.md` (confirm green)
 
-- Model: Sonnet.
+- Model: **`models.qa_tester`** (`[Sonnet]`).
 - Inputs: spec + plan + ask subagent to run tests and confirm every AC has coverage and telemetry tests if the spec’s telemetry table is non-empty.
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Run **`<TEST_COMMAND>`** (full suite or scoped per repo practice). Any failure → **STOP** (green gate violated).
 
 ## Step 7 — `@reviewer.md`
 
-- Model: Opus.
+- Model: **`models.reviewer`** (`[Opus]`).
 - Inputs: governing spec path + task references + **`git diff`** (or instruct subagent to run `git diff` / `git diff --name-only` in repo). Include any **parity / invariant** checks from `.cursorrules` (e.g. legacy vs new module pairs).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Subagent Outputs: PASS or FAIL + enumerated checklist. **FAIL** → **STOP**. **PASS** → continue to Step 7b if triggered, otherwise emit **Final report** with `COMPLETED`.
@@ -210,7 +230,7 @@ Use **`Task`** with:
   2. **Path heuristic** — **fill in:** sensitive paths for your repo (auth, crypto, PII, admin APIs).
   3. **Keyword heuristic** — **fill in:** keywords that indicate trust-boundary changes (`<TOKEN>`, `<SECRET>`, credential env vars, etc.).
 - If no trigger fires, **skip** this step and emit the Final report with `**Security audit verdict:** n/a`.
-- Model: **Opus**
+- Model: **`models.security_engineer`** (`[Opus]`).
 - Inputs: governing spec path + task references + **`git diff`** (full text) + paths to rules file, glossary, architecture document.
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Subagent Outputs: same contract as `@reviewer.md` — PASS or FAIL + checklist. **FAIL** → **STOP**.
@@ -235,7 +255,11 @@ If **multiple** rows match, run specialists in the order you list above, ending 
 
 # Stop conditions (irrecoverable errors)
 
-Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <reason>` when:
+Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <reason>` (or **`STOPPED at Preflight — …`** before any step) when:
+
+**Preflight** — `project/docs/tack-pipeline-models.md` is missing or incomplete (see **Preflight**).
+
+Additionally stop when:
 
 1. Subagent errors or does not create expected artifacts.
 2. **Spec id** cannot be determined or collides.
@@ -371,15 +395,15 @@ Optional human gates (not active by default): after Step 1, 2, 3, 5, or 6, pause
 
 # Default pipeline order (mirror passive orchestrator)
 
-0. **`[Composer]`** `@worktree-coordinator.md` — only when Step −1 runs (isolation)
-1. **`[Opus]`** `@product-manager.md`
-2. **`[Opus]`** `@architect.md`
-3. **`[Sonnet]`** `@qa-tester.md` — red
-4. **`[Sonnet]`** `@harness-engineer.md` — only if needed
-5. **`[Composer]`** `@worker.md` and/or your specialist prompts
-6. **`[Sonnet]`** `@qa-tester.md` — green
-7. **`[Opus]`** `@reviewer.md`
+0. **`[Composer]`** (`worktree_coordinator`) `@worktree-coordinator.md` — only when Step −1 runs (isolation)
+1. **`[Opus]`** (`product_manager`) `@product-manager.md`
+2. **`[Opus]`** (`architect`) `@architect.md`
+3. **`[Sonnet]`** (`qa_tester`) `@qa-tester.md` — red
+4. **`[Sonnet]`** (`harness_engineer`) `@harness-engineer.md` — only if needed
+5. **`[Composer]`** (`worker`) `@worker.md` and/or your specialist prompts
+6. **`[Sonnet]`** (`qa_tester`) `@qa-tester.md` — green
+7. **`[Opus]`** (`reviewer`) `@reviewer.md`
 
-Optional: **`[Opus]`** `@security-engineer.md` when triggers fire.
+Optional: **`[Opus]`** (`security_engineer`) `@security-engineer.md` when triggers fire.
 
 **Out of band (not part of the per-feature pipeline):** `@event-stormer.md` — greenfield / no Phase 2 **(ddd)** draft: structured event-storming interview that writes `project/docs/_discovery/event-storming-draft.md`. Run via `tack-agent` after Phase 3 Block A DDD Round 1 when `tack.ddd.profile = on`. **`@domain-modeler.md`** — refines the strategic DDD model (bounded contexts, context map, anticorruption layers) when `tack.ddd.profile = on`; consumes Phase 2 draft and/or `event-storming-draft.md`. Run via `tack-agent` at bootstrap and on demand whenever a context boundary moves; the per-feature pipeline does **not** invoke these. PM / architect / reviewer naturally consume the (now richer) glossary and architecture docs without calling them directly.

@@ -6,7 +6,7 @@ Use this for **one** `project/prompts/<name>.md` execution. The hosting agent do
 
 - `subagent_type`: `generalPurpose`
 - `description`: short unique title (e.g. `Tack agent architect S-001`)
-- `model`: from **Model routing** in `references/agent-catalog.md` for that agent (fallback upward: Composer → Sonnet → Opus, never downward)
+- `model`: resolve from **`project/docs/tack-pipeline-models.md`** per **`references/agent-catalog.md`** (**Pipeline model file**). If the file or key is missing, use **Model routing convention (fallback)** in the same file and **warn** once. **Upward fallback** when dispatch fails: Composer → Sonnet → Opus tier slugs from **that YAML** when present, else from the fallback table — never downward.
 - `working_directory`: absolute path to consumer repo root, or to an active **worktree** if the user is working in isolation (ask if unclear)
 - `run_in_background`: `false` unless the platform requires otherwise
 

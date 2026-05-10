@@ -45,6 +45,7 @@ DDD-only — emit this section when `tack.ddd.profile = on`. Omit entirely when 
 - **Traceability:** Tasks should cite which acceptance criteria (`AC-N`) they satisfy; commits may use `Closes: S-XXX#AC-N`.
 - **Glossary:** New domain nouns belong in `project/docs/domain-glossary.md` (or reuse existing terms). Do not invent parallel vocabulary.
 - **Harness:** Prefer typed boundaries, glossary alignment, and shared test harness factories/doubles under `<TEST_HARNESS_ROOT>` so agents and humans share the same seams — see `project/docs/test-harness.md`.
+- **Pipeline models:** Subagent/Task `model` slugs for PM, architect, QA, harness, worker, reviewer, security, and worktree coordinator live in **`project/docs/tack-pipeline-models.md`** (YAML). Set during **tack-bootstrap** Phase 1b; see `project/prompts/orchestrator.md` and `project/prompts/auto-orchestrator.md`.
 
 ## Quality commands (fill with your repo’s scripts)
 
