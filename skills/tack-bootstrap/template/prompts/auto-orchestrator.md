@@ -151,7 +151,7 @@ Use **`Task`** with:
 ## Step 1 — `@product-manager.md`
 
 - Model: **`models.product_manager`** (`[Opus]`).
-- This step is an **iterative grilling loop** (one question at a time) until a spec is written.
+- This step is an **iterative loop** until a spec is written: **optional clarification** `NEEDS_INPUT` turns, then a **mandatory confirm-before-write** turn (`next_question` begins with `[CONFIRM_SPEC] ` per `product-manager.md`), then `SPEC_WRITTEN`.
 - **`working_directory`:** `worktree_path` when Step −1 succeeded.
 - Initialize `qa_history = []`.
 - Loop:
@@ -164,7 +164,7 @@ Use **`Task`** with:
   2. Parse the PM output:
      - `STATUS: NEEDS_INPUT`:
        - Render the question via Cursor's **`AskQuestion`** tool with:
-         - `prompt`: `next_question` verbatim, then a newline, then `Recommendation: <recommendation>`.
+         - `prompt`: If `next_question` begins with `[CONFIRM_SPEC] ` (confirm-before-write per `product-manager.md`), show **only** the substring after that prefix as the first line (optionally prefix with `Confirmation — `), then a newline, then `Recommendation: <recommendation>`. Otherwise: `next_question` verbatim, then a newline, then `Recommendation: <recommendation>`.
          - `options`: each entry from the PM's `options:` list (preserve `(recommended)` suffix), plus a final option `Other - I'll explain in chat`.
          - `allow_multiple`: `false`.
        - If the human picks `Other - I'll explain in chat`, post a short note in chat asking for the free-form answer and wait for the next user message; treat that message text as `answer`.
@@ -177,7 +177,7 @@ Use **`Task`** with:
        - If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
        - Proceed to Step 2.
      - Anything else → **STOP** (Stop conditions).
-- Note: this loop may require **N+1** PM dispatches for **N** questions, by design.
+- Note: expect **at least two** PM dispatches when the epic is already clear (one `[CONFIRM_SPEC]` `NEEDS_INPUT`, one `SPEC_WRITTEN`). With **N** clarification rounds, expect **N+2** dispatches by design (clarifications + confirm + write).
 
 - **Steps 2–7 and 7b:** use the same **`working_directory`** and the same **INPUTS** `cd` / path-prefix rule as Step 1 whenever Step −1 created a worktree (isolation of `git diff`, tests, and edits).
 

@@ -37,7 +37,7 @@ When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, u
 | Agent | File | Model | Pipeline key | Typical triggers / notes |
 |-------|------|-------|--------------|----------------------------|
 | Worktree coordinator | `worktree-coordinator.md` | `[Composer]` | `worktree_coordinator` | Isolated branch/worktree; needs slug, `tack.worktree.*` from repo-root **TACK.md**; OUTPUTS: JSON only |
-| Product manager | `product-manager.md` | `[Opus]` | `product_manager` | Spec authoring; **manual**: `mode: manual`, epic; **subagent/orchestrated**: `mode: autonomous`, `qa_history` |
+| Product manager | `product-manager.md` | `[Opus]` | `product_manager` | Spec authoring; **manual**: `mode: manual`, epic; **subagent/orchestrated**: `mode: autonomous`, `qa_history` (includes mandatory **`[CONFIRM_SPEC]`** round before `SPEC_WRITTEN`) |
 | Architect | `architect.md` | `[Opus]` | `architect` | Needs approved spec path `project/specs/S-XXX-<slug>.md` |
 | QA tester | `qa-tester.md` | `[Sonnet]` | `qa_tester` | Needs spec + plan/task context; **red** vs **green** is intent in INPUTS (phase) |
 | Harness engineer | `harness-engineer.md` | `[Sonnet]` | `harness_engineer` | Harness/factories/doubles; needs spec/plan context when scoped to a feature |

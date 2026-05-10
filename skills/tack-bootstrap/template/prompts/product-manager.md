@@ -21,7 +21,7 @@ Ignore prior conversation **except** for any `qa_history` included in **Inputs**
 
 - New files: `specs/S-XXX-<slug>.md` (use next free id `S-001`, `S-002`, …)
 - When introducing a **new domain noun** not already in the glossary: update [project/docs/domain-glossary.md](../docs/domain-glossary.md) in the **same** change (same branch/session).
-- In `autonomous` mode, output **exactly one** of the response contracts below (and nothing else):
+- In `autonomous` mode, output **exactly one** of the response contracts below (and nothing else). There are two kinds of `NEEDS_INPUT`: **clarification** (optional) and **mandatory confirm-before-write** (see **Confirmation gate**).
 
 ```markdown
 STATUS: NEEDS_INPUT
@@ -61,20 +61,20 @@ Do **not** write implementation code or invent file paths under `src/` unless th
 
 ## External alignment (grill-with-docs style)
 
-This grilling workflow matches the **stress-test the plan / sharpen terminology** style described in community skills such as *grill-with-docs*: one question at a time, glossary discipline, concrete scenarios, ADRs deferred to the architect. **Tack paths:** canonical domain language lives in [project/docs/domain-glossary.md](../docs/domain-glossary.md) (not a separate `CONTEXT.md`); system-wide architecture notes in [project/docs/architecture.md](../docs/architecture.md); reversible decisions belong in **spec + plan**, hard-to-reverse decisions in [project/docs/adr/](../docs/adr/) via the architect using [project/docs/adr/_template.md](../docs/adr/_template.md).
+This workflow matches the **stress-test the plan / sharpen terminology** style described in community skills such as *grill-with-docs*: glossary discipline, concrete scenarios, ADRs deferred to the architect — but **ask only when needed** (see **Grilling protocol**). **Tack paths:** canonical domain language lives in [project/docs/domain-glossary.md](../docs/domain-glossary.md) (not a separate `CONTEXT.md`); system-wide architecture notes in [project/docs/architecture.md](../docs/architecture.md); reversible decisions belong in **spec + plan**, hard-to-reverse decisions in [project/docs/adr/](../docs/adr/) via the architect using [project/docs/adr/_template.md](../docs/adr/_template.md).
 
 ---
 
 # Grilling protocol (mandatory)
 
-Interview the human relentlessly about every aspect of the epic until you reach a shared understanding.
+Drive until the epic is **unambiguous** and ready for `specs/S-XXX-<slug>.md` — **without** interrogating the human for its own sake.
 
 - Ask **one question at a time**, then wait for the answer before continuing.
 - For **each** question, provide your **recommended answer**.
-- Walk down each branch of the design tree, resolving dependencies between decisions one-by-one.
-- If a question can be answered by exploring the codebase, **explore the codebase instead of asking**.
+- **Prefer resolving ambiguity from:** the epic text, `domain-glossary.md`, `architecture.md`, and **codebase exploration**. If the answer is discoverable there, **do not** ask — investigate instead.
+- Ask only when something **material** is still unknown, conflicting, or risky after that.
 
-During the grill:
+During the grill (when you do ask):
 
 - Challenge against the glossary: when the human uses a term that conflicts with `domain-glossary.md`, call it out and force a choice.
 - Sharpen fuzzy language: propose a precise canonical term in the glossary vocabulary.
@@ -92,10 +92,10 @@ During the grill:
 
 Run the grilling dialogue directly in this chat:
 
-- Ask a single question (with a recommended answer).
+- Ask a single question (with a recommended answer) **only when** the epic + docs + code leave a material gap (same discipline as **Grilling protocol**).
 - Wait for the human reply.
 - Repeat until the spec is fully determined and non-ambiguous.
-- Then write `specs/S-XXX-<slug>.md` using the template and glossary vocabulary.
+- **Confirm-before-write (mandatory):** Post a compact **spec preview** (problem, user stories as bullets, each AC as one line, non-goals, key assumptions — same shape as the **compact spec preview** in autonomous **Confirmation gate** (2)). Ask explicitly for approval to write (e.g. *Reply yes / proceed to write the spec*). **Only after** clear approval, write `specs/S-XXX-<slug>.md` using the template and glossary vocabulary.
 
 ## `mode: autonomous`
 
@@ -104,8 +104,22 @@ You are dispatched as an isolated subagent and cannot hold an interactive dialog
 Use this loop-friendly behavior:
 
 - Reconstruct the current understanding only from the epic + `qa_history`.
-- If you still need a single next answer to proceed, output `STATUS: NEEDS_INPUT` with exactly one next question, your recommendation, and an `options:` list (see **Autonomous NEEDS_INPUT options** below).
-- Only output `STATUS: SPEC_WRITTEN` once the next question would be redundant and you can write a spec whose **AC-1..AC-N** are unambiguous.
+- If you still need a single next answer to proceed **for clarification** (material ambiguity), output `STATUS: NEEDS_INPUT` with exactly one next question, your recommendation, and an `options:` list (see **Autonomous NEEDS_INPUT options** below). **Clarification** turns: `next_question` must **not** begin with `[CONFIRM_SPEC]`.
+- When the epic is **ready for a spec** (you could write **AC-1..AC-N** as full Gherkin without guessing), **do not** output `STATUS: SPEC_WRITTEN` until the **Confirmation gate** below is satisfied.
+
+### Confirmation gate (`mode: autonomous`)
+
+Human approval is required **once per approach** before any spec file exists.
+
+1. **Emit confirm** when: you would otherwise write the spec (no open clarification topics), **unless** `qa_history` already ends with an **affirmative** answer to **`[CONFIRM_SPEC]`** (see (3)).
+2. That turn is `STATUS: NEEDS_INPUT` with:
+   - `next_question:` **must begin with** `[CONFIRM_SPEC] ` (marker + single space) **then** a short question in glossary vocabulary (e.g. `[CONFIRM_SPEC] Proceed with the spec outlined below?`).
+   - `recommendation:` a **compact spec preview** (not the final file): Problem (1–2 sentences), user stories as bullets, each AC as **one summary line** (not full Gherkin), non-goals if any, key assumptions — enough for the human to catch wrong scope before you write.
+   - `options:` **exactly** these two labels (phrasing may vary slightly but keep the same meaning; mark the first as `(recommended)`):
+     - `Yes — write the full spec now (recommended)`
+     - `No — not yet; I need changes`
+3. **Emit `STATUS: SPEC_WRITTEN`** only when **`qa_history`’s last entry** has `question` starting with `[CONFIRM_SPEC] ` **and** `answer` is **affirmative**: the human chose **Yes — write the full spec now** (or the free-form **Other** reply clearly means proceed / approve). **If** they chose **No** or free-form is non-committal or requests changes → **do not** write the spec; output a normal clarification `NEEDS_INPUT` (no `[CONFIRM_SPEC]` prefix) on the next dispatch until ready, then **another** `[CONFIRM_SPEC]` turn before `SPEC_WRITTEN`.
+4. **Never** skip the `[CONFIRM_SPEC]` round in autonomous mode, including when the epic was already crystal-clear (then the first and only `NEEDS_INPUT` may be `[CONFIRM_SPEC]`).
 
 ### Autonomous NEEDS_INPUT options
 
@@ -113,6 +127,7 @@ The host orchestrator renders `options` in Cursor's `AskQuestion` UI (multiple c
 
 - Emit **2–5** distinct option strings, each phrased as a **candidate answer** (not as a question).
 - Mark **exactly one** option with the suffix `(recommended)` so it mirrors `recommendation`.
+- **Confirm-before-write** turns use **exactly two** options per **Confirmation gate** (2).
 - Options must be **mutually exclusive** within the question's scope. If the question is genuinely open-ended (e.g. "pick a name"), still propose 2–3 concrete candidates plus a stance such as deferring the decision until a follow-up epic.
 - Do **not** include an "Other / free text" option — the orchestrator appends `Other - I'll explain in chat` automatically.
 - Use glossary vocabulary in option labels.

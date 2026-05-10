@@ -51,7 +51,7 @@ If the configured slug is unavailable on the human's plan, fall back **upward** 
 When given an epic or task, emit checkboxes in this order. Always include the `[Tier]` tag verbatim; the human resolves the slug from `tack-pipeline-models.md` using the key in parentheses:
 
 0. [ ] **`[Composer]`** (`worktree_coordinator`) `@worktree-coordinator.md` — create an isolated worktree + branch (read `tack.worktree.mode` in **`TACK.md`**: skip when `never`, or if you choose to work on the current branch; run `project/scripts/tack-worktree.sh` from repo root)
-1. [ ] **`[Opus]`** (`product_manager`) `@product-manager.md` — write `specs/S-XXX-<slug>.md` (this step is now an interactive grilling dialogue: one question at a time with recommended answers, then the spec)
+1. [ ] **`[Opus]`** (`product_manager`) `@product-manager.md` — write `specs/S-XXX-<slug>.md` (interactive loop: optional clarification questions, mandatory **confirm-before-write** `[CONFIRM_SPEC]` turn in `mode: autonomous`, then the spec)
 2. [ ] **`[Opus]`** (`architect`) `@architect.md` — write `plan.md` + task markdown files under `specs/`; traceability table
 3. [ ] **`[Sonnet]`** (`qa_tester`) `@qa-tester.md` — write **failing** tests first (red); `S-XXX AC-N` describe blocks
 4. [ ] **`[Sonnet]`** (`harness_engineer`) `@harness-engineer.md` — **only if** factories, fixtures, or boundary doubles are missing for this work
