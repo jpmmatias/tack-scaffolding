@@ -14,7 +14,7 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 6. **Step 2** — no valid `plan.md` with `Spec: S-XXX` and **Traceability** covering all ACs.
 7. **Step 3** — missing `describe('S-XXX AC-N:` for any AC, or **red gate**: tests do not fail after qa-tester red phase.
 8. **Step 6** — **green gate**: any test still failing.
-9. **Invariant / parity** (before Step 7): per repo-root **`TACK.md`** (canonical), else **`.cursorrules`** / team fill-in — blocking when defined.
+9. **Invariant / parity** (before Step 7): per repo-root **`TACK.md`** / team fill-in — blocking when defined.
 10. **Step 7** — reviewer returns **FAIL** for any checklist item.
 11. **Step 7b** — security-engineer returns **FAIL** when the security audit ran.
 12. **Model** unavailable after upward fallback.

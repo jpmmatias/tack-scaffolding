@@ -63,7 +63,7 @@ Then the string matches "IDEMPOTENT_RETRY_V2" exactly
 |------|-------------------|
 | Payment Intent | glossary → Entities |
 | Customer Session | glossary → Entities |
-| IDEMPOTENT_RETRY_V2 | **`TACK.md`** / **`.cursorrules`** invariants |
+| IDEMPOTENT_RETRY_V2 | **`TACK.md`** invariants |
 
 ## Aggregates touched
 

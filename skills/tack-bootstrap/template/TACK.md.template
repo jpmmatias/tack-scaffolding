@@ -1,13 +1,34 @@
 # Project: <PROJECT_NAME>
 
-Fill this file and save it as **`TACK.md`** at the **repository root** (IDE-agnostic Tack configuration). Merge sections into an existing `TACK.md` if you already have one.
+Fill this file and save it as **`TACK.md`** at the **repository root**. This file is the **only** repo-root Tack configuration — orchestration, quality commands, worktree policy, and SDD entry points. Merge sections into an existing `TACK.md` if you already have one.
 
-Cursor users may keep a short **`.cursorrules`** at the repo root that points here (see `project/.cursorrules.template`); tools read **`TACK.md` first**, then fall back to `.cursorrules`.
+IDEs and agents should load **`TACK.md`** for Tack (not `.cursorrules`, `AGENTS.md`, or `CLAUDE.md`).
 
 ## Tech stack
 
 - <PRIMARY_LANGUAGE_OR_RUNTIME> (e.g. TypeScript / Python / Go)
 - <FRAMEWORKS> (e.g. web framework, test runner — be explicit)
+
+## Project layout
+
+- `project/specs/S-XXX-<slug>.md` — product specs with numbered ACs.
+- `project/docs/adr/ADR-NNNN-*.md` — architecture decisions.
+- `project/docs/{domain-glossary,architecture,sdd}.md` — canonical vocabulary, topology, and pipeline.
+- `project/prompts/*.md` — agent prompts (orchestrators, PM, architect, qa-tester, harness-engineer, worker, reviewer, security-engineer, specialists).
+
+## SDD entry points (read this before coding)
+
+Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo unless explicitly told otherwise.
+
+- **Explicit skill entry points:** use the **`tack-run`** skill for the full pipeline (same dispatch contract as `@project/prompts/auto-orchestrator.md`). Use the **`tack-agent`** skill to run **one** prompt under `project/prompts/` (e.g. architect, qa-tester, reviewer). `@`-mentions remain valid.
+- **Default entry point:** dispatch the request through `@project/prompts/auto-orchestrator.md`. It runs the 7-step pipeline (product-manager → architect → qa-tester red → optional harness → worker/specialists → qa-tester green → reviewer, plus optional security audit) as isolated subagents.
+- **Passive fallback:** if subagent dispatch is unavailable, follow `@project/prompts/orchestrator.md` instead — same pipeline, but the human runs each step in a fresh chat window.
+- **Configuration (this file only):** `<TEST_COMMAND>`, `<LINT_COMMAND>`, parity invariants, `tack.worktree.*`, `tack.routing.*`, and optional `tack.ddd.profile` live **here**. Never invent values not listed in **`TACK.md`**.
+- **Worktrees:** honor `tack.worktree.mode` / `naming` / `base` / `dir` / `cleanup` from this file (see **Parallel execution** below). The orchestrator decides whether to isolate and whether to offer end-of-run cleanup; do not bypass it. `tack-worktree.sh remove` refuses protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) unconditionally.
+- **Escape hatch:** trivial chores (typo fixes, doc-only edits, comment tweaks) may bypass the orchestrator. Anything that changes behaviour, public contracts, schemas, infra, or business rules must go through `@project/prompts/auto-orchestrator.md`.
+- **One chat inlining / `/agents`:** if the lead agent runs every role inline or UI “agent libraries” seem required, read `project/docs/sdd.md` → **Multi-platform agent support** — use the optional orchestrator-only preamble with the epic, embed full `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`, and fall back to `@orchestrator.md` or stepwise **`tack-agent`** when subagent tools are unavailable.
+
+Routing behaviour is also defined in `project/prompts/auto-orchestrator.md`. There is no separate routing file at the repo root.
 
 ## Domain and naming (CRITICAL)
 
@@ -71,7 +92,10 @@ The directory `.worktrees/` must not be committed. If your repo already uses ano
 
 ## Auto-orchestration routing
 
-Tack can auto-route every feature/bug/task in agents that read `AGENTS.md`/`CLAUDE.md` (Claude Code, Copilot CLI, Codex, Antigravity, modern Cursor). The bootstrap skill writes a `## Tack routing` H2 block into those files; this section configures whether and where.
-
 - `tack.routing.auto`: `<yes | no>` — default **`yes`**: every feature/bug/task is dispatched through `@project/prompts/auto-orchestrator.md` (the active SDD pipeline). Set to **`no`** to keep the passive flow where the human `@`-mentions `@project/prompts/orchestrator.md` manually.
-- `tack.routing.surfaces`: `<agents | claude | both | none>` — default **`both`** when any Claude marker (`AGENTS.md`, `.claude/`, `CLAUDE.md`) is detected; **`agents`** otherwise. **`agents`** writes only `AGENTS.md` (read by every modern surface). **`claude`** writes only `CLAUDE.md`. **`both`** writes both. **`none`** skips writing the routing block (forces `tack.routing.auto = no`).
+
+When `tack.routing.auto = no`, agents still read **`TACK.md`** for commands and worktree keys; only the default dispatch path changes.
+
+## Migration from legacy `.cursorrules`
+
+If you previously kept Tack keys only in **`.cursorrules`**, copy those lines into this **`TACK.md`** (quality commands, `tack.worktree.*`, `tack.routing.*`, invariants), then remove the duplicated keys from `.cursorrules` or delete that file. `project/scripts/tack-resolve-config.sh` requires repo-root **`TACK.md`**.

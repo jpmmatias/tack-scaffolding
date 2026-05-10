@@ -27,8 +27,7 @@ repo_root() {
   git rev-parse --show-toplevel 2>/dev/null || die "not inside a git repository"
 }
 
-# Optional defaults from repo-root Tack config (`TACK.md` preferred, `.cursorrules` fallback — same keys as `worktree-coordinator.md`).
-# If both files exist, only TACK.md is read; do not rely on duplicate keys in .cursorrules.
+# Optional defaults from repo-root **`TACK.md`** (same keys as `worktree-coordinator.md`).
 apply_worktree_dir_from_config() {
   local root="$1"
   local line val

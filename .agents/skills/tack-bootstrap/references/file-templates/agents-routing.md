@@ -1,6 +1,10 @@
 # File template — `AGENTS.md` / `CLAUDE.md` routing
 
-Worked example, **anonymized and trimmed** from the OrderFlow sample. Use as a shape guide. The bootstrap skill must **splice surgically**: replace only the `## Tack routing` H2 section (verbatim from `template/routing-snippet.md`) and preserve every other byte.
+**DEPRECATED.** Tack keeps SDD entry points and routing in repo-root **`TACK.md`** only. Bootstrap **no longer** splices `AGENTS.md` or `CLAUDE.md`. This document is an archive of the old merge workflow.
+
+---
+
+Worked example, **anonymized and trimmed** from the OrderFlow sample. Use as a shape guide only. ~~The bootstrap skill must **splice surgically**~~ Historical note: previously replaced only the `## Tack routing` H2 section (from `template/routing-snippet.md`).
 
 ## Case A — brand-new file (create)
 

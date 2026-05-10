@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Bootstrap Tack into this existing TypeScript monorepo: governance docs, project/ template, TACK.md, optional .cursorrules stub for Cursor, and specialist routing. Do not implement product features.",
+      "prompt": "Bootstrap Tack into this existing TypeScript monorepo: governance docs, project/ template, repo-root TACK.md, and specialist routing. Do not implement product features.",
       "expected_output": "Starts six-phase bootstrap interview; never writes application feature code.",
       "expectations": [
         "Response describes a phased bootstrap (detection, discovery, routing, copy to project/, governance) rather than jumping straight to coding features",

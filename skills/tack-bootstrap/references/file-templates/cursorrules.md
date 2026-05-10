@@ -1,10 +1,7 @@
-# File template — optional `.cursorrules` (Cursor)
+# File template — legacy `.cursorrules` (reference only)
 
-**Canonical Tack keys** belong in **`TACK.md`** at the repo root — see [`tack.md`](./tack.md) for the full worked shape and [`project/TACK.md.template`](../../template/TACK.md.template) after bootstrap.
+**DEPRECATED.** **`TACK.md`** at the repo root is the **only** Tack config file. See [`tack.md`](./tack.md) and [`project/TACK.md.template`](../../template/TACK.md.template).
 
-Use **`.cursorrules`** only when **`cursor` ∈ `tack.agents.active`**: a **short stub** Cursor can load for editor-specific hints. Start from **`project/.cursorrules.template`** — do **not** duplicate `<TEST_COMMAND>`, `tack.worktree.*`, or `tack.routing.*` here unless you are migrating from a legacy repo; tooling reads **`TACK.md` first**.
+Do **not** rely on **`.cursorrules`** for `<TEST_COMMAND>`, `tack.worktree.*`, or `tack.routing.*`. If an editor requires a separate rules file, point it at **`TACK.md`** or use a one-line stub that links there.
 
-Notes:
-
-- If both **`TACK.md`** and **`.cursorrules`** exist, **`TACK.md` is authoritative** for scripts and orchestration; align duplicate keys or remove them from `.cursorrules`.
-- See **`template/examples/cursorrules.example.md`** for a minimal stub example.
+- See **`project/.cursorrules.template`** for a minimal legacy stub marker (not used by bootstrap).

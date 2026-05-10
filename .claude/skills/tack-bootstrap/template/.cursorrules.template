@@ -1,7 +1,7 @@
-# Cursor — repo rules (optional)
+<!-- DEPRECATED: Tack configuration lives only in repo-root TACK.md. Do not add this file during bootstrap. If your editor requires a rules file, point it at TACK.md or paste a one-line redirect. See project/TACK.md.template. -->
 
-**Tack project configuration** (`<TEST_COMMAND>`, `<LINT_COMMAND>`, `tack.worktree.*`, `tack.routing.*`, invariants, optional `tack.ddd.profile`) lives in **`TACK.md`** at the **repository root**. Fill **`project/TACK.md.template`** and save it as **`TACK.md`** — that file is the IDE-agnostic source of truth. `project/scripts/tack-worktree.sh` and `project/scripts/tack-doctor.sh` read **`TACK.md` first**, then fall back to **`.cursorrules`** for legacy repos.
+# Cursor — legacy stub (do not use for Tack keys)
 
-Use this **`.cursorrules`** file only for **Cursor-specific** editor hints (style nits, paths Cursor should prefer, MCP notes). Do **not** duplicate Tack keys here unless you are migrating from a legacy setup; if both files exist, tooling treats **`TACK.md` as authoritative**.
+**Tack** uses **`TACK.md`** at the repository root for `<TEST_COMMAND>`, `<LINT_COMMAND>`, `tack.worktree.*`, `tack.routing.*`, invariants, and optional `tack.ddd.profile`. Fill **`project/TACK.md.template`** and save as **`TACK.md`**.
 
 See **`TACK.md`** and **`project/docs/sdd.md`**.

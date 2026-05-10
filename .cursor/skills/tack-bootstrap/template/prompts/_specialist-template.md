@@ -14,7 +14,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`** at repo root.
+- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (**required**).
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) *(if UI or domain wording matters)*
 - [project/docs/architecture.md](../docs/architecture.md) *(if layering matters)*
 - Active **spec** / **task** for this change
@@ -36,7 +36,7 @@ You are a **<SPECIALIST_TITLE>** for this repository.
 
 Before coding:
 
-1. Read **`TACK.md`** at the repo root first; if absent, read **`.cursorrules`**. Then read the governing task.
+1. Read repo-root **`TACK.md`**. Then read the governing task.
 2. **Boundaries:** <DESCRIBE WHAT THIS ROLE MUST NOT TOUCH — e.g. “do not edit API routes from this prompt if task splits UI”).
 3. **Invariants:** <LIST 3–6 BULLETS — identity rules, parity rules, telemetry hooks, etc.>
 

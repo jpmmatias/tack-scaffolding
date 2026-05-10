@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at the repository root (**canonical** Tack config); if **`TACK.md`** is absent, read legacy **`.cursorrules`** instead ([Cursor stub template](../.cursorrules.template))
+- [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at the repository root (**required** Tack config)
 - [project/docs/tack-pipeline-models.md](../docs/tack-pipeline-models.md) — **required** YAML front matter: pipeline keys → `Task` model slugs (see **Preflight**)
 - [project/docs/sdd.md](../docs/sdd.md)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
@@ -126,7 +126,7 @@ Use **`Task`** with:
 
 ## Step −1 — Worktree setup (optional)
 
-1. Read optional worktree settings from **`TACK.md` at the repository root first**; if missing, from **`.cursorrules`** at the repository root (same keys; **when both files exist**, `project/scripts/tack-worktree.sh` reads **`TACK.md` only**). Parse these keys if present; otherwise use defaults:
+1. Read optional worktree settings from **`TACK.md` at the repository root** (required). Parse these keys if present; otherwise use defaults:
    - `tack.worktree.mode`: `prompt` | `always` | `never` — default **`prompt`**
    - `tack.worktree.naming`: e.g. `feature/S-XXX-<slug>` — default **`feature/S-XXX-<slug>`**
    - `tack.worktree.base`: branch name, or `detect` — default **`detect`** (script tries `main` → `master` → current branch)
@@ -196,7 +196,7 @@ Use **`Task`** with:
 - After dispatch:
   1. Discover new/updated test files (git status or glob — match your project’s test suffixes).
   2. Assert every new/edited test file has at least one `describe('S-XXX AC-N:` …)` matching an AC from the spec. If any AC lacks a matching describe → **STOP**.
-  3. Run **`<TEST_COMMAND>`** from **`TACK.md`** or **`.cursorrules`** (same resolution order as Step −1) filtered to those files (or project convention). Output must show **failing** tests (red). If all pass → **STOP** (red gate violated).
+  3. Run **`<TEST_COMMAND>`** from **`TACK.md`** filtered to those files (or project convention). Output must show **failing** tests (red). If all pass → **STOP** (red gate violated).
 
 ## Step 4 — `@harness-engineer.md` (conditional)
 
@@ -224,7 +224,7 @@ Use **`Task`** with:
 ## Step 7 — `@reviewer.md`
 
 - Model: **`models.reviewer`** (`[Opus]`).
-- Inputs: governing spec path + task references + **`git diff`** (or instruct subagent to run `git diff` / `git diff --name-only` in repo). Include any **parity / invariant** checks from **`TACK.md`** / **`.cursorrules`** (e.g. legacy vs new module pairs).
+- Inputs: governing spec path + task references + **`git diff`** (or instruct subagent to run `git diff` / `git diff --name-only` in repo). Include any **parity / invariant** checks from **`TACK.md`** (e.g. legacy vs new module pairs).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - Subagent Outputs: PASS or FAIL + enumerated checklist. **FAIL** → **STOP**. **PASS** → continue to Step 7b if triggered, otherwise emit **Final report** with `COMPLETED`.
 
@@ -274,7 +274,7 @@ Additionally stop when:
 6. **Step 2** — no valid `plan.md` with `Spec: S-XXX` and **Traceability** covering all ACs.
 7. **Step 3** — missing `describe('S-XXX AC-N:` for any AC, or **red gate**: tests do not fail after qa-tester red phase.
 8. **Step 6** — **green gate**: any test still failing.
-9. **Invariant / parity** (before Step 7): **fill in** — e.g. behaviour edit touched only one file in a required pair listed in **`TACK.md`** / **`.cursorrules`** → **STOP** when your rules define that as blocking.
+9. **Invariant / parity** (before Step 7): **fill in** — e.g. behaviour edit touched only one file in a required pair listed in **`TACK.md`** → **STOP** when your rules define that as blocking.
 10. **Step 7** — reviewer returns **FAIL** for any checklist item.
 11. **Step 7b** — security-engineer returns **FAIL** for any checklist item, when the security audit was triggered.
 12. **Model** unavailable after upward fallback.
@@ -351,7 +351,7 @@ Run **only when** all of: Status is `COMPLETED`, Step −1 succeeded (Worktree �
 
 # Step 9 — Worktree cleanup offer (worktree-only, on COMPLETED)
 
-Run **only when all of**: Status is `COMPLETED`, Step −1 succeeded (Worktree ≠ `n/a`), and `tack.worktree.cleanup` from **`TACK.md`** / **`.cursorrules`** is **not** `never` (default `prompt`). If `cleanup = never` set **Worktree cleanup** to `disabled` and skip; if Step −1 was skipped set it to `n/a`.
+Run **only when all of**: Status is `COMPLETED`, Step −1 succeeded (Worktree ≠ `n/a`), and `tack.worktree.cleanup` from **`TACK.md`** is **not** `never` (default `prompt`). If `cleanup = never` set **Worktree cleanup** to `disabled` and skip; if Step −1 was skipped set it to `n/a`.
 
 This step is post-pipeline like Step 8: failures here only update the **Worktree cleanup** report line, never demote `COMPLETED`.
 

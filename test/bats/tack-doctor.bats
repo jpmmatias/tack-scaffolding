@@ -1,7 +1,6 @@
 #!/usr/bin/env bats
-# B-11 / B-12: tack-doctor.sh — uppercase placeholders in the resolved rules
-# file (and companion .cursorrules when TACK.md is primary), plus `<fill>` in
-# auto-orchestrator Specialist routing.
+# B-11 / B-12: tack-doctor.sh — uppercase placeholders in repo-root TACK.md
+# (default), plus `<fill>` in auto-orchestrator Specialist routing.
 
 load helpers
 
@@ -25,7 +24,7 @@ security_engineer: claude-opus-4-7-thinking-xhigh
 # Test fixture
 EOF
   # Minimal "clean" fixtures — no uppercase placeholders, no <fill>.
-  cat > .cursorrules <<'EOF'
+  cat > TACK.md <<'EOF'
 # Project: orderflow
 
 ## Tech stack
@@ -40,7 +39,6 @@ EOF
 ## Auto-orchestration routing
 
 - `tack.routing.auto`: `<yes | no>` — default **`yes`**.
-- `tack.routing.surfaces`: `<agents | claude | both | none>` — default **`both`**.
 EOF
   cat > project/prompts/auto-orchestrator.md <<'EOF'
 # Specialist routing
@@ -78,16 +76,16 @@ teardown() {
   [[ "$status" -eq 0 ]]
 }
 
-@test "doctor: leftover <UPPERCASE> in .cursorrules fails with line cite" {
-  echo '- Tests: <TEST_COMMAND>' >> .cursorrules
+@test "doctor: leftover <UPPERCASE> in TACK.md fails with line cite" {
+  echo '- Tests: <TEST_COMMAND>' >> TACK.md
   run bash "$TACK_DOCTOR"
   [[ "$status" -eq 1 ]]
   [[ "$output" == *"uppercase placeholders"* ]]
   [[ "$output" == *"<TEST_COMMAND>"* ]]
 }
 
-@test "doctor: leftover <PROJECT_NAME> in .cursorrules fails" {
-  printf '# Project: <PROJECT_NAME>\n' > .cursorrules
+@test "doctor: leftover <PROJECT_NAME> in TACK.md fails" {
+  printf '# Project: <PROJECT_NAME>\n' > TACK.md
   run bash "$TACK_DOCTOR"
   [[ "$status" -eq 1 ]]
   [[ "$output" == *"<PROJECT_NAME>"* ]]
@@ -105,10 +103,10 @@ EOF
 }
 
 @test "doctor: missing files fail with actionable message" {
-  rm .cursorrules project/prompts/auto-orchestrator.md
+  rm TACK.md project/prompts/auto-orchestrator.md
   run bash "$TACK_DOCTOR"
   [[ "$status" -eq 1 ]]
-  [[ "$output" == *"missing TACK.md or .cursorrules"* ]]
+  [[ "$output" == *"missing TACK.md"* ]]
   [[ "$output" == *"missing project/prompts/auto-orchestrator.md"* ]]
 }
 
@@ -136,14 +134,10 @@ EOF
   [[ "$status" -eq 2 ]]
 }
 
-@test "doctor: fails when TACK.md is clean but .cursorrules still has placeholders" {
-  printf '%s\n' '# TACK' '' '## Quality commands' '- Lint: npm run lint' '- Tests: npm test' '' '## Auto-orchestration routing' '- `tack.routing.auto`: yes' > TACK.md
+@test "doctor: stray .cursorrules with placeholders does not fail doctor (ignored)" {
   printf '%s\n' '# Legacy' '- Tests: <TEST_COMMAND>' > .cursorrules
   run bash "$TACK_DOCTOR"
-  [[ "$status" -eq 1 ]]
-  [[ "$output" == *".cursorrules"* ]]
-  [[ "$output" == *"uppercase placeholders"* ]]
-  [[ "$output" == *"<TEST_COMMAND>"* ]]
+  [[ "$status" -eq 0 ]]
 }
 
 @test "doctor: TACK.md only (no .cursorrules) passes when filled" {

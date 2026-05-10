@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 # tack-doctor.sh — post-bootstrap validations for a Tack consumer repo.
 # Run from the repository root. Currently checks:
-#   1. Canonical rules file (TACK.md preferred, else .cursorrules) contains no
-#      <UPPERCASE_PLACEHOLDER> tokens (matches `<[A-Z][A-Z0-9_]*>`). When both
-#      repo-root TACK.md and .cursorrules exist (default rules, no --rules), both
-#      are scanned for placeholders; routing/models still use TACK.md only.
+#   1. Repo-root TACK.md exists and contains no <UPPERCASE_PLACEHOLDER> tokens
+#      (matches `<[A-Z][A-Z0-9_]*>`).
 #   2. project/prompts/auto-orchestrator.md Specialist routing table contains
 #      no `<fill>` rows.
 #   3. When tack.routing.auto is not explicitly "no", project/docs/tack-pipeline-models.md
@@ -20,17 +18,15 @@ usage() {
 Usage: tack-doctor.sh [--rules PATH] [--orchestrator PATH] [--models PATH] [--quiet]
 
 Validates a bootstrapped Tack repo:
-  1. <UPPERCASE_PLACEHOLDER> tokens removed from the resolved rules file; if the
-     default resolves to TACK.md and .cursorrules also exists, .cursorrules is
-     checked too (use --rules PATH to validate only that file for placeholders).
+  1. <UPPERCASE_PLACEHOLDER> tokens removed from the resolved rules file (default:
+     repo-root TACK.md). Use --rules PATH to check a different file.
   2. `<fill>` rows removed from project/prompts/auto-orchestrator.md
      Specialist routing table.
   3. project/docs/tack-pipeline-models.md (or --models) is complete when
      tack.routing.auto is not explicitly `no` in the resolved rules file.
 
 Defaults:
-  --rules         TACK.md at repo root if present, else .cursorrules (--rules
-                  limits placeholder checks to this path only)
+  --rules         repo-root TACK.md (or the path you pass)
   --orchestrator  project/prompts/auto-orchestrator.md
   --models        project/docs/tack-pipeline-models.md
 
@@ -89,7 +85,7 @@ if [[ "$RULES_FROM_CLI" -eq 0 ]]; then
 fi
 
 if [[ -z "$RULES" || ! -f "$RULES" ]]; then
-  fail "missing TACK.md or .cursorrules at repo root (run tack-bootstrap or set --rules)"
+  fail "missing TACK.md at repo root (run tack-bootstrap or set --rules PATH)"
 else
   tack_config_warn_if_both "$ROOT"
   matches="$(grep -nE '<[A-Z][A-Z0-9_]*>' "$RULES" || true)"
@@ -98,16 +94,6 @@ else
     printf '  %s\n' "${matches//$'\n'/$'\n  '}" >&2
   else
     note "$RULES placeholders OK"
-  fi
-  companion="$(tack_config_placeholder_companion_cursorrules "$ROOT" "$RULES" "$RULES_FROM_CLI" || true)"
-  if [[ -n "$companion" && -f "$companion" ]]; then
-    matches2="$(grep -nE '<[A-Z][A-Z0-9_]*>' "$companion" || true)"
-    if [[ -n "$matches2" ]]; then
-      fail "$companion still contains uppercase placeholders (TACK.md is authoritative for runtime keys; remove or fill duplicates here):"
-      printf '  %s\n' "${matches2//$'\n'/$'\n  '}" >&2
-    else
-      note "$companion placeholders OK (companion to TACK.md)"
-    fi
   fi
 fi
 

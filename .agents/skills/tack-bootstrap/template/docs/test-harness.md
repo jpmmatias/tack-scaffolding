@@ -19,12 +19,12 @@ This document describes the **behaviour** and **architecture fitness** harness f
 | Category | Purpose | This repo |
 |----------|---------|-----------|
 | **Maintainability harness** | Style, drift, readability | Tests/linters/TS; `describe('S-XXX AC-N: …')`; avoid vague `should …` for new tests |
-| **Architecture fitness harness** | Boundaries, fitness | [architecture.md](./architecture.md), ADRs in `project/docs/adr/`, invariants from **`TACK.md`** / **`.cursorrules`** |
+| **Architecture fitness harness** | Boundaries, fitness | [architecture.md](./architecture.md), ADRs in `project/docs/adr/`, invariants from **`TACK.md`** |
 | **Behaviour harness** | Correctness vs spec | Gherkin ACs, tests per AC, telemetry contract tests, **approved fixtures** for stable payloads |
 
 ## Intended `<TEST_HARNESS_ROOT>` contents (incremental)
 
-Replace `<TEST_HARNESS_ROOT>` in **`TACK.md`** / **`.cursorrules`** (e.g. `test/harness/`). Incrementally add:
+Replace `<TEST_HARNESS_ROOT>` in **`TACK.md`** (e.g. `test/harness/`). Incrementally add:
 
 - **Factories / builders** — align names with [domain-glossary.md](./domain-glossary.md)
 - **Boundary doubles** — one mock surface per external system (HTTP clients, identity, payment, queue, observability SDKs)
@@ -35,7 +35,7 @@ Document concrete factory names and boundaries in this file as your project grow
 
 ## Boundary doubles (single place)
 
-Mocks or test adapters should live in harness helpers—not scattered at every feature test—for boundaries you list in **`TACK.md`** / **`.cursorrules`**, for example:
+Mocks or test adapters should live in harness helpers—not scattered at every feature test—for boundaries you list in **`TACK.md`**, for example:
 
 - Upstream HTTP APIs
 - Identity / session
@@ -55,7 +55,7 @@ For stable upstream shapes, store **frozen fixtures** and assert contract shape 
 
 ## Quality commands
 
-Align local checks with your `package.json`, `Makefile`, or CI config as declared in **`TACK.md`** / **`.cursorrules`**:
+Align local checks with your `package.json`, `Makefile`, or CI config as declared in **`TACK.md`**:
 
 - Fast: `<LINT_COMMAND>`, `<TEST_COMMAND>`
 - Broader: integration/e2e as you configure

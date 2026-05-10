@@ -56,7 +56,7 @@ flowchart LR
 
 ## Parallel features (git worktrees)
 
-Run **multiple specs at once** without agents overwriting each other’s files: create one **linked worktree + branch per feature** from your trunk (`main` / `master`), run `product-manager` → … → `reviewer` **inside that directory**. Configuration lives under **Parallel execution (worktrees)** in **`TACK.md`** (fallback: **`.cursorrules`**).
+Run **multiple specs at once** without agents overwriting each other’s files: create one **linked worktree + branch per feature** from your trunk (`main` / `master`), run `product-manager` → … → `reviewer` **inside that directory**. Configuration lives under **Parallel execution (worktrees)** in **`TACK.md`**.
 
 Implementation helper (bash, repo root):
 

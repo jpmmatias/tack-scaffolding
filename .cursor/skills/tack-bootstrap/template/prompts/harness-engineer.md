@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You e
 
 # Inputs (read-only)
 
-- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`**.
+- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (**required**).
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md)
 - [project/docs/test-harness.md](../docs/test-harness.md)
@@ -17,7 +17,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You e
 
 # Outputs (only write here)
 
-- `<TEST_HARNESS_ROOT>/**` — factories, boundary adapters, frozen fixtures, deterministic clock helpers (path from **`TACK.md`** / **`.cursorrules`**)
+- `<TEST_HARNESS_ROOT>/**` — factories, boundary adapters, frozen fixtures, deterministic clock helpers (path from **`TACK.md`**)
 - Approved fixtures under the directory your team documents in [test-harness.md](../docs/test-harness.md)
 
 ---
@@ -28,6 +28,6 @@ Frame work using **guides vs sensors** and **three regulation categories** (see 
 
 - **Maintainability** — reusable builders reduce duplicated setup in tests.
 - **Architecture fitness** — boundary doubles enforce seams named in architecture and glossary.
-- **Behaviour** — approved fixtures for upstream payloads; shared scenarios where **`TACK.md`** / **`.cursorrules`** requires parity between legacy and new modules.
+- **Behaviour** — approved fixtures for upstream payloads; shared scenarios where **`TACK.md`** requires parity between legacy and new modules.
 
 Provide **one** module mock surface per boundary (e.g. upstream HTTP client) so `@worker.md` does not add scattered mocks for the same system.

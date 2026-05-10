@@ -1,8 +1,6 @@
 # Example: `TACK.md` (OrderFlow Checkout — fictitious)
 
-Save the active Tack configuration as **`TACK.md`** at the repository root. This example mirrors **`project/TACK.md.template`**.
-
-For **Cursor-only** editor hints, you may use a short **`.cursorrules`** stub; see **`cursorrules.example.md`**.
+Save the active Tack configuration as **`TACK.md`** at the repository root. This example mirrors **`project/TACK.md.template`**. See **`cursorrules.example.md`** only for historical stub shape (deprecated).
 
 ---
 

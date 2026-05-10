@@ -4,7 +4,7 @@
 
 O Tack transforma um agente de código solto no seu repositório em um pipeline determinístico: especificações numeradas, testes falhando antes do código e papéis isolados (PM → arquiteto → QA → worker → reviewer), para que funcionalidades sejam entregues de ponta a ponta com rastreabilidade.
 
-É um **modelo, não um runtime** — instale três skills pequenas, rode o bootstrap único no seu repositório e entregue funcionalidades pelo pipeline. Funciona em **Claude Code, Cursor, GitHub Copilot CLI, Codex e Antigravity**; o bootstrap detecta quais superfícies o repositório usa (`AGENTS.md`, `CLAUDE.md`, **`TACK.md`**, **`.cursorrules`** opcional para Cursor) e escreve o roteamento em cada uma — você não escolhe a plataforma com antecedência.
+É um **modelo, não um runtime** — instale três skills pequenas, rode o bootstrap único no seu repositório e entregue funcionalidades pelo pipeline. Funciona em **Claude Code, Cursor, GitHub Copilot CLI, Codex e Antigravity**; o bootstrap detecta quais caminhos de skills do editor preencher (**`tack.agents.active`**) e grava na raiz do repositório o **`TACK.md`** como **única** configuração Tack (comandos, worktrees, entradas SDD) — você não escolhe a plataforma com antecedência.
 
 **English version:** [README.md](README.md)
 
@@ -66,7 +66,7 @@ Ou copie `skills/tack-bootstrap/` manualmente para:
 | Cursor               | `.cursor/skills/tack-bootstrap/` |
 | Antigravity (projeto)| `.agents/skills/tack-bootstrap/` |
 
-> **Nota.** `npx skills add` instala a skill no caminho do *agente*. O passo de bootstrap abaixo trata do roteamento dentro do *repositório alvo* (escrevendo `AGENTS.md` / `CLAUDE.md` / **`TACK.md`** / **`.cursorrules`** opcional). São dois mecanismos diferentes.
+> **Nota.** `npx skills add` instala a skill no caminho do *agente*. O passo de bootstrap abaixo materializa **`project/`** e o **`TACK.md`** na raiz do *repositório alvo*. São dois mecanismos diferentes.
 
 ### 2. Fazer bootstrap do repositório
 
@@ -75,19 +75,14 @@ Abra o agente e peça para rodar **`tack-bootstrap`** (ou descreva a tarefa: “
 A entrevista em 6 fases detecta sua stack e as superfícies de agente em uso; em seguida escreve:
 
 - `project/` — prompts, documentos, especificações, scripts, modelo de ADR
-- **Arquivos de regras do projeto** na raiz — **`TACK.md`** (comandos e chaves `tack.*` canônicos), **`.cursorrules`** opcional como stub para Cursor, além de um bloco `## Tack routing` em `AGENTS.md` e/ou `CLAUDE.md` conforme a detecção. Os agentes leem **`TACK.md` primeiro**; repositórios legados podem usar só **`.cursorrules`** (fallback).
+- **`TACK.md` na raiz** — comandos de qualidade canônicos, `tack.worktree.*`, `tack.routing.*`, entradas SDD (skills vs menções `@`), invariantes
 - Espelhos das skills `tack-run` / `tack-agent` em `.claude/skills/`, `.agents/skills/`, `.cursor/skills/` — conforme as superfícies aplicáveis
 
 A Fase 2 extrai regras de negócio do código existente; a Fase 5 grava os artefatos; a Fase 6 executa `bash project/scripts/tack-doctor.sh` para verificar que não restaram placeholders.
 
-#### Saídas de detecção da Fase 1 (resumo)
+#### Fase 1 — detecção (resumo)
 
-Na confirmação do contexto, o bootstrap trata como **saídas de primeira classe** (entre outras coisas):
-
-- **`tack.agents.active`** — conjunto explícito de agentes/plataformas para os quais gerar scaffolding (`claude-code`, `cursor`, `copilot`, `codex`, `antigravity`). Só se escreve em diretórios de superfície correspondentes.
-- **`tack.ddd.profile`** — perfil opcional de **Domain-Driven Design**: `on` ou `off` (padrão **off**). Com `on`, a Fase 2 inclui mineração DDD (contextos delimitados, agregados, eventos de domínio, camadas anticorrupção), a Fase 3 inclui o bloco DDD de perguntas e a Fase 5 emite seções DDD em `domain-glossary.md`, `architecture.md`, **`TACK.md`** e `specs/_template.md`, além de oferecer o prompt `domain-modeler`. Com `off`, o material permanece equivalente ao Tack pré-DDD. O bootstrap **sugere** `on` quando há sinais fortes de DDD no código (por exemplo nomes de pastas ou tipos recorrentes); a escolha final é sempre confirmada na Fase 1.
-
-Detalhes completos estão em [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) — **Fase 1 — Detectar contexto** e regra de comportamento **DDD profile**.
+A entrevista da Fase 1 trata **quais superfícies de agente recebem scaffolding** (`tack.agents.active`) e o perfil opcional de **DDD** (`tack.ddd.profile = on | off`, padrão **off**) como saídas de primeira classe, junto com a detecção de stack. Com `tack.ddd.profile = on`, fases seguintes acrescentam mineração de contextos delimitados, seções DDD em glossário/arquitetura/modelo de spec, **`@event-stormer.md`** opcional (greenfield / sem rascunho **(ddd)** da Fase 2) e **`@domain-modeler`** opcional. Detalhes: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → *Fase 1 — Detectar contexto* e regra de comportamento 13.
 
 ### 3. Entregar uma funcionalidade
 
@@ -133,7 +128,7 @@ Deriva de espelhos, `git worktree` / sandbox, portões da Fase 2 do bootstrap, r
 
 ## Filosofia
 
-O Tack é um conjunto de restrições que transformam um agente solto no repositório em um processo disciplinado. Os princípios abaixo não são aspiracionais; são aplicados pelos prompts e pelos arquivos de regras do projeto que o bootstrap escreve (**`TACK.md`**, **`.cursorrules`** opcional, `AGENTS.md`, `CLAUDE.md` — conforme as superfícies do seu agente).
+O Tack é um conjunto de restrições que transformam um agente solto no repositório em um processo disciplinado. Os princípios abaixo não são aspiracionais; são aplicados pelos prompts e pelo **`TACK.md`** que o bootstrap grava na raiz do repositório.
 
 - **Especificações antes do código, com rastreabilidade.** Especificações numeradas `S-XXX` com `AC-N` em Gherkin são a unidade de verdade; tarefas em `plan.md` mapeiam ACs fechados; commits citam `S-XXX#AC-N` para histórico consultável. (ver [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md))
 - **Portão TDD red-green, aplicado pelo reviewer.** Testes falhando são escritos antes da implementação; o papel de reviewer verifica se o portão é real. (ver [`skills/tack-bootstrap/template/prompts/qa-tester.md`](skills/tack-bootstrap/template/prompts/qa-tester.md), [`reviewer.md`](skills/tack-bootstrap/template/prompts/reviewer.md))
@@ -143,7 +138,7 @@ O Tack é um conjunto de restrições que transformam um agente solto no reposit
 - **Funcionalidades paralelas sem atropelar.** O modo opcional `git worktree` reserva `S-XXX` entre branches para várias funcionalidades em árvores isoladas. (ver [`tack-worktree.sh`](skills/tack-bootstrap/template/scripts/tack-worktree.sh))
 - **Agnóstico de agente por construção.** Os mesmos prompts servem a Claude Code, Cursor, Copilot CLI, Codex e Antigravity; perfis opcionais (roteamento automático, DDD) mantêm a superfície honesta.
 
-A filosofia vive nos prompts e nos arquivos de regras do seu repositório, não em ferramentas — após o bootstrap, `project/docs/sdd.md` e os arquivos de regras na raiz são onde as regras ficam escritas para o seu projeto.
+A filosofia vive nos prompts e nas regras do projeto, não em ferramentas — após o bootstrap, `project/docs/sdd.md` e o **`TACK.md`** na raiz são onde as regras ficam escritas para o seu projeto.
 
 ## O que vem no modelo empacotado
 
@@ -151,12 +146,12 @@ Depois da Fase 5, o repositório consumidor tem sob `project/`:
 
 | Caminho | Finalidade |
 |------|---------|
-| `project/TACK.md.template` | Preenchido como **`TACK.md`** na raiz no bootstrap (comandos de qualidade, `tack.worktree.*`, `tack.routing.*`, invariantes). |
-| `project/.cursorrules.template` | Stub opcional do Cursor na raiz quando Cursor está ativo — aponta para **`TACK.md`** (não duplicar chaves Tack). |
-| `project/docs/sdd.md` | Ciclo SDD, pipeline em 7 passos e **Funcionalidades paralelas** (`git worktree`). |
-| `project/scripts/tack-worktree.sh` | Criar/listar/remover worktrees ligados e reservar `S-XXX` entre branches (lê padrões em **`TACK.md`** / **`.cursorrules`**). |
-| `project/scripts/splice-tack-routing.sh` | Helper idempotente que insere `## Tack routing` em `AGENTS.md` / `CLAUDE.md`; suporta `--check` para CI. |
-| `project/scripts/tack-doctor.sh` | Validador pós-bootstrap: **`TACK.md`** por padrão ou `--rules`; avisa se **`TACK.md`** e **`.cursorrules`** coexistem; falha com placeholders `<UPPERCASE>` e linhas `<fill>` nas tabelas de roteamento. |
+| `project/TACK.md.template` | Preenchido como **`TACK.md`** na raiz no bootstrap (comandos de qualidade, `tack.worktree.*`, `tack.routing.*`, entradas SDD, invariantes). |
+| `project/.cursorrules.template` | Legado apenas (obsoleto — o bootstrap não grava isso na raiz; use **`TACK.md`**). |
+| `project/docs/sdd.md` | Ciclo de vida SDD, pipeline em 7 passos, **Suporte multiplataforma a agentes** (inlining em um único chat, `/agents` vs arquivos de prompt, preâmbulo do orquestrador) e **Funcionalidades paralelas** (`git worktree`). |
+| `project/scripts/tack-worktree.sh` | Criar/listar/remover worktrees ligados e reservar `S-XXX` entre branches (lê padrões em **`TACK.md`**). |
+| `project/scripts/splice-tack-routing.sh` | Helper obsoleto para antigos splices em `AGENTS.md` / `CLAUDE.md` (apenas migração manual). |
+| `project/scripts/tack-doctor.sh` | Validador pós-bootstrap: **`TACK.md`** na raiz por padrão ou `--rules`; falha com placeholders `<UPPERCASE>` e linhas `<fill>` nas tabelas de roteamento. |
 | `project/docs/harness-engineering.md` | Guias versus sensores, laço de direção. |
 | `project/docs/test-harness.md` | Intenção do harness de testes e doubles de fronteira. |
 | `project/docs/domain-glossary.md` | Esqueleto do glossário — **deve** ser preenchido para o seu domínio. |

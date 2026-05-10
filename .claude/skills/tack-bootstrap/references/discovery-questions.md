@@ -16,7 +16,7 @@ Ask during Phase 3 **after** blocks A–E unless the user already volunteered pr
 2. **Branch naming:** recommend **`feature/S-XXX-<slug>`** (ties the branch to the reserved spec id); alternative **`feature/<slug>`** if the team rejects spec ids in branch names.
 3. **Fork base:** **`detect`** (`main` → `master` → current branch) vs pinning **`main`** / **`master`** / another stable branch for `git worktree add`.
 
-Record answers under **Parallel execution (worktrees)** in `.cursorrules` (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`).
+Record answers under **Parallel execution (worktrees)** in **`TACK.md`** (`tack.worktree.mode`, `tack.worktree.naming`, `tack.worktree.base`, `tack.worktree.dir`).
 - Skip any question whose answer is already in the Phase 2 draft. Do not re-ask.
 - For every "I don't know" answer: present 2–3 options with one-line trade-offs and ask the user to pick.
 - Always cite `file:line` when a question grounds in existing code.
@@ -84,7 +84,7 @@ Conditional follow-ups:
 
 - If no `e2e` or integration command → ask "Are there any tests you want gated separately from the unit suite (slow, network, or DB-heavy)? If yes, what command runs only those?"
 - If the user gives no `format` command → ask "Should the agents auto-format on save, or is formatting a CI gate only? If a gate, which command?"
-- If the user names a coverage threshold → record it in `.cursorrules` quality section. If they don't → ask "Is there a minimum coverage threshold the orchestrator should enforce, or do you trust QA judgement?"
+- If the user names a coverage threshold → record it in **`TACK.md`** quality section. If they don't → ask "Is there a minimum coverage threshold the orchestrator should enforce, or do you trust QA judgement?"
 
 ### Block C — Engineering invariants
 
@@ -122,7 +122,7 @@ Conditional follow-ups:
 
 - If "no compliance" but Phase 2 detected PII handling → push back: "I see customer email and tax_id in `<file:line>`. Even without a formal regime, want me to enable security-engineer triggers on those paths?"
 - If team > 5 → recommend explicit `[Opus]` review on Step 7 even for low-risk changes.
-- If existing ADRs in another folder → ask "Move them under `project/docs/adr/`, or keep them where they are and just point `.cursorrules` at the canonical location?"
+- If existing ADRs in another folder → ask "Move them under `project/docs/adr/`, or keep them where they are and just document the canonical location in **`TACK.md`**?"
 
 ---
 

@@ -46,7 +46,7 @@ When the DDD profile is `off`, fall back to the simpler form (drop the `Type`, `
 
 > **DDD profile only.** Emit this section when `tack.ddd.profile = on`. Distinct from the **Telemetry vocabulary** table below; an event MAY appear in both but they are different artifacts.
 
-Naming convention: `<PastTenseVerb><Aggregate>` — e.g. `OrderPlaced`, `PaymentCaptured`. Reject deviations in `.cursorrules`.
+Naming convention: `<PastTenseVerb><Aggregate>` — e.g. `OrderPlaced`, `PaymentCaptured`. Reject deviations in repo-root **`TACK.md`**.
 
 | Event name | Emitting aggregate | Payload sketch | Consumer(s) | Telemetry link |
 |------------|--------------------|----------------|-------------|----------------|
@@ -71,7 +71,7 @@ Naming convention: `<PastTenseVerb><Aggregate>` — e.g. `OrderPlaced`, `Payment
 
 ## Cross-cutting concerns
 
-List invariants the agents must preserve (spelling, claim order, etc.). Mirror the **Engineering invariants** section of `.cursorrules`.
+List invariants the agents must preserve (spelling, claim order, etc.). Mirror the **Engineering invariants** section of repo-root **`TACK.md`**.
 
 | Topic | Rule | Notes |
 |-------|------|-------|

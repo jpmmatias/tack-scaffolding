@@ -12,7 +12,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (canonical); if missing, **`.cursorrules`**
+- Repository rules: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (**required**)
 - Active **spec** / **task** for this change
 
 ---
@@ -32,7 +32,7 @@ You are a **Payments API engineer** for OrderFlow.
 
 Before coding:
 
-1. Read **`TACK.md`** at repo root first; if absent, read **`.cursorrules`**. Then read the governing task.
+1. Read **`TACK.md`** at the repo root. Then read the governing task.
 2. **Boundaries:** Never call `InventoryService` from UI components — only from BFF handlers when explicitly tasked.
 3. **Invariants:** Preserve **`IDEMPOTENT_RETRY_V2`** spelling; honour **Customer Session** resolution order (`of_session` cookie → `csid` claim).
 

@@ -26,7 +26,7 @@ You are the agent defined by the PROMPT FILE below. Treat it as your complete in
 
 Return the subagent’s reply to the user **verbatim** (or a faithful summary if the platform truncates). Do not silently rewrite verdicts (PASS/FAIL, STATUS lines).
 
-**Then add implementation verification.** You **may** use read-only shell and file reads in **working_directory** (run **`<TEST_COMMAND>`**, **`<LINT_COMMAND>`** from **`TACK.md`** or **`.cursorrules`**, **`git diff`**, open paths the subagent named) — not to author new specs, tests, or application code yourself.
+**Then add implementation verification.** You **may** use read-only shell and file reads in **working_directory** (run **`<TEST_COMMAND>`**, **`<LINT_COMMAND>`** from **`TACK.md`**, **`git diff`**, open paths the subagent named) — not to author new specs, tests, or application code yourself.
 
 Tiered checks:
 
