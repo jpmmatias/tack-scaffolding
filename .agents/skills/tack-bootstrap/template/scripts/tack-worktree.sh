@@ -23,6 +23,70 @@ repo_root() {
   git rev-parse --show-toplevel 2>/dev/null || die "not inside a git repository"
 }
 
+# Optional defaults from repo-root `.cursorrules` (same keys as `worktree-coordinator.md`).
+apply_worktree_dir_from_cursorrules() {
+  local root="$1"
+  local line val
+  line="$(cursorrules_line_for_key "$root" "tack.worktree.dir")" || return 0
+  val="$(cursorrules_value_after_colon "$line")" || return 0
+  [[ -n "$val" ]] || return 0
+  WT_DIR_DEFAULT="$val"
+}
+
+cursorrules_line_for_key() {
+  local root="$1"
+  local needle="$2"
+  local f="$root/.cursorrules"
+  [[ -f "$f" ]] || return 1
+  grep -F "$needle" "$f" | head -n1 || return 1
+}
+
+# Strip common Markdown noise and trailing prose after an em dash (template lines).
+cursorrules_value_after_colon() {
+  local line="$1"
+  local val="${line#*:}"
+  val="${val//\`/}"
+  val="${val//\*\*/}"
+  val="${val//\"/}"
+  val="${val#"${val%%[![:space:]]*}"}"
+  val="${val%"${val##*[![:space:]]}"}"
+  case "$val" in
+    *" — "*)
+      val="${val%% — *}"
+      val="${val%"${val##*[![:space:]]}"}"
+      ;;
+  esac
+  [[ -n "$val" ]] || return 1
+  printf '%s' "$val"
+}
+
+# Branch fork target: `detect` / placeholders → leave unset (caller runs detect_base_branch).
+parse_base_branch_cursorrules() {
+  local raw="$1"
+  [[ -z "$raw" ]] && return 1
+  if [[ "$raw" == *"<"*"|"*">"* ]]; then
+    return 1
+  fi
+  local compact="${raw// /}"
+  compact="$(printf '%s' "$compact" | tr '[:upper:]' '[:lower:]')"
+  if [[ "$compact" == "detect" ]]; then
+    return 1
+  fi
+  local br="${raw%% *}"
+  br="${br//</}"
+  br="${br//>/}"
+  [[ -n "$br" ]] || return 1
+  printf '%s' "$br"
+}
+
+# Resolve naming scheme string for `case "$naming"` in cmd_create.
+parse_naming_scheme_cursorrules() {
+  local raw="$1"
+  [[ "$raw" == *"feature/S-XXX-<slug>"* ]] && printf '%s' 'feature/S-XXX-<slug>' && return 0
+  [[ "$raw" == *"feature/<slug>"* ]] && printf '%s' 'feature/<slug>' && return 0
+  return 1
+}
+
 json_escape() {
   local s="${1-}"
   python3 -c 'import json,sys; print(json.dumps(sys.argv[1]))' "$s" 2>/dev/null || {
@@ -147,6 +211,7 @@ cmd_path() {
   require_git
   local root slug out
   root="$(repo_root)"
+  apply_worktree_dir_from_cursorrules "$root"
   [[ -z "${1:-}" ]] && die "usage: tack-worktree.sh path <slug>"
   slug="$(sanitize_slug "$1")"
   out="$(resolve_wt_path_by_slug "$root" "$slug")" || die "no worktree under $WT_DIR_DEFAULT matching slug '$slug'"
@@ -157,6 +222,7 @@ cmd_list() {
   require_git
   local root wt_dir
   root="$(repo_root)"
+  apply_worktree_dir_from_cursorrules "$root"
   wt_dir="$root/$WT_DIR_DEFAULT"
   echo '['
   local first=1
@@ -184,6 +250,7 @@ cmd_remove() {
   require_git
   local root="${TACK_REPO_ROOT:-}"
   [[ -z "$root" ]] && root="$(repo_root)"
+  apply_worktree_dir_from_cursorrules "$root"
   local target="${1:-}"
   [[ -n "$target" ]] || die "usage: tack-worktree.sh remove <path-or-slug> [--force]"
   shift || true
@@ -247,6 +314,8 @@ cmd_create() {
   local root
   root="$(repo_root)"
   local slug="" spec="" base="" naming="feature/S-XXX-<slug>"
+  local wt_dir_explicit=0 base_explicit=0 naming_explicit=0 dry_run=0
+  local line cr_val parsed=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -256,15 +325,22 @@ cmd_create() {
         ;;
       --base)
         base="$2"
+        base_explicit=1
         shift 2
         ;;
       --naming)
         naming="$2"
+        naming_explicit=1
         shift 2
         ;;
       --wt-dir)
         WT_DIR_DEFAULT="$2"
+        wt_dir_explicit=1
         shift 2
+        ;;
+      --dry-run)
+        dry_run=1
+        shift
         ;;
       *)
         slug="$1"
@@ -273,7 +349,11 @@ cmd_create() {
     esac
   done
 
-  [[ -n "$slug" ]] || die "usage: tack-worktree.sh create <slug> [--spec S-XXX] [--base <branch>] [--wt-dir .worktrees]"
+  [[ -n "$slug" ]] || die "usage: tack-worktree.sh create <slug> [--spec S-XXX] [--base <branch>] [--naming <scheme>] [--wt-dir DIR] [--dry-run]"
+
+  if [[ $wt_dir_explicit -eq 0 ]]; then
+    apply_worktree_dir_from_cursorrules "$root"
+  fi
 
   slug="$(sanitize_slug "$slug")"
 
@@ -283,8 +363,25 @@ cmd_create() {
     [[ "$spec" =~ ^S-[0-9]{3}$ ]] || die "--spec must look like S-001"
   fi
 
+  if [[ $base_explicit -eq 0 ]]; then
+    line="$(cursorrules_line_for_key "$root" "tack.worktree.base")" || true
+    if [[ -n "${line:-}" ]]; then
+      cr_val="$(cursorrules_value_after_colon "$line")" || cr_val=""
+      parsed="$(parse_base_branch_cursorrules "${cr_val:-}")" || parsed=""
+      [[ -n "$parsed" ]] && base="$parsed"
+    fi
+  fi
   if [[ -z "$base" ]]; then
     base="$(detect_base_branch "$root")"
+  fi
+
+  if [[ $naming_explicit -eq 0 ]]; then
+    line="$(cursorrules_line_for_key "$root" "tack.worktree.naming")" || true
+    if [[ -n "${line:-}" ]]; then
+      cr_val="$(cursorrules_value_after_colon "$line")" || cr_val=""
+      parsed="$(parse_naming_scheme_cursorrules "${cr_val:-}")" || parsed=""
+      [[ -n "$parsed" ]] && naming="$parsed"
+    fi
   fi
 
   local branch=""
@@ -306,14 +403,18 @@ cmd_create() {
 
   [[ ! -e "$wt_path" ]] || die "worktree path already exists: $wt_path"
 
-  ensure_gitignore_worktrees "$root"
-
-  if ! git -C "$root" worktree add "$wt_path" -b "$branch" "$base" 2>/dev/null; then
-    die "git worktree add failed (sandbox/permissions/conflict?). Work in main checkout or fix git state. base=$base branch=$branch"
-  fi
-
   local abs
-  abs="$(cd "$wt_path" && pwd -P)"
+  if [[ $dry_run -eq 1 ]]; then
+    abs="$(python3 -c 'import os,sys; print(os.path.abspath(os.path.join(sys.argv[1],sys.argv[2],sys.argv[3])))' "$root" "$WT_DIR_DEFAULT" "$safe")"
+  else
+    ensure_gitignore_worktrees "$root"
+
+    if ! git -C "$root" worktree add "$wt_path" -b "$branch" "$base" 2>/dev/null; then
+      die "git worktree add failed (sandbox/permissions/conflict?). Work in main checkout or fix git state. base=$base branch=$branch"
+    fi
+
+    abs="$(cd "$wt_path" && pwd -P)"
+  fi
 
   printf '{"path":%s,"branch":%s,"spec_id":%s,"base":%s,"slug":%s}\n' \
     "$(json_escape "$abs")" \
@@ -326,7 +427,7 @@ cmd_create() {
 usage() {
   cat <<'EOF'
 Usage:
-  tack-worktree.sh create <slug> [--spec S-XXX] [--base <branch>] [--naming feature/S-XXX-<slug>] [--wt-dir .worktrees]
+  tack-worktree.sh create <slug> [--spec S-XXX] [--base <branch>] [--naming <scheme>] [--wt-dir DIR] [--dry-run]
   tack-worktree.sh next-spec-id
   tack-worktree.sh list
   tack-worktree.sh path <slug>

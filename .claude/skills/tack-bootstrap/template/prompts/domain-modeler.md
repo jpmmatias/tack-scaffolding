@@ -10,6 +10,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) — the source of truth this prompt edits
 - [project/docs/architecture.md](../docs/architecture.md) — the source of truth this prompt edits
 - [project/docs/_discovery/business-rules-draft.md](../docs/_discovery/business-rules-draft.md) — Phase 2 output (when present)
+- [project/docs/_discovery/event-storming-draft.md](../docs/_discovery/event-storming-draft.md) — greenfield event-storming output from `@event-stormer.md` (when present; typical **NEW** repo with no Phase 2 **(ddd)** section)
 - [project/docs/adr/](../docs/adr/) — existing ADRs for prior context decisions
 - The **trigger** the human pasted (e.g. "split Sales out of Checkout", "wrap NotificationProvider in an ACL", "promote Inventory from generic to supporting")
 
@@ -43,7 +44,7 @@ This prompt presupposes `tack.ddd.profile = on` in `.cursorrules`. If the flag i
 
 # Discipline
 
-1. **No silent invention.** Every new context, aggregate, event, or ACL row you propose cites a source: a `file:line` from the codebase, a section of `business-rules-draft.md`, or the human's trigger text. If a candidate is purely your judgment with no citation, label it `[OPEN-QUESTION]` so the human can resolve it.
+1. **No silent invention.** Every new context, aggregate, event, or ACL row you propose cites a source: a `file:line` from the codebase, a section of `business-rules-draft.md`, a **confirmed** row or narrative in `event-storming-draft.md` (greenfield path — treat the storming transcript as the human's evidence, not as code), or the human's trigger text. If a candidate is purely your judgment with no citation, label it `[OPEN-QUESTION]` so the human can resolve it. When **both** drafts are missing, rely on trigger text + existing glossary/architecture only.
 2. **Smallest viable change.** Prefer fewer, larger contexts over many tiny ones unless evidence forces a split (different vocabulary in active use, different release cadence, different team ownership). Aggregate boundaries should follow transactional contention, not aesthetic neatness.
 3. **Vocabulary precedes structure.** When two contexts use the same word for different concepts, propose a relationship pattern (ACL, published language) before splitting code.
 4. **Pattern selection is reversible only via ADR.** If you change a pair's pattern (e.g. customer-supplier → ACL), emit an ADR. Never rewrite without the audit trail.
@@ -54,7 +55,7 @@ This prompt presupposes `tack.ddd.profile = on` in `.cursorrules`. If the flag i
 
 # Workflow
 
-1. **Read** all Inputs end-to-end before editing. List every context, aggregate, event, and ACL currently asserted in the glossary and architecture docs.
+1. **Read** all Inputs end-to-end before editing. List every context, aggregate, event, and ACL currently asserted in the glossary and architecture docs. When `business-rules-draft.md` is absent but `event-storming-draft.md` exists, treat the latter as the primary **(ddd)**-equivalent source for greenfield citations (still no silent invention beyond what those sections state or the trigger clarifies).
 2. **Apply the trigger.** Translate the human's request into a minimal set of edits across both docs. For each edit:
    - State what changes and why (one line, citing source).
    - Mark anything you cannot ground as `[OPEN-QUESTION]`.
@@ -75,7 +76,7 @@ This prompt presupposes `tack.ddd.profile = on` in `.cursorrules`. If the flag i
 
 # Rules
 
-1. **Glossary discipline:** Every row in `## Bounded contexts`, `## Entities`, `## Domain events`, `## Context relationships` must have a citation column or footnote pointing to source code, the discovery draft, or an ADR. Empty cells are not acceptable in `core` rows.
+1. **Glossary discipline:** Every row in `## Bounded contexts`, `## Entities`, `## Domain events`, `## Context relationships` must have a citation column or footnote pointing to source code, the discovery draft, `event-storming-draft.md`, or an ADR. Empty cells are not acceptable in `core` rows.
 2. **Aggregate identity:** Every aggregate root has at least one invariant in the `Invariants enforced` column. If you cannot name one, the entity is probably an internal entity or a value object — reclassify.
 3. **Event naming:** Domain events follow `<PastTenseVerb><Aggregate>`. Reject candidates that don't (e.g. `OrderProcessor`, `paymentEvent`) — propose a renaming and add it to the glossary's forbidden synonyms with the canonical replacement.
 4. **ACL completeness:** Every external integration in `architecture.md` → `## External integrations` must have either an ACL row or an explicit `no ACL — <one-line reason>` note. Drift between the two tables is a FAIL output for `@reviewer.md`.

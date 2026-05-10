@@ -40,6 +40,15 @@ Ciclo de vida numerado completo, orquestradores e coordenação opcional com wor
 
 ## Início rápido
 
+### Novo repositório a partir deste modelo
+
+Use quando quiser um **repositório novo** (sem vínculo de fork com o upstream):
+
+- No GitHub: abra este repositório e escolha **Use this template**, depois crie o novo repositório no fluxo.
+- Com [GitHub CLI](https://cli.github.com/): `gh repo create my-app --template jpmmatias/tack-scaffolding --private` (ajuste nome e visibilidade).
+
+Em seguida siga **Instalar as skills** e **`tack-bootstrap`** abaixo nesse checkout.
+
 ### 1. Instalar as skills no seu agente
 
 Recomendado — [`npx skills`](https://skills.sh/) instala no caminho esperado pelo agente:
@@ -155,7 +164,7 @@ Depois da Fase 5, o repositório consumidor tem sob `project/`:
 | `project/prompts/*.md` | Prompts de papéis: PM, arquiteto, QA, harness engineer, worker, reviewer, segurança, orquestradores. |
 | `project/prompts/_specialist-template.md` | Duplicar para papéis específicos da stack. |
 | `project/specs/_template.md` | Modelo de especificação de produto. |
-| `project/examples/` | Exemplos fictícios **OrderFlow**. |
+| `project/examples/` | Exemplos fictícios **OrderFlow** (`orderflow-full/` fatia SDD, `orderflow-ddd/` walkthrough de limites DDD — ver [`skills/tack-bootstrap/template/examples/`](skills/tack-bootstrap/template/examples/README.md)). |
 
 ## Suporte multiplataforma a agentes
 

@@ -122,3 +122,44 @@ teardown() {
   out="$(bash "$TACK_WORKTREE" remove "$wt_path" --force 2>/dev/null)"
   [[ "$out" == *"\"removed\""* ]]
 }
+
+@test "tack-worktree: create --dry-run prints JSON without worktree, branch, or gitignore mutation" {
+  [[ ! -f .gitignore ]]
+  local out branch safe_path
+  out="$(tw_json_line create --dry-run dry-run-slug)"
+  branch="$(printf '%s' "$out" | python3 -c "import json,sys; print(json.load(sys.stdin)['branch'])")"
+  [[ "$branch" == "feature/S-001-dry-run-slug" ]]
+  safe_path="$TMP_REPO/.worktrees/feature-S-001-dry-run-slug"
+  [[ ! -e "$safe_path" ]]
+  run git rev-parse --verify --quiet "refs/heads/feature/S-001-dry-run-slug"
+  [[ "$status" -ne 0 ]]
+  [[ ! -f .gitignore ]]
+}
+
+@test "tack-worktree: create applies tack.worktree.dir from .cursorrules when --wt-dir omitted" {
+  printf '%s\n' '- `tack.worktree.dir`: **`.tack-wt`** — custom parent.' >.cursorrules
+  local create_json wt_path
+  create_json="$(tw_json_line create crs-dir-slug)"
+  grep -qF '.tack-wt/' .gitignore
+  wt_path="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['path'])")"
+  [[ "$wt_path" == */.tack-wt/* ]]
+}
+
+@test "tack-worktree: create applies tack.worktree.base from .cursorrules" {
+  git branch develop HEAD
+  printf '%s\n' '- `tack.worktree.base`: **develop**' >.cursorrules
+  local create_json base br
+  create_json="$(tw_json_line create crs-base-slug --spec S-003)"
+  base="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['base'])")"
+  [[ "$base" == "develop" ]]
+  br="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['branch'])")"
+  git merge-base --is-ancestor "refs/heads/$br" "refs/heads/develop"
+}
+
+@test "tack-worktree: create applies tack.worktree.naming feature/<slug> from .cursorrules" {
+  printf '%s\n' '- `tack.worktree.naming`: **`feature/<slug>`** no spec id.' >.cursorrules
+  local create_json branch
+  create_json="$(tw_json_line create crs-name-slug --spec S-002)"
+  branch="$(printf '%s' "$create_json" | python3 -c "import json,sys; print(json.load(sys.stdin)['branch'])")"
+  [[ "$branch" == "feature/crs-name-slug" ]]
+}

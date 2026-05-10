@@ -14,7 +14,7 @@ It's a **template, not a runtime** — install three small skills, run a one-tim
 |---|---|---|
 | [`tack-bootstrap`](skills/tack-bootstrap/SKILL.md) | First time in a repo: 6-phase interview that fills project-rules files, `project/docs/`, role prompts, and routing | Once per repo |
 | [`tack-run`](skills/tack-run/SKILL.md) | Ship a feature end-to-end (epic → spec → plan → red → green → reviewer) | Per feature |
-| [`tack-agent`](skills/tack-agent/SKILL.md) | Invoke a single role: reviewer pass on a diff, `diagnose` a regression, `domain-modeler` to refine bounded contexts | Ad hoc |
+| [`tack-agent`](skills/tack-agent/SKILL.md) | Invoke a single role: reviewer pass on a diff, `diagnose` a regression, `event-stormer` for greenfield DDD storming, `domain-modeler` to refine bounded contexts | Ad hoc |
 
 ## Pipeline at a glance
 
@@ -39,6 +39,15 @@ flowchart LR
 Full numbered lifecycle, orchestrators, and optional worktree coordination live in [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md).
 
 ## Quick start
+
+### New repo from this template
+
+Use this flow when you want a **fresh repository** (no fork link to upstream):
+
+- On GitHub: open this repository and choose **Use this template**, then create your new repo from the dialog.
+- With [GitHub CLI](https://cli.github.com/): `gh repo create my-app --template jpmmatias/tack-scaffolding --private` (pick your name and visibility).
+
+Then continue with **Install the skills** and **`tack-bootstrap`** below on that new checkout.
 
 ### 1. Install the skills into your agent
 
@@ -73,7 +82,28 @@ Phase 2 mines business rules from existing code; Phase 5 writes the artifacts; P
 
 #### Phase 1 detection (summary)
 
-The Phase 1 interview treats **which agent surfaces get scaffolding** (`tack.agents.active`) and the optional **DDD profile** (`tack.ddd.profile = on | off`, default **off**) as first-class outputs alongside stack detection. With `tack.ddd.profile = on`, later phases add bounded-context mining, DDD sections in glossary/architecture/spec template, and optional `@domain-modeler`. Full detail: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → *Phase 1 — Detect context* and behavior rule 13.
+The Phase 1 interview treats **which agent surfaces get scaffolding** (`tack.agents.active`) and the optional **DDD profile** (`tack.ddd.profile = on | off`, default **off**) as first-class outputs alongside stack detection. With `tack.ddd.profile = on`, later phases add bounded-context mining, DDD sections in glossary/architecture/spec template, optional **`@event-stormer.md`** (greenfield / no Phase 2 **(ddd)** draft), and optional **`@domain-modeler`**. Full detail: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → *Phase 1 — Detect context* and behavior rule 13.
+
+### Optional — `tack` CLI
+
+This repository exposes a small **`tack`** binary ([`bin/tack.mjs`](bin/tack.mjs)) for bootstrapped repos and local experimentation. It does **not** replace the **`tack-bootstrap`** interview (routing, mirrors, filled docs).
+
+From a clone of this repo:
+
+```bash
+npm link          # puts `tack` on your PATH (omit if you only use npx)
+tack --help
+```
+
+Typical subcommands:
+
+| Command | Purpose |
+|---------|---------|
+| `tack doctor` | Runs `project/scripts/tack-doctor.sh` in the current repo (placeholder checks). Same as `bash project/scripts/tack-doctor.sh`. |
+| `tack init` | Copies the stock [`skills/tack-bootstrap/template/`](skills/tack-bootstrap/template/) tree into `./project` (use `--target DIR` for another root; `--force` replaces an existing `project/`). |
+| `tack specialist add <slug>` | Copies the specialist prompt stub to `project/prompts/<slug>.md`; you still wire [`auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) Specialist rows yourself. |
+
+You can also run `node bin/tack.mjs …` without linking. Publishing to npm is optional (`private` remains true in [`package.json`](package.json)); `npm pack` runs **`prepack`**, which snapshots `skills/tack-bootstrap/template` into **`pkg/template`** for installs.
 
 ### 3. Ship a feature
 
@@ -93,6 +123,7 @@ For tasks that don't need the full pipeline:
 ```text
 Run tack-agent reviewer on this diff
 Run tack-agent diagnose for the flaky test in tests/orders_spec.rb
+Run tack-agent event-stormer after Phase 3 Block A DDD Round 1 for a new repo
 Run tack-agent domain-modeler to refine the Billing context
 ```
 
@@ -138,7 +169,7 @@ After Phase 5, your consumer repo has under `project/`:
 | Path | Purpose |
 |------|---------|
 | `project/.cursorrules.template` | Renamed/generated to `.cursorrules` at repo root during bootstrap. |
-| `project/docs/sdd.md` | SDD lifecycle, 7-step pipeline, and **Parallel features** (`git worktree`). |
+| `project/docs/sdd.md` | SDD lifecycle, 7-step pipeline, **Multi-platform agent support** (single-chat inlining, `/agents` vs prompt files, orchestrator preamble), and **Parallel features** (`git worktree`). |
 | `project/scripts/tack-worktree.sh` | Create/list/remove linked worktrees + reserve `S-XXX` across branches. |
 | `project/scripts/splice-tack-routing.sh` | Idempotent helper that splices `## Tack routing` into `AGENTS.md` / `CLAUDE.md`; supports `--check` for CI. |
 | `project/scripts/tack-doctor.sh` | Post-bootstrap validator: fails on leftover `<UPPERCASE>` placeholders and `<fill>` rows in routing tables. |
@@ -150,7 +181,7 @@ After Phase 5, your consumer repo has under `project/`:
 | `project/prompts/*.md` | Role prompts: PM, architect, QA, harness engineer, worker, reviewer, security, orchestrators. |
 | `project/prompts/_specialist-template.md` | Duplicate for stack-specific roles. |
 | `project/specs/_template.md` | Product spec template. |
-| `project/examples/` | Fictitious **OrderFlow** examples. |
+| `project/examples/` | Fictitious **OrderFlow** examples (`orderflow-full/` SDD slice, `orderflow-ddd/` DDD boundary walkthrough — see [`skills/tack-bootstrap/template/examples/`](skills/tack-bootstrap/template/examples/README.md)). |
 
 ## Multi-platform agent support
 
@@ -164,6 +195,8 @@ Tack ships one canonical `auto-orchestrator.md` written with **Cursor** tool nam
 | Ask the human | `AskQuestion` | `AskUserQuestion` | post the question in chat verbatim |
 
 The `tack-run` / `tack-agent` skills do this translation when called via the host's skill system. For details see [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) → **Platform tool mapping**.
+
+**Common pitfalls:** the lead chat may run the whole pipeline **inline** (no per-step `Task` / `Agent`), and UIs such as **Claude Code `/agents`** are **not** Tack’s role pack — each step should still **embed the full** `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`. Optional **orchestrator-only** epic preamble, library-vs-files clarity, and fallbacks (`@orchestrator.md`, stepwise `tack-agent`) live in [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md) → **Multi-platform agent support** (copied to `project/docs/sdd.md` after bootstrap).
 
 ## Conventions (summary)
 

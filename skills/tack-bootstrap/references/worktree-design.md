@@ -17,6 +17,8 @@ Default Tack convention: **`feature/S-XXX-<slug>`** (e.g. `feature/S-007-change-
 
 Alternative supported by scripts: **`feature/<slug>`** when `tack.worktree.naming` omits the spec id segment.
 
+When **`create`** omits `--wt-dir`, **`list`** / **`path`** / **`remove`** (slug resolution), and **`create`** omit `--base` or `--naming`, `tack-worktree.sh` reads the matching **`tack.worktree.*`** lines from repo-root **`.cursorrules`** when present (same keys as [`worktree-coordinator.md`](../template/prompts/worktree-coordinator.md)), after Markdown noise stripping. CLI flags always win.
+
 ## Reserving `S-XXX` under parallelism
 
 `next-spec-id` scans **`project/specs/S-*.md`** in every linked worktree reported by `git worktree list`, plus the primary checkout. That avoids two parallel runs picking the same `S-001`.

@@ -56,7 +56,7 @@ jobs:
         uses: lycheeverse/lychee-action@v2
         with:
           lycheeVersion: v0.22.0
-          args: --offline --no-progress --config lychee.toml skills/tack-bootstrap skills/tack-run skills/tack-agent README.md AGENTS.md CONTRIBUTING.md BACKLOG.md
+          args: --offline --no-progress --config lychee.toml skills/tack-bootstrap skills/tack-run skills/tack-agent README.md AGENTS.md CHANGELOG.md CONTRIBUTING.md BACKLOG.md CODE_OF_CONDUCT.md SECURITY.md
           fail: true
 
       - name: skills CLI discovers packaged skill

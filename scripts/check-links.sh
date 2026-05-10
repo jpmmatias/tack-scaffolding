@@ -56,4 +56,4 @@ LYCHEE_BIN="$(resolve_lychee_bin)"
 
 exec "$LYCHEE_BIN" --offline --no-progress --config lychee.toml \
   skills/tack-bootstrap skills/tack-run skills/tack-agent \
-  README.md AGENTS.md CONTRIBUTING.md BACKLOG.md
+  README.md AGENTS.md CHANGELOG.md CONTRIBUTING.md BACKLOG.md CODE_OF_CONDUCT.md SECURITY.md

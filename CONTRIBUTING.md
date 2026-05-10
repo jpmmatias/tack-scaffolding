@@ -1,5 +1,16 @@
 # Contributing
 
+Issue and PR templates live under [`.github/`](.github/). Report security issues privately per [`SECURITY.md`](SECURITY.md). Community expectations are in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
+
+## Maintainer notes (GitHub template)
+
+For the lowest-friction **Use this template** experience documented in [`README.md`](README.md):
+
+1. In the GitHub repo → **Settings** → **General**.
+2. Under **Template repository**, enable **Template repository** so GitHub shows the green template button and supports `gh repo create … --template <owner>/<repo>`.
+
+That setting is unrelated to listing on [skills.sh](https://skills.sh/); it only affects starting new repos from this scaffold.
+
 ## Canonical skill location
 
 Edit **only** the canonical skill trees under [`skills/`](skills/) — today [`skills/tack-bootstrap/`](skills/tack-bootstrap/), [`skills/tack-run/`](skills/tack-run/), and [`skills/tack-agent/`](skills/tack-agent/). Those directories are the single source of truth (the `tack-bootstrap` canonical includes its bundled template under `skills/tack-bootstrap/template/`, except for `skills/tack-bootstrap/template/skills/`, which is regenerated from the dispatcher canonicals — see below).
@@ -20,6 +31,17 @@ For each canonical `skills/<name>/`, this:
 - and, for the dispatcher skills bundled with bootstrap (today `tack-run` and `tack-agent`), also copies it into `skills/tack-bootstrap/template/skills/<name>/` so the bootstrap install source stays byte-equal to canonical.
 
 Commit the canonical tree, the bundled copies, and the editor mirrors so CI stays green (`npm run check-sync` enforces both layers).
+
+## Commit messages
+
+Prefer [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) so history stays grep-friendly and [`CHANGELOG.md`](CHANGELOG.md) stays easy to maintain:
+
+- **`feat:`** — user-visible behavior or new capability.
+- **`fix:`** — bug fix or regression repair.
+- **`docs:`** — documentation and prompt copy only.
+- **`chore:`** — tooling, CI, sync mirrors, formatting without behavior change.
+
+Optional scope in parentheses is welcome (e.g. `feat(tack-worktree): add --dry-run`). Combine with the Spec traceability called out in [`README.md`](README.md) when the change maps to an `S-XXX` / `AC-N` (e.g. trailer `Closes: S-001#AC-1`).
 
 ## Checks
 

@@ -23,7 +23,8 @@ Paths are relative to the **consumer repo root**. Prompt files live under `proje
 | Reviewer | `reviewer.md` | `[Opus]` | Needs diff or review scope + governing spec/task reference |
 | Diagnose | `diagnose.md` | `[Opus]` | Hard bugs, regressions, flaky behaviour; needs symptom + rules/harness context; optional `project/specs/S-XXX-*.md` path — **manual** via `tack-agent` (not part of default `auto-orchestrator` pipeline) |
 | Security engineer | `security-engineer.md` | `[Opus]` | Needs diff/scope + rules, glossary, architecture; optional spec id |
-| Domain modeler | `domain-modeler.md` | `[Opus]` | Refines strategic DDD model — bounded contexts, context map, ACLs. Requires `tack.ddd.profile = on`. **Manual** via `tack-agent` (bootstrap-time + on-demand re-runs); **not** part of the default `auto-orchestrator` per-feature pipeline. Inputs: glossary + architecture + Phase 2 discovery draft + trigger text |
+| Domain modeler | `domain-modeler.md` | `[Opus]` | Refines strategic DDD model — bounded contexts, context map, ACLs. Requires `tack.ddd.profile = on`. **Manual** via `tack-agent` (bootstrap-time + on-demand re-runs); **not** part of the default `auto-orchestrator` per-feature pipeline. Inputs: glossary + architecture + Phase 2 discovery draft **and/or** `event-storming-draft.md` + trigger text |
+| Event stormer | `event-stormer.md` | `[Sonnet]` | Greenfield DDD — structured event-storming interview; writes `project/docs/_discovery/event-storming-draft.md`. Requires `tack.ddd.profile = on` and Phase 3 Block A + DDD Round 1 answers. **Manual** via `tack-agent` at bootstrap when no Phase 2 **(ddd)** draft; **not** part of the default per-feature pipeline. Inputs: `.cursorrules` + Block A answers + Round 1 bounded contexts + narrative goal |
 
 ## Passive vs active orchestration (not single-agent “executors”)
 

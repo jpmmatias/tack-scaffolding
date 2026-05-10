@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# npm pack / publish artifact (populated by `prepack`)
+/pkg/
+
+# Local bootstrap / recon output (default path for skills/tack-bootstrap/scripts/recon.sh)
+/recon.json
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor / IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*

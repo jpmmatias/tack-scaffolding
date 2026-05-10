@@ -45,19 +45,24 @@ Conditional follow-ups:
 
 **Run only when `tack.ddd.profile = on`.** Skip when the profile is `off`. For **EXISTING** projects, skip questions already answered by Phase 2 section (ddd). Max 3 questions per turn — split across rounds.
 
-**Round 1 — Strategic shape**
+**Branch — where tactical DDD detail comes from**
+
+- **Greenfield path** — use when `project/docs/_discovery/business-rules-draft.md` is **missing** or exists but has **no populated Phase 2 section (ddd)** (typical **NEW** project after Phase 1). After **Round 1** below, **do not** ask **Round 2** or **Round 3** inline in this skill. Instead: tell the human to run **`@event-stormer.md`** via **`tack-agent`** (or paste that prompt in a fresh chat) to produce `project/docs/_discovery/event-storming-draft.md`, then resume Phase 3 at **Block B**. The event-stormer owns aggregates, value objects, domain events, ACL placeholders, and pairwise relationships for that path.
+- **Existing path** — use when Phase 2 draft exists **and** section **(ddd)** has been filled from reconnaissance. After Round 1, continue with **Round 2** and **Round 3** below (verbatim).
+
+**Round 1 — Strategic shape** (all paths)
 
 1. What are the 2–5 **bounded contexts** in this product? Give each a canonical name and a one-line definition. Default suggestion if the user says "I don't know": one context per top-level service/module folder you detected, or per persona group if monolithic.
 2. For each context, classify it **core** / **supporting** / **generic**. *Core* = competitive logic the team writes from scratch. *Supporting* = needed but not differentiating (e.g. user accounts in most products). *Generic* = solved by an off-the-shelf library or SaaS (e.g. email delivery).
 3. Are there forbidden cross-context terms? E.g. context A calls them "Customer", context B calls them "Account" — both stay, never mix.
 
-**Round 2 — Tactical model**
+**Round 2 — Tactical model** (existing path only — skip on greenfield path; deferred to `@event-stormer.md`)
 
 4. For each context, name 1–3 **aggregate roots** (the entities outsiders address by ID and that own transactional consistency). Recommendation: prefer fewer, larger aggregates initially; split when transactional contention forces it.
 5. List the **value objects** worth naming in the glossary. Hints: anything that's "a number with a unit" (Money, Distance), "a string with a format rule" (Email, IBAN, SKU), or "a tuple that travels together" (DateRange, GeoPoint). Skip low-value primitives.
 6. List the **domain events** the contexts emit (cross-context or audit-worthy). Use `<PastTenseVerb><Aggregate>` (e.g. `OrderPlaced`, `PaymentCaptured`). Skip events that are pure UI signals.
 
-**Round 3 — Boundaries**
+**Round 3 — Boundaries** (existing path only — skip on greenfield path; deferred to `@event-stormer.md`)
 
 7. For each external integration in your architecture, where does the **anticorruption layer** live (or should live)? Path or "none yet → mark `[ADR]`".
 8. Pairwise context relationships: for each pair of contexts that talk, pick a tag — **customer-supplier**, **conformist**, **ACL**, **shared kernel**, **published language**, **partnership**, **separate ways**. Recommendation: when in doubt, pick **ACL** for any context that consumes from a third party or a legacy module.
@@ -65,9 +70,9 @@ Conditional follow-ups:
 Conditional follow-ups:
 
 - If the user proposes only one context → push back: "What about admin / back-office work, billing, identity — do those share the language with the user-facing flow, or do they have a different vocabulary that drifts? Often these turn out to be separate contexts."
-- If the user names a context with no aggregates → flag it: "A context without a transactional root is usually a service module, not a bounded context. Want to fold it into a neighbor, or are there aggregates we missed?"
+- If the user names a context with no aggregates → flag it: "A context without a transactional root is usually a service module, not a bounded context. Want to fold it into a neighbor, or are there aggregates we missed?" *(On the greenfield path, record this for `@event-stormer.md` rather than forcing inline answers.)*
 - If the user picks "shared kernel" for two contexts → push back: "Shared kernel is the most coupled pattern — both contexts must agree on every change. Confirm both teams accept that, otherwise prefer **published language** with a versioned contract."
-- For greenfield projects: if the user can't yet name domain events, defer with `[SPEC]` follow-up "Catalog domain events after the first feature lands" rather than inventing them.
+- For greenfield projects: if the user can't yet name domain events, defer with `[SPEC]` follow-up "Catalog domain events after the first feature lands" rather than inventing them; **`@event-stormer.md`** consolidates deferred items into `event-storming-draft.md`.
 
 ### Block B — Stack & quality
 

@@ -34,6 +34,7 @@ Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo 
 - **Configuration:** read `<TEST_COMMAND>`, `<LINT_COMMAND>`, parity invariants, and `tack.worktree.*` from `.cursorrules` at the repo root. Never invent values not in that file.
 - **Worktrees:** honor `tack.worktree.mode`/`naming`/`base`/`dir`/`cleanup` from `.cursorrules`. The orchestrator decides whether to isolate and whether to offer end-of-run cleanup; do not bypass it. `tack-worktree.sh remove` refuses protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) unconditionally.
 - **Escape hatch:** trivial chores (typo fixes, doc-only edits, comment tweaks) may bypass the orchestrator. Anything that changes behaviour, public contracts, schemas, infra, or business rules must go through `@project/prompts/auto-orchestrator.md`.
+- **One chat inlining / `/agents`:** if the lead agent runs every role inline or UI “agent libraries” seem required, read [project/docs/sdd.md](project/docs/sdd.md) → **Multi-platform agent support** — use the optional orchestrator-only preamble with the epic, embed full `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`, and fall back to `@orchestrator.md` or stepwise **`tack-agent`** when subagent tools are unavailable.
 ```
 
 Notes for the bootstrap skill:
@@ -90,6 +91,7 @@ Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo 
 - **Configuration:** read `<TEST_COMMAND>`, `<LINT_COMMAND>`, parity invariants, and `tack.worktree.*` from `.cursorrules` at the repo root. Never invent values not in that file.
 - **Worktrees:** honor `tack.worktree.mode`/`naming`/`base`/`dir`/`cleanup` from `.cursorrules`. The orchestrator decides whether to isolate and whether to offer end-of-run cleanup; do not bypass it. `tack-worktree.sh remove` refuses protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) unconditionally.
 - **Escape hatch:** trivial chores (typo fixes, doc-only edits, comment tweaks) may bypass the orchestrator. Anything that changes behaviour, public contracts, schemas, infra, or business rules must go through `@project/prompts/auto-orchestrator.md`.
+- **One chat inlining / `/agents`:** if the lead agent runs every role inline or UI “agent libraries” seem required, read [project/docs/sdd.md](project/docs/sdd.md) → **Multi-platform agent support** — use the optional orchestrator-only preamble with the epic, embed full `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`, and fall back to `@orchestrator.md` or stepwise **`tack-agent`** when subagent tools are unavailable.
 
 ## Extra notes
 

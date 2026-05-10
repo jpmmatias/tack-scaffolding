@@ -4,7 +4,18 @@
   "private": true,
   "description": "Tack — discipline scaffolding for multi-agent coding (spec-driven development template + tack-bootstrap agent skill)",
   "license": "MIT",
+  "bin": {
+    "tack": "bin/tack.mjs"
+  },
+  "files": [
+    "bin/tack.mjs",
+    "pkg/template"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "prepack": "rm -rf pkg/template && mkdir -p pkg && cp -R skills/tack-bootstrap/template pkg/template",
     "sync": "bash scripts/sync-skills.sh",
     "check-sync": "bash scripts/check-skills-sync.sh",
     "validate-skill": "bash scripts/validate-skill-frontmatter.sh",

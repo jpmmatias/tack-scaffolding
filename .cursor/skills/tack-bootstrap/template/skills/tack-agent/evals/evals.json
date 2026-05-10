@@ -33,6 +33,17 @@
         "Response suggests discovery (list prompts) or a valid alternative specialist name",
         "Response does not dispatch Task with a made-up prompt body as if the file were present"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "We have tack.ddd.profile on, brand-new repo with no Phase 2 business-rules draft. User wants a first context map and domain events before domain-modeler.",
+      "expected_output": "Names event-stormer.md / tack-agent; does not insist Phase 2 draft is required for that path.",
+      "expectations": [
+        "Response identifies project/prompts/event-stormer.md (or event-stormer role) as the appropriate single dispatch",
+        "Response does not claim business-rules-draft.md or Phase 2 completion is mandatory before DDD discovery in this scenario",
+        "Response does not redirect the whole request to tack-run as the only option",
+        "Response references reading the prompt Inputs or agent-catalog before dispatch"
+      ]
     }
   ]
 }
