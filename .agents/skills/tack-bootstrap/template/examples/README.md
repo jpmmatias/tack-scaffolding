@@ -8,7 +8,8 @@ For a **DDD-profile walkthrough** (three bounded contexts, `@event-stormer.md` â
 
 | File | Shows |
 |------|--------|
-| [cursorrules.example.md](./cursorrules.example.md) | Filled `.cursorrules` with stack commands and invariants. |
+| [TACK.md.example.md](./TACK.md.example.md) | Filled **`TACK.md`** (canonical IDE-agnostic rules). |
+| [cursorrules.example.md](./cursorrules.example.md) | Legacy **`.cursorrules`** stub shape (deprecated â€” use **`TACK.md`** only). |
 | [domain-glossary.example.md](./domain-glossary.example.md) | Partial glossary with surfaces, entities, telemetry names. |
 | [spec.example.md](./spec.example.md) | Full `S-001` spec with Gherkin ACs and telemetry table. |
 | [plan.example.md](./plan.example.md) | `plan.md` with traceability rows. |

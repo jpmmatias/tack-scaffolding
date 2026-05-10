@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**. You a
 
 # Inputs (read-only)
 
-- Repository rules file (e.g. [project/.cursorrules](../.cursorrules.template), generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules file (e.g. [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root — **required**)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md) and any canonical doc it references
 - The **diff** or linked commits under review — or, when invoked ad-hoc, the file scope the human pasted
@@ -36,7 +36,7 @@ Do **not** propose new features, rewrite architecture, or expand scope beyond th
 
 ## Identity and sessions
 
-1. **Identity claims** — Domain logic uses the wrong claim key or ignores the priority order defined in `.cursorrules` / glossary? → **FAIL** if yes.
+1. **Identity claims** — Domain logic uses the wrong claim key or ignores the priority order defined in **`TACK.md`** / glossary? → **FAIL** if yes.
 2. **Secret material** — Secrets (API keys, tokens, private keys) moved to client-visible storage, logs, telemetry, or error payloads? → **FAIL** if yes.
 3. **Session refresh** — On auth failure, code bypasses the documented reauth/session renewal flow? → **FAIL** if yes.
 
@@ -44,7 +44,7 @@ Do **not** propose new features, rewrite architecture, or expand scope beyond th
 
 ## Cryptography and sensitive data
 
-4. **Intentional spellings / flags** — Violates any **must-not-autocorrect** strings from `.cursorrules`? → **FAIL** if yes.
+4. **Intentional spellings / flags** — Violates any **must-not-autocorrect** strings from **`TACK.md`**? → **FAIL** if yes.
 5. **Crypto misuse** — Custom crypto, hardcoded keys/IVs, or plaintext secrets at rest/in transit where encryption is required? → **FAIL** if yes.
 
 `<PROJECT_SPECIFIC_INVARIANT>` — (fill) e.g. managed key service only, envelope encryption rules.
@@ -83,7 +83,7 @@ Do **not** propose new features, rewrite architecture, or expand scope beyond th
 
 ## Parity / invariants (optional)
 
-16. **Asymmetric security edit** — **fill in:** if `.cursorrules` requires paired edits (legacy vs new modules), security fix only in one half? → **FAIL** if yes.
+16. **Asymmetric security edit** — **fill in:** if **`TACK.md`** requires paired edits (legacy vs new modules), security fix only in one half? → **FAIL** if yes.
 
 ## Telemetry of security-relevant events
 

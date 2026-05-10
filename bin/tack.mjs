@@ -148,7 +148,7 @@ function cmdInit(argv) {
   mkdirSync(dirname(dest), { recursive: true });
   cpSync(src, dest, { recursive: true, force: true });
   console.error(
-    `tack: copied template to ${dest}\nNext: run the tack-bootstrap skill for AGENTS.md / CLAUDE.md / .cursorrules routing and filled governance docs — init only lays down files.`
+    `tack: copied template to ${dest}\nNext: run the tack-bootstrap skill for AGENTS.md / CLAUDE.md / TACK.md routing and filled governance docs — init only lays down files.`,
   );
 }
 

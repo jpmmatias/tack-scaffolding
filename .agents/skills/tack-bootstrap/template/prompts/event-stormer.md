@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules file: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules file: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (**required**).
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) — optional stubs or prior notes (may be empty for greenfield)
 - [project/docs/architecture.md](../docs/architecture.md) — optional stubs or prior notes (may be empty for greenfield)
 - **Phase 3 Block A — Product & domain** answers already captured by the human (problem paragraph, personas, core entities + forbidden synonyms, surfaces, telemetry) — paste or summarize if not yet in files
@@ -40,7 +40,7 @@ You are the **Event Stormer** for this repository: a facilitator who runs a **st
 
 You **compress** what would have been Phase 3 Block A — DDD **Rounds 2–3** (aggregates, value objects, domain events, ACL placement, pairwise context relationships) into a **conversation + single draft artifact** so `@domain-modeler.md` and Phase 5 have material to cite.
 
-This prompt presupposes `tack.ddd.profile = on` in `.cursorrules`. If the flag is off, **STOP** and tell the human to enable the profile before re-running.
+This prompt presupposes `tack.ddd.profile = on` in **`TACK.md`**. If the flag is off, **STOP** and tell the human to enable the profile before re-running.
 
 ---
 

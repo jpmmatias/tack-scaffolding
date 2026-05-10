@@ -67,11 +67,19 @@ def extract_step_bullets_auto(text: str) -> list[str]:
         re.MULTILINE | re.DOTALL,
     )
     if not m:
-        raise SystemExit("auto-orchestrator.md: missing Step → tag mapping block before ---")
+        m = re.search(
+            r"^Step → \*\*key\*\*[^\n]*\n\n((?:- .+\n)+)",
+            text,
+            re.MULTILINE,
+        )
+    if not m:
+        raise SystemExit(
+            "auto-orchestrator.md: missing Step → tag mapping or Step → **key** bullets"
+        )
     body = m.group(1).strip()
     lines = [x for x in body.splitlines() if x.strip().startswith("- ")]
     if not lines:
-        raise SystemExit("auto-orchestrator.md: no step bullets under Step → tag mapping")
+        raise SystemExit("auto-orchestrator.md: no step bullets under Step mapping")
     return sorted(norm_step_line(x) for x in lines)
 
 
@@ -139,7 +147,7 @@ if pb != ab:
     )
     raise SystemExit(1)
 
-cat_rows = extract_model_table_by_heading(catalog, "## Model routing convention")
+cat_rows = extract_model_table_by_heading(catalog, "## Model routing convention (fallback)")
 pipe_rows = extract_model_table_by_heading(pipeline, "## Model routing (Cursor slugs)")
 auto_rows = extract_model_table_by_heading(auto, "# Model routing")
 

@@ -36,8 +36,8 @@ When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, u
 
 | Agent | File | Model | Pipeline key | Typical triggers / notes |
 |-------|------|-------|--------------|----------------------------|
-| Worktree coordinator | `worktree-coordinator.md` | `[Composer]` | `worktree_coordinator` | Isolated branch/worktree; needs slug, `tack.worktree.*` from `.cursorrules`; OUTPUTS: JSON only |
-| Product manager | `product-manager.md` | `[Opus]` | `product_manager` | Spec authoring; **manual**: `mode: manual`, epic; **subagent/orchestrated**: `mode: autonomous`, `qa_history` |
+| Worktree coordinator | `worktree-coordinator.md` | `[Composer]` | `worktree_coordinator` | Isolated branch/worktree; needs slug, `tack.worktree.*` from repo-root **TACK.md**; OUTPUTS: JSON only |
+| Product manager | `product-manager.md` | `[Opus]` | `product_manager` | Spec authoring; **manual**: `mode: manual`, epic; **subagent/orchestrated**: `mode: autonomous`, `qa_history` (includes mandatory **`[CONFIRM_SPEC]`** round before `SPEC_WRITTEN`) |
 | Architect | `architect.md` | `[Opus]` | `architect` | Needs approved spec path `project/specs/S-XXX-<slug>.md` |
 | QA tester | `qa-tester.md` | `[Sonnet]` | `qa_tester` | Needs spec + plan/task context; **red** vs **green** is intent in INPUTS (phase) |
 | Harness engineer | `harness-engineer.md` | `[Sonnet]` | `harness_engineer` | Harness/factories/doubles; needs spec/plan context when scoped to a feature |
@@ -45,8 +45,8 @@ When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, u
 | Reviewer | `reviewer.md` | `[Opus]` | `reviewer` | Needs diff or review scope + governing spec/task reference |
 | Diagnose | `diagnose.md` | `[Opus]` | see **Pipeline model file** | Hard bugs, regressions, flaky behaviour; needs symptom + rules/harness context; optional `project/specs/S-XXX-*.md` path — **manual** via `tack-agent` (not part of default `auto-orchestrator` pipeline) |
 | Security engineer | `security-engineer.md` | `[Opus]` | `security_engineer` | Needs diff/scope + rules, glossary, architecture; optional spec id |
-| Domain modeler | `domain-modeler.md` | `[Opus]` | see **Pipeline model file** | Refines strategic DDD model — bounded contexts, context map, ACLs. Requires `tack.ddd.profile = on`. **Manual** via `tack-agent` (bootstrap-time + on-demand re-runs); **not** part of the default `auto-orchestrator` per-feature pipeline. Inputs: glossary + architecture + Phase 2 discovery draft **and/or** `event-storming-draft.md` + trigger text |
-| Event stormer | `event-stormer.md` | `[Sonnet]` | see **Pipeline model file** | Greenfield DDD — structured event-storming interview; writes `project/docs/_discovery/event-storming-draft.md`. Requires `tack.ddd.profile = on` and Phase 3 Block A + DDD Round 1 answers. **Manual** via `tack-agent` at bootstrap when no Phase 2 **(ddd)** draft; **not** part of the default per-feature pipeline. Inputs: `.cursorrules` + Block A answers + Round 1 bounded contexts + narrative goal |
+| Domain modeler | `domain-modeler.md` | `[Opus]` | see **Pipeline model file** | Refines strategic DDD model — bounded contexts, context map, ACLs. Requires `tack.ddd.profile = on`. **Manual** via `tack-agent` (bootstrap-time + on-demand re-runs); **not** part of the default `auto-orchestrator` per-feature pipeline. Inputs: glossary + architecture + Phase 2 discovery draft **and/or** *event-storming draft* under `project/docs/_discovery/` + trigger text |
+| Event stormer | `event-stormer.md` | `[Sonnet]` | see **Pipeline model file** | Greenfield DDD — structured event-storming interview; writes an *event-storming draft* under `project/docs/_discovery/`. Requires `tack.ddd.profile = on` and Phase 3 Block A + DDD Round 1 answers. **Manual** via `tack-agent` at bootstrap when no Phase 2 **(ddd)** draft; **not** part of the default per-feature pipeline. Inputs: repo-root **TACK.md** + Block A answers + Round 1 bounded contexts + narrative goal |
 
 ## Passive vs active orchestration (not single-agent “executors”)
 

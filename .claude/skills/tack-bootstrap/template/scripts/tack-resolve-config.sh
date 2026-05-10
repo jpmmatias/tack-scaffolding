@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# tack-resolve-config.sh — resolve Tack config path (sourced by tack-worktree.sh, tack-doctor.sh).
+# Repo-root TACK.md is required.
+
+tack_config_primary_file() {
+  local root="${1:-}"
+  [[ -n "$root" ]] || return 1
+  if [[ -f "$root/TACK.md" ]]; then
+    printf '%s\n' "$root/TACK.md"
+    return 0
+  fi
+  return 1
+}
+
+tack_config_warn_if_both() {
+  local root="${1:-}"
+  [[ -z "$root" ]] && return 0
+  if [[ -f "$root/TACK.md" && -f "$root/.cursorrules" ]]; then
+    echo "tack: repo-root .cursorrules is present but ignored — Tack reads TACK.md only; remove or empty .cursorrules to avoid confusion." >&2
+  fi
+}
+
+tack_config_line_for_key() {
+  local root="$1"
+  local needle="$2"
+  local f
+  f="$(tack_config_primary_file "$root")" || return 1
+  grep -F "$needle" "$f" | head -n1 || return 1
+}
+
+# Strip common Markdown noise and trailing prose after an em dash (template lines).
+tack_config_value_after_colon() {
+  local line="$1"
+  local val="${line#*:}"
+  val="${val//\`/}"
+  val="${val//\*\*/}"
+  val="${val//\"/}"
+  val="${val#"${val%%[![:space:]]*}"}"
+  val="${val%"${val##*[![:space:]]}"}"
+  case "$val" in
+    *" — "*)
+      val="${val%% — *}"
+      val="${val%"${val##*[![:space:]]}"}"
+      ;;
+  esac
+  [[ -n "$val" ]] || return 1
+  printf '%s' "$val"
+}

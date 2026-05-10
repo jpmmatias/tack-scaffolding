@@ -19,5 +19,6 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Next steps:** when Worktree is not `n/a` and **Step 8** was skipped or declined: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
 - **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
 - **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
-- **Status:** COMPLETED | STOPPED at Step N — <reason>
+- **Implementation verification:** `PASS` | `GAP` | `FAILED` — narrative: original user epic/ask ↔ spec **AC-*** coverage; **`<TEST_COMMAND>`** / **`<LINT_COMMAND>`** (scope + exit status); notable `git diff` observation. Under **GAP**/**FAILED**, list what is missing or failing.
+- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at verification — <reason>
 ```

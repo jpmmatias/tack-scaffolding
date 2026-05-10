@@ -3,7 +3,7 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Run the full Tack SDD pipeline for this epic using auto-orchestrator: add OAuth2 refresh-token rotation to the API gateway. Consumer repo already has project/prompts/auto-orchestrator.md and .cursorrules with test/lint placeholders.",
+      "prompt": "Run the full Tack SDD pipeline for this epic using auto-orchestrator: add OAuth2 refresh-token rotation to the API gateway. Consumer repo already has project/prompts/auto-orchestrator.md and TACK.md with test/lint placeholders.",
       "expected_output": "Dispatcher reads project/prompts/auto-orchestrator.md, treats itself as Task-only orchestration, and outlines sequential subagent dispatches (not writing application source in its own reply except a final report template).",
       "expectations": [
         "Response states intent to read or follow project/prompts/auto-orchestrator.md as the source of truth for step order",
@@ -25,13 +25,24 @@
     },
     {
       "id": 3,
-      "prompt": "Run the full Tack pipeline for epic E-99. This repository has .cursorrules but is missing project/prompts/auto-orchestrator.md entirely.",
+      "prompt": "Run the full Tack pipeline for epic E-99. This repository has TACK.md but is missing project/prompts/auto-orchestrator.md entirely.",
       "expected_output": "Fail fast: stop and tell the user preconditions are not met (missing auto-orchestrator), pointing to tack-bootstrap or manual install.",
       "expectations": [
         "Response explicitly states that project/prompts/auto-orchestrator.md is missing or that preconditions fail",
         "Response does not pretend to run the full pipeline without that file",
         "Response suggests remediation such as running tack-bootstrap or copying the template—without inventing a full replacement state machine in chat",
         "Response does not dispatch Task steps as if the file existed"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Full Tack tack-run finished: reviewer PASS on OAuth on API gateway epic. Epic text asked for MFA on admin login too—that was never added to acceptance criteria. Explain how your final wrap-up behaves.",
+      "expected_output": "Mandatory post-completion implementation verification catches user ask vs AC gap; Implementation verification documents GAP (or STOPPED); not COMPLETED implying full epic satisfaction.",
+      "expectations": [
+        "Response mentions implementation verification, post-completion verification, reconciling epic vs spec ACs, **Implementation verification**, or STOPPED / GAP—not only reviewer PASS",
+        "Response describes running repo **TEST_COMMAND**/**LINT_COMMAND** or reading the spec—not treating reviewer PASS alone as proof the user's full request shipped",
+        "Response distinguishes **GAP**/FAILED from PASS when epic scope exceeds spec AC coverage",
+        "Response aligns with final-report inclusion of Implementation verification PASS | GAP | FAILED or equivalently cites the tack-run skill subsection"
       ]
     }
   ]
