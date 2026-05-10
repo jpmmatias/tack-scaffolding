@@ -44,6 +44,17 @@
         "Response does not redirect the whole request to tack-run as the only option",
         "Response references reading the prompt Inputs or agent-catalog before dispatch"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "Single dispatch worker.md finished: subagent replies PASS—all tests fixed. You have not rerun tests yourself. What's your tack-agent obligation?",
+      "expected_output": "Host runs implementation verification: **Verification** line PASS|GAP|FAILED; **TEST_COMMAND** rerun in working_directory—not subagent PASS alone.",
+      "expectations": [
+        "Response requires **Verification:** line or **implementation verification** after worker dispatch—not only verbatim subagent output",
+        "Response states the host reruns **<TEST_COMMAND>** or equivalent—or that evidence is required—from **TACK.md** / **.cursorrules** in **working_directory**",
+        "Response distinguishes subagent PASS from actual green test suite / user ask satisfaction",
+        "Response cites **single-dispatch-protocol.md** (**After dispatch**) or the tack-agent Behavior rule—not silent trust of PASS"
+      ]
     }
   ]
 }

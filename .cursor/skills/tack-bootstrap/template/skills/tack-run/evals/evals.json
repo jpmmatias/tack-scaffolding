@@ -33,6 +33,17 @@
         "Response suggests remediation such as running tack-bootstrap or copying the template—without inventing a full replacement state machine in chat",
         "Response does not dispatch Task steps as if the file existed"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Full Tack tack-run finished: reviewer PASS on OAuth on API gateway epic. Epic text asked for MFA on admin login too—that was never added to acceptance criteria. Explain how your final wrap-up behaves.",
+      "expected_output": "Mandatory post-completion implementation verification catches user ask vs AC gap; Implementation verification documents GAP (or STOPPED); not COMPLETED implying full epic satisfaction.",
+      "expectations": [
+        "Response mentions implementation verification, post-completion verification, reconciling epic vs spec ACs, **Implementation verification**, or STOPPED / GAP—not only reviewer PASS",
+        "Response describes running repo **TEST_COMMAND**/**LINT_COMMAND** or reading the spec—not treating reviewer PASS alone as proof the user's full request shipped",
+        "Response distinguishes **GAP**/FAILED from PASS when epic scope exceeds spec AC coverage",
+        "Response aligns with final-report inclusion of Implementation verification PASS | GAP | FAILED or equivalently cites the tack-run skill subsection"
+      ]
     }
   ]
 }

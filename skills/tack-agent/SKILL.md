@@ -29,7 +29,7 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 ## Preconditions
 
 1. Target file **`project/prompts/<name>.md`** must exist (discover specialists by listing `project/prompts/*.md`).
-2. **`TACK.md`** at repo root **or** legacy **`.cursorrules`** should exist for prompts that read `<TEST_COMMAND>` / invariants; if **both** are missing, warn and proceed only if the user accepts.
+2. **`TACK.md`** at repo root (**canonical**) **or** legacy **`.cursorrules`** should exist for prompts that read `<TEST_COMMAND>` / invariants; if **both** are missing, warn and proceed only if the user accepts.
 
 ---
 
@@ -42,8 +42,9 @@ You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the
 5. **Ambiguous agent:** use **`AskQuestion`** — options: each stock agent from the catalog, plus discovered specialist files (short list or "Other — I’ll type the filename"), plus **Full pipeline — use tack-run** (non-dispatch; explain redirect).
 6. **Gather INPUTS** before dispatch (e.g. architect needs spec path; reviewer needs `git diff` or scope; diagnose needs symptom + optional spec path; PM needs epic and `mode: manual` | `autonomous` and `qa_history` when autonomous). Ask minimal clarifying questions if required paths are missing.
 7. **working_directory:** default to consumer repo root; use the user-supplied **worktree** path if they are in an isolated worktree session.
-8. Return subagent output **verbatim** when practical.
-9. **Platform tool mapping.** Catalog and protocol use Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). Translate to your host's primitives — Claude Code: `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`. Full table: consumer's `project/prompts/auto-orchestrator.md` → **Platform tool mapping**.
+8. **Implementation verification (host):** after **every** successful dispatch, confirm that outcomes match the **user’s stated goal** — not only the subagent’s self-report. **`worker.md`** and other implementation prompts: run **`<TEST_COMMAND>`** (scoped when the subagent documented scope) in **working_directory**; **`reviewer.md`** / **`security-engineer.md`**: confirm **PASS**/checklist aligns with **`git diff`** and scope; **PM / architect / QA / harness / diagnose / DDD prompts:** confirm expected artifacts exist and tie back to the user request (`STATUS` lines where applicable, numbered spec acceptance criteria, paths). If verification fails → state **FAILED** and why; do not paraphrase the subagent as “done.” Details: **`${SKILL_DIR}/references/single-dispatch-protocol.md`** (**After dispatch**).
+9. Return subagent output **verbatim** when practical, **plus** the **Verification** line mandated in **`single-dispatch-protocol.md`**.
+10. **Platform tool mapping.** Catalog and protocol use Cursor names (`Task`, `AskQuestion`, `working_directory`, `subagent_type: generalPurpose`). Translate to your host's primitives — Claude Code: `Agent` / `AskUserQuestion` / `cwd` / `subagent_type: general-purpose`. Full table: consumer's `project/prompts/auto-orchestrator.md` → **Platform tool mapping**.
 
 ---
 

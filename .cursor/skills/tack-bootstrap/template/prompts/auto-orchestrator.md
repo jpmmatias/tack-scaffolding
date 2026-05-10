@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at the repository root (canonical Tack config); if **`TACK.md`** is absent, read legacy **`.cursorrules`** instead ([Cursor stub template](../.cursorrules.template))
+- [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at the repository root (**canonical** Tack config); if **`TACK.md`** is absent, read legacy **`.cursorrules`** instead ([Cursor stub template](../.cursorrules.template))
 - [project/docs/tack-pipeline-models.md](../docs/tack-pipeline-models.md) — **required** YAML front matter: pipeline keys → `Task` model slugs (see **Preflight**)
 - [project/docs/sdd.md](../docs/sdd.md)
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
@@ -87,11 +87,11 @@ Stock **defaults** when the consumer chose “use defaults” at bootstrap (refe
 
 Step → **key** (read slug from `models.<key>`):
 
-- Step −1 (worktree): **`worktree_coordinator`**
-- Steps 1, 2, 7: **`product_manager`**, **`architect`**, **`reviewer`**
-- Steps 3, 4, 6: **`qa_tester`**, **`harness_engineer`**, **`qa_tester`**
-- Step 5 (implementation / specialists): **`worker`**
-- Step 7b (security, optional): **`security_engineer`**
+- Step −1 (worktree): **`[Composer]`** — **`worktree_coordinator`**
+- Steps 1, 2, 7: **`[Opus]`** — **`product_manager`**, **`architect`**, **`reviewer`**
+- Steps 3, 4, 6: **`[Sonnet]`** — **`qa_tester`**, **`harness_engineer`**, **`qa_tester`**
+- Step 5 (implementation / specialists): **`[Composer]`** — **`worker`**
+- Step 7b (security, optional): **`[Opus]`** — **`security_engineer`**
 
 **Upward fallback** when the host rejects the primary slug or the model is unavailable: try **other distinct slugs from the same `tack-pipeline-models.md`** in tier order **`[Composer]`** keys (`worktree_coordinator`, `worker`) → **`[Sonnet]`** keys (`qa_tester`, `harness_engineer`) → **`[Opus]`** keys (`product_manager`, `architect`, `reviewer`, `security_engineer`), **skipping** slugs already attempted for this dispatch. If every attempt fails → **STOP** (Stop conditions). Never fall downward.
 
@@ -126,7 +126,7 @@ Use **`Task`** with:
 
 ## Step −1 — Worktree setup (optional)
 
-1. Read optional worktree settings from **`TACK.md` at the repository root first**; if missing, from **`.cursorrules`** at the repository root (same keys). Parse these keys if present; otherwise use defaults:
+1. Read optional worktree settings from **`TACK.md` at the repository root first**; if missing, from **`.cursorrules`** at the repository root (same keys; **when both files exist**, `project/scripts/tack-worktree.sh` reads **`TACK.md` only**). Parse these keys if present; otherwise use defaults:
    - `tack.worktree.mode`: `prompt` | `always` | `never` — default **`prompt`**
    - `tack.worktree.naming`: e.g. `feature/S-XXX-<slug>` — default **`feature/S-XXX-<slug>`**
    - `tack.worktree.base`: branch name, or `detect` — default **`detect`** (script tries `main` → `master` → current branch)
@@ -286,6 +286,8 @@ Do not auto-retry failed steps in this version; document the failure and stop.
 
 # Final report
 
+When Step 7 (**reviewer**) and optional Step 7b (**security**) return **PASS**, the host dispatcher runs **implementation verification** (**Post-completion implementation verification**) per the **`tack-run`** skill before emitting **`COMPLETED`**. Omit or shorten **Implementation verification** only when Status is **`STOPPED`** before that point (still include it when a partial verification note helps).
+
 Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 
 ```markdown
@@ -305,7 +307,8 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **Next steps:** when Worktree is not `n/a` and **Step 8** was skipped or declined: `cd <worktree_path>; git push -u origin <branch>;` open PR (e.g. `gh pr create`) against your base branch.
 - **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
 - **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
-- **Status:** COMPLETED | STOPPED at Step N — <reason>
+- **Implementation verification:** `PASS` | `GAP` | `FAILED` — narrative: original user epic/ask ↔ spec **AC-*** coverage; **`<TEST_COMMAND>`** / **`<LINT_COMMAND>`** (scope + exit status); notable `git diff` observation. Under **GAP**/**FAILED**, list what is missing or failing.
+- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at verification — <reason>
 ```
 
 ---

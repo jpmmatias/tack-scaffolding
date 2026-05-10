@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
-# B-11 / B-12: tack-doctor.sh — fail on placeholder leftovers in
-# .cursorrules and `<fill>` rows in project/prompts/auto-orchestrator.md.
+# B-11 / B-12: tack-doctor.sh — uppercase placeholders in the resolved rules
+# file (and companion .cursorrules when TACK.md is primary), plus `<fill>` in
+# auto-orchestrator Specialist routing.
 
 load helpers
 
@@ -8,7 +9,21 @@ setup() {
   TMP_DIR="$(mktemp -d "${BATS_TEST_TMPDIR:-/tmp}/doctor-XXXXXX")"
   export TMP_DIR
   cd "$TMP_DIR" || exit 1
-  mkdir -p project/prompts
+  mkdir -p project/prompts project/docs
+  cat > project/docs/tack-pipeline-models.md <<'EOF'
+---
+worktree_coordinator: composer-2-fast
+product_manager: claude-opus-4-7-thinking-xhigh
+architect: claude-opus-4-7-thinking-xhigh
+qa_tester: claude-4.6-sonnet-medium-thinking
+harness_engineer: claude-4.6-sonnet-medium-thinking
+worker: composer-2-fast
+reviewer: claude-opus-4-7-thinking-xhigh
+security_engineer: claude-opus-4-7-thinking-xhigh
+---
+
+# Test fixture
+EOF
   # Minimal "clean" fixtures — no uppercase placeholders, no <fill>.
   cat > .cursorrules <<'EOF'
 # Project: orderflow
@@ -121,12 +136,34 @@ EOF
   [[ "$status" -eq 2 ]]
 }
 
-@test "doctor: default reads TACK.md when both TACK.md and .cursorrules exist" {
-  printf '%s\n' '# TACK' '- `tack.worktree.dir`: **`.from-tack`** — ok.' > TACK.md
+@test "doctor: fails when TACK.md is clean but .cursorrules still has placeholders" {
+  printf '%s\n' '# TACK' '' '## Quality commands' '- Lint: npm run lint' '- Tests: npm test' '' '## Auto-orchestration routing' '- `tack.routing.auto`: yes' > TACK.md
   printf '%s\n' '# Legacy' '- Tests: <TEST_COMMAND>' > .cursorrules
+  run bash "$TACK_DOCTOR"
+  [[ "$status" -eq 1 ]]
+  [[ "$output" == *".cursorrules"* ]]
+  [[ "$output" == *"uppercase placeholders"* ]]
+  [[ "$output" == *"<TEST_COMMAND>"* ]]
+}
+
+@test "doctor: TACK.md only (no .cursorrules) passes when filled" {
+  rm -f .cursorrules
+  cat > TACK.md <<'EOF'
+# Project
+
+## Quality commands
+
+- Lint: npm run lint
+- Tests: npm test
+
+## Auto-orchestration routing
+
+- `tack.routing.auto`: yes
+EOF
   run bash "$TACK_DOCTOR"
   [[ "$status" -eq 0 ]]
   [[ "$output" == *"TACK.md placeholders OK"* ]]
+  [[ "$output" == *"all checks passed"* ]]
 }
 
 @test "doctor: stock template TACK.md.template DOES contain placeholders (sanity)" {

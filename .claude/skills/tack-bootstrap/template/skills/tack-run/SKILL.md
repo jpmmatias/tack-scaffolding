@@ -7,9 +7,9 @@ description: Use when running the full Tack SDD/TDD pipeline end-to-end in a boo
 
 # tack-run
 
-You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-orchestrator.md`** in the **consumer** repository. You are a **dispatcher only**: you read prompts from disk, run gates, and use the **`Task`** tool (`subagent_type: generalPurpose`) with the correct `model` and `working_directory`. Do **not** use file or shell tools to create specs, plans, tests, or application code yourself — only subagents do, per that orchestrator’s **Outputs** section. You do **not** write specs, plans, tests, or application source in your own reply except the **Final report**.
+You execute **Tack**'s active SDD pipeline by following **`project/prompts/auto-orchestrator.md`** in the **consumer** repository. You are a **dispatcher only**: you read prompts from disk, run gates, and use the **`Task`** tool (`subagent_type: generalPurpose`) with the correct `model` and `working_directory`. Do **not** use file or shell tools to create specs, plans, tests, or application code yourself — only subagents do, per that orchestrator’s **Outputs** section. You do **not** write specs, plans, tests, or application source in your own reply except the **Final report**. You **may** use shell and read-only file access for **implementation verification** only: run **`<TEST_COMMAND>`** / **`<LINT_COMMAND>`** from repo-root **`TACK.md`** or **`.cursorrules`**, `git diff`, and read the governing spec — per **Post-completion implementation verification** below.
 
-**`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `skills/tack-run`, `.cursor/skills/tack-run`). Runtime paths below are relative to the **consumer repo root** (where **`TACK.md`** or **`.cursorrules`** holds quality commands and `tack.worktree.*`).
+**`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `skills/tack-run`, `.cursor/skills/tack-run`). Runtime paths below are relative to the **consumer repo root** (where repo-root **`TACK.md`** (canonical) or legacy **`.cursorrules`** holds quality commands and `tack.worktree.*`).
 
 ---
 
@@ -28,7 +28,7 @@ When the user reports **errors, unexpected stops, or confusion between the `tack
 
 1. **`project/prompts/auto-orchestrator.md`** must exist.
 2. **`project/docs/tack-pipeline-models.md`** must exist with all required pipeline keys when you rely on per-step slugs (same **Preflight** as `auto-orchestrator.md`). If missing, `tack-run` / `auto-orchestrator` stops at Preflight — do not improvise slugs without that file or explicit user override.
-3. **`TACK.md`** at repo root **or** legacy **`.cursorrules`** must exist and define `<TEST_COMMAND>`, `<LINT_COMMAND>` (and `tack.worktree.*` as needed). Prefer **`TACK.md`** — scripts resolve **`TACK.md` first**, then **`.cursorrules`**. If **both** are missing, stop and tell the user to run **`tack-bootstrap`** or add **`TACK.md`** manually.
+3. **`TACK.md`** at repo root (**canonical**) **or** legacy **`.cursorrules`** must exist and define `<TEST_COMMAND>`, `<LINT_COMMAND>` (and `tack.worktree.*` as needed). **`project/scripts/tack-resolve-config.sh`** and **`tack-worktree.sh`** read **`TACK.md` first**, then **`.cursorrules`**. If **both** are missing, stop and tell the user to run **`tack-bootstrap`** or add **`TACK.md`** manually.
 
 **`tack.routing.auto = no`** does **not** block this skill: explicit invocation via `tack-run` is always allowed.
 
@@ -51,14 +51,27 @@ When the user reports **errors, unexpected stops, or confusion between the `tack
 ## Execution outline
 
 1. Confirm preconditions; run **Preflight** (`project/docs/tack-pipeline-models.md`) per `auto-orchestrator.md`; capture the epic / task from the user.
-2. Parse **`tack.worktree.*`** from **`TACK.md`** / **`.cursorrules`** (same resolution order as `project/scripts/tack-worktree.sh`) and run **Step −1** per `auto-orchestrator.md` (or skip when `never`).
+2. Parse **`tack.worktree.*`** from repo-root **`TACK.md`** (canonical), then legacy **`.cursorrules`** if **`TACK.md`** is absent (same resolution order as `project/scripts/tack-worktree.sh`) and run **Step −1** per `auto-orchestrator.md` (or skip when `never`).
 3. Run **Steps 0–7** and **7b** when triggered, dispatching each step with the **Dispatch protocol** wrapper (full prompt file + INPUTS).
 4. Enforce gates (red/green, traceability, reviewer PASS, etc.) per `auto-orchestrator.md`.
-5. Emit the **Final report** using `references/final-report-template.md`.
-6. **On `COMPLETED` with worktree** (Worktree ≠ `n/a` and `gh` on PATH), run **Step 8 — PR offer** per `auto-orchestrator.md`: ask the user, push + `gh pr create` on yes, and update the **PR** line of the report. Skip silently otherwise.
-7. **On `COMPLETED` with worktree** and `tack.worktree.cleanup` ≠ `never`, run **Step 9 — Worktree cleanup offer** per `auto-orchestrator.md`: only when the branch matches `feature/*`, lives under `tack.worktree.dir`, is clean, and is merged into base. Default answer is **No**. Delete via `tack-worktree.sh remove` (no `--force`); the script's hardcoded protected-branch denylist (`main`/`master`/`develop`/`staging`/`release/*`/`hotfix/*`/…) is the safety net. Update the **Worktree cleanup** line of the report.
+5. **Post-completion implementation verification (host)** — when Step 7 (and Step 7b if it ran) returns **PASS** and the run would otherwise be **COMPLETED**, run the checklist in **Post-completion implementation verification** (same **working_directory** / worktree as downstream steps). Populate the **Implementation verification** line in the Final report. If verification **FAILED**, or **GAP** with no acceptable partial delivery, set **Status** to `STOPPED at verification — <reason>` (do not run Steps 8–9). If the run **STOPPED** earlier, optionally add a one-line partial note under **Implementation verification** when it helps the user. If **GAP** is explicit and the user’s success criteria still allow merging with documented gaps, you may emit **COMPLETED** with **Implementation verification: GAP — …** instead of STOPPED — state that trade-off clearly.
+6. Emit the **Final report** using `references/final-report-template.md`.
+7. **On `COMPLETED` with worktree** (Worktree ≠ `n/a` and `gh` on PATH), run **Step 8 — PR offer** per `auto-orchestrator.md`: ask the user, push + `gh pr create` on yes, and update the **PR** line of the report. Skip silently otherwise.
+8. **On `COMPLETED` with worktree** and `tack.worktree.cleanup` ≠ `never`, run **Step 9 — Worktree cleanup offer** per `auto-orchestrator.md`: only when the branch matches `feature/*`, lives under `tack.worktree.dir`, is clean, and is merged into base. Default answer is **No**. Delete via `tack-worktree.sh remove` (no `--force`); the script's hardcoded protected-branch denylist (`main`/`master`/`develop`/`staging`/`release/*`/`hotfix/*`/…) is the safety net. Update the **Worktree cleanup** line of the report.
 
 Stop on any condition in `references/stop-conditions.md` / `auto-orchestrator.md` **Stop conditions**. Step 8 (PR) and Step 9 (cleanup) failures only update their respective report fields — they do not change the run status.
+
+---
+
+## Post-completion implementation verification (host)
+
+Run **after** reviewer (**Step 7**) and optional security (**Step 7b**) **PASS**, **before** emitting **Final report** **`COMPLETED`** and before Steps 8–9. Use only read-only inspection and repo-config commands (no authoring of specs, tests, or application code).
+
+1. **Request traceability:** From the retained epic / user ask (per **Isolation** in `auto-orchestrator.md`), confirm the governing spec’s **AC-*** acceptance criteria cover that ask. If the original request is wider or different than what the ACs encode, record **GAP** — do not imply the user’s entire request was satisfied unless the mismatch is acknowledged in the report.
+2. **Evidence:** In the active **working_directory** (worktree or repo root), run **`<TEST_COMMAND>`** from **`TACK.md`** or **`.cursorrules`** (full suite or scoped per team practice — align with Step 6 intent). Run **`<LINT_COMMAND>`** when it is quick and configured. Capture exit status and scope in the report. Any test failure → **FAILED** (prefer **STOPPED at verification**).
+3. **Surface check:** When the user’s ask implies specific files or behaviours, sanity-check **e.g.** `git diff --stat` or `--name-only` against that expectation.
+
+**Outcome:** Set **Implementation verification** in the Final report to **PASS**, **GAP**, or **FAILED** with a short narrative (user ask ↔ spec AC coverage, commands run, notable diff observation). Enumerate missing items under **GAP**/**FAILED**.
 
 ---
 

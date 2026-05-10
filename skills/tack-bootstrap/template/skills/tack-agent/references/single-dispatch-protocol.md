@@ -26,6 +26,20 @@ You are the agent defined by the PROMPT FILE below. Treat it as your complete in
 
 Return the subagent’s reply to the user **verbatim** (or a faithful summary if the platform truncates). Do not silently rewrite verdicts (PASS/FAIL, STATUS lines).
 
+**Then add implementation verification.** You **may** use read-only shell and file reads in **working_directory** (run **`<TEST_COMMAND>`**, **`<LINT_COMMAND>`** from **`TACK.md`** or **`.cursorrules`**, **`git diff`**, open paths the subagent named) — not to author new specs, tests, or application code yourself.
+
+Tiered checks:
+
+- **`worker.md` / implementation specialists:** Run **`<TEST_COMMAND>`** (full or scoped per subagent output). Subagent PASS is insufficient if tests fail or contradict the user’s ask.
+- **`reviewer.md` / `security-engineer.md`:** Confirm verdict matches a real **`git diff`** (or scoped diff) and the checklist isn’t vacuous versus the stated scope.
+- **PM / architect / QA / harness / diagnose / domain-modeler / event-stormer:** Confirm artifacts exist where the subagent claims (`STATUS` fields when present, specs with numbered acceptance criteria, plans with **Spec:** first line + traceability, diagnose repro steps, DDD drafts, etc.) and that they reflect the user's wording.
+
+Emit a single explicit line **after** the subagent payload (same message / next block):
+
+`Verification:` PASS | GAP | FAILED — short evidence (user ask ↔ spec/diff ↔ tests/commands); under **GAP**/**FAILED**, state what’s missing.
+
+If **`Verification: FAILED`** (or **`GAP`** when the user required full satisfaction), say so plainly before any celebratory wording.
+
 ## Full pipeline
 
 If the user asks for **all steps**, **end-to-end**, or **the full SDD pipeline**, do **not** simulate multiple steps in one Task — tell them to use the **`tack-run`** skill (or dispatch `project/prompts/auto-orchestrator.md` via that skill’s flow).

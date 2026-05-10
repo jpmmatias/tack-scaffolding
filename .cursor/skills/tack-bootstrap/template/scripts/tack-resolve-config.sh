@@ -24,6 +24,22 @@ tack_config_warn_if_both() {
   fi
 }
 
+# Repo-root .cursorrules scanned by tack-doctor for <UPPERCASE> placeholders when TACK.md
+# is the primary config, so stale Cursor stubs cannot drift from a filled TACK.md.
+# When --rules is passed to the doctor, this companion is skipped.
+tack_config_placeholder_companion_cursorrules() {
+  local root="$1"
+  local primary="$2"
+  local rules_from_cli="${3:-0}"
+  local tack_md canon_primary
+  [[ "$rules_from_cli" -eq 1 ]] && return 1
+  tack_md="$(cd "$root" && pwd)/TACK.md"
+  [[ -f "$tack_md" && -f "$root/.cursorrules" ]] || return 1
+  canon_primary="$(cd "$(dirname "$primary")" && pwd)/$(basename "$primary")"
+  [[ "$canon_primary" == "$tack_md" ]] || return 1
+  printf '%s\n' "$(cd "$root" && pwd)/.cursorrules"
+}
+
 tack_config_line_for_key() {
   local root="$1"
   local needle="$2"
