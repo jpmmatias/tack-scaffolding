@@ -2,6 +2,8 @@
 
 These files show **one possible instantiation** of the SDD template. They are **not** prescriptive product requirements; copy patterns, not prose, into your own repo.
 
+For a **traced end-to-end slice** (spec, `plan.md`, task files, and sample `S-001 AC-N` test names with an SDD walkthrough), see **[orderflow-full/](./orderflow-full/)** ([README](./orderflow-full/README.md)).
+
 | File | Shows |
 |------|--------|
 | [cursorrules.example.md](./cursorrules.example.md) | Filled `.cursorrules` with stack commands and invariants. |

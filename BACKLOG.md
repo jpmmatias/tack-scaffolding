@@ -202,5 +202,34 @@ Items below have shipped. Kept here (rather than deleted) so each acceptance cri
 
 ## How to use this backlog
 
+### Workflow
+
 1. Pick a row; open a PR referencing `BACKLOG.md#b-NN` (or a future `S-XXX`).
 2. After implementing, move the item to the **Done** subsection (preferred — preserves a citable evidence link) or delete it; keep this file the single source of pending work, or migrate to GitHub Issues with labels `P0` / `P1` / `P2`.
+
+### Conventions (IDs, priority, effort)
+
+- Use **`B-NN`** headings that stay unique across **pending** and **Done**; pick the next free number (e.g. **B-31** after **B-30**).
+- **Priority** and **effort** follow the **Legend** at the top of this file: **P0** / **P1** / **P2** and **S** / **M** / **L**.
+- Place each item under the correct **theme** section (Themes 2–7). Match the bullet shape used by pending items such as **B-14**–**B-24** and **B-29**–**B-30**:
+  - `### B-NN — Short title`
+  - `- **Priority:** P? · **Effort:** S|M|L`
+  - `- **Rationale:**` … (link to paths in-repo where it helps)
+  - `- **Acceptance:**` … (testable outcome)
+
+### Adding items
+
+1. Add the entry under the right theme.
+2. **Update the summary table** ([Summary by theme and priority](#summary-by-theme-and-priority-pending)): adjust the **P0** / **P1** / **P2** counts for that theme row and the **Total** row when you add, remove, or change priority.
+3. Optionally extend the **Last refresh** blockquote under the table when you batch-change or ship multiple items.
+
+### Changing items
+
+1. Edit **priority** or **effort** as needed; if the **P** tier changes, fix the **summary table** counts.
+2. Refine **Rationale** and **Acceptance** when scope becomes clearer.
+3. When an item ships, move it to **[Done](#done)** using the same style as **B-01** onward: title line includes priority and effort; **Shipped:** points to files and states how acceptance was met. Increment **Done so far:** and append the **B-NN** id on the “Done so far” line. Items stay in **Done** for citable evidence until **B-22** (CHANGELOG) lands and you prune or migrate.
+
+### Caveats
+
+- Listing work here does **not** create GitHub issues or **S-XXX** specs automatically — promotion is intentional.
+- Renumbering items or reshuffling themes breaks **`#b-NN`** anchors in PRs; prefer new **B-NN** ids over renumbering old ones.
