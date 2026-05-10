@@ -35,17 +35,6 @@ Done so far: **17** (B-01, B-02, B-03, B-04, B-05, B-06, B-07, B-08, B-09, B-10,
 ## Theme 4 — Template content & onboarding UX
 
 
-### B-16 — FAQ + Troubleshooting
-
-- **Priority:** P2 · **Effort:** S
-- **Rationale:** Common failures: mirror drift, `git worktree add` sandbox/permissions, Phase 2 skipped, empty specialist routing, model unavailable ([`auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) stop conditions).
-- **Acceptance:** `docs/FAQ.md` or README subsection with indexed symptoms → fixes.
-
-### B-17 — Portuguese README
-
-- **Priority:** P2 · **Effort:** M
-- **Rationale:** SKILL rule 1 ([`SKILL.md:22`](skills/tack-bootstrap/SKILL.md)) supports PT/EN; public docs are English-only.
-- **Acceptance:** `README.pt-BR.md` mirroring install and conventions; link from main README. Mention the **DDD profile** opt-in (`tack.ddd.profile`) alongside other Phase 1 detection knobs.
 
 ### B-29 — End-to-end OrderFlow demo with DDD profile on
 

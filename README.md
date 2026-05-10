@@ -6,6 +6,8 @@ Tack turns a coding agent loose on your repo into a deterministic pipeline: numb
 
 It's a **template, not a runtime** — install three small skills, run a one-time bootstrap on your repo, and ship features through the pipeline. Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**; the bootstrap detects which surfaces your repo uses (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`) and writes routing into each — you don't pick a platform up front.
 
+**Portuguese (Brazil):** [README.pt-BR.md](README.pt-BR.md)
+
 ## The three skills
 
 | Skill | When to use | Frequency |
@@ -68,6 +70,10 @@ The 6-phase interview detects your stack and the agent surfaces in use, then wri
 - `tack-run` / `tack-agent` skill mirrors under `.claude/skills/`, `.agents/skills/`, `.cursor/skills/` — whichever surfaces apply
 
 Phase 2 mines business rules from existing code; Phase 5 writes the artifacts; Phase 6 runs `bash project/scripts/tack-doctor.sh` to verify no placeholders are left.
+
+#### Phase 1 detection (summary)
+
+The Phase 1 interview treats **which agent surfaces get scaffolding** (`tack.agents.active`) and the optional **DDD profile** (`tack.ddd.profile = on | off`, default **off**) as first-class outputs alongside stack detection. With `tack.ddd.profile = on`, later phases add bounded-context mining, DDD sections in glossary/architecture/spec template, and optional `@domain-modeler`. Full detail: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → *Phase 1 — Detect context* and behavior rule 13.
 
 ### 3. Ship a feature
 
