@@ -62,7 +62,7 @@ npm run check-links     # optional: lychee offline link check (downloads a pinne
 Two helpers ship inside `skills/tack-bootstrap/template/scripts/` and are copied to a consumer's `project/scripts/` during Phase 5. They are validated by Bats and `shellcheck` here, but are intended to be run **from a bootstrapped repo's root**, not from this scaffold:
 
 - `splice-tack-routing.sh` — deterministic `## Tack routing` H2 splice into `AGENTS.md` / `CLAUDE.md` from `project/routing-snippet.md`. Idempotent; supports `--check` for CI / preview. Used by `tack-bootstrap` Phase 5 step 3b and re-runnable when `routing-snippet.md` upgrades.
-- `tack-doctor.sh` — post-bootstrap validator for `.cursorrules` (no `<UPPERCASE>` placeholders) and `project/prompts/auto-orchestrator.md` (no `<fill>` Specialist routing rows). Run by `tack-bootstrap` Phase 6 step 1a; consumers can wire into their own CI as `bash project/scripts/tack-doctor.sh`.
+- `tack-doctor.sh` — post-bootstrap validator for **`TACK.md`** (or `--rules`; falls back to legacy **`.cursorrules`**): no `<UPPERCASE>` placeholders, `project/prompts/auto-orchestrator.md` has no `<fill>` Specialist routing rows. Run by `tack-bootstrap` Phase 6 step 1a; consumers can wire into their own CI as `bash project/scripts/tack-doctor.sh`.
 
 ## Local hooks (optional)
 

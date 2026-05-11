@@ -1,23 +1,23 @@
 # Claude Code instructions
 
-This repository uses **Tack** (spec-driven multi-agent template). Skills live under `.claude/skills/`; the SDD pipeline and prompts live under `project/`.
+<!-- DEPRECATED as a Tack config surface. **Tack** uses repo-root **`TACK.md`** — see `project/TACK.md.template`. Bootstrap no longer maintains this file. -->
+
+If you need Claude-specific notes, add them below. For Tack SDD routing and quality commands, read **`TACK.md`** at the repository root first.
 
 ## Project layout
 
-- `project/specs/S-XXX-<slug>.md` — product specs with numbered ACs.
-- `project/docs/adr/ADR-NNNN-*.md` — architecture decisions.
-- `project/docs/{domain-glossary,architecture,sdd}.md` — canonical vocabulary, topology, and pipeline.
-- `project/prompts/*.md` — agent prompts dispatched by `@project/prompts/auto-orchestrator.md`.
-- `.cursorrules` (repo root) — invariants, quality commands, `tack.worktree.*`, `tack.routing.*`.
+See **`TACK.md`** (`## Project layout`).
 
 ## Tack routing
+
+<!-- DEPRECATED: Tack keeps SDD entry points and routing in repo-root TACK.md (see TACK.md.template → "## SDD entry points"). Bootstrap no longer splices this into AGENTS.md / CLAUDE.md. Kept for manual migration reference only. -->
 
 Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo unless explicitly told otherwise.
 
 - **Explicit skill entry points:** use the **`tack-run`** skill for the full pipeline (same dispatch contract as `@project/prompts/auto-orchestrator.md`). Use the **`tack-agent`** skill to run **one** prompt under `project/prompts/` (e.g. architect, qa-tester, reviewer). `@`-mentions remain valid.
 - **Default entry point:** dispatch the request through `@project/prompts/auto-orchestrator.md`. It runs the 7-step pipeline (product-manager → architect → qa-tester red → optional harness → worker/specialists → qa-tester green → reviewer, plus optional security audit) as isolated subagents.
 - **Passive fallback:** if subagent dispatch is unavailable, follow `@project/prompts/orchestrator.md` instead — same pipeline, but the human runs each step in a fresh chat window.
-- **Configuration:** read `<TEST_COMMAND>`, `<LINT_COMMAND>`, parity invariants, and `tack.worktree.*` from `.cursorrules` at the repo root. Never invent values not in that file.
-- **Worktrees:** honor `tack.worktree.mode`/`naming`/`base`/`dir`/`cleanup` from `.cursorrules`. The orchestrator decides whether to isolate and whether to offer end-of-run cleanup; do not bypass it. `tack-worktree.sh remove` refuses protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) unconditionally.
+- **Configuration:** read `<TEST_COMMAND>`, `<LINT_COMMAND>`, parity invariants, and `tack.worktree.*` from repo-root **`TACK.md`** only.
+- **Worktrees:** honor `tack.worktree.mode`/`naming`/`base`/`dir`/`cleanup` from **`TACK.md`**. The orchestrator decides whether to isolate and whether to offer end-of-run cleanup; do not bypass it. `tack-worktree.sh remove` refuses protected branches (`main`, `master`, `develop`, `staging`, `release/*`, `hotfix/*`, …) unconditionally.
 - **Escape hatch:** trivial chores (typo fixes, doc-only edits, comment tweaks) may bypass the orchestrator. Anything that changes behaviour, public contracts, schemas, infra, or business rules must go through `@project/prompts/auto-orchestrator.md`.
 - **One chat inlining / `/agents`:** if the lead agent runs every role inline or UI “agent libraries” seem required, read [project/docs/sdd.md](project/docs/sdd.md) → **Multi-platform agent support** — use the optional orchestrator-only preamble with the epic, embed full `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`, and fall back to `@orchestrator.md` or stepwise **`tack-agent`** when subagent tools are unavailable.

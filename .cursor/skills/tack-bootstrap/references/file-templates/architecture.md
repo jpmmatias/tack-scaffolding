@@ -81,7 +81,7 @@ A mermaid `flowchart LR` is also acceptable in place of the table when the team 
 ## Identity & authorization
 
 - Authentication: <mechanism, e.g. NextAuth, OIDC, custom JWT> at `<src/auth/...>`.
-- Session lookup: <e.g. cookie + DB session>. Cite the resolution order (mirror `.cursorrules`).
+- Session lookup: <e.g. cookie + DB session>. Cite the resolution order in repo-root **`TACK.md`**.
 - Authorization: <e.g. role-based middleware> at `<src/auth/middleware.ts>`. Capability matrix lives in `domain-glossary.md`.
 
 ## ADRs
@@ -105,7 +105,7 @@ List anything Phase 2 / Phase 3 surfaced as `[ADR]` follow-ups but did not yet d
 
 Notes for the bootstrap skill:
 
-- The **Layers / boundaries** table seeds the boundary rules in `.cursorrules`. Keep them in sync.
+- The **Layers / boundaries** table seeds the boundary rules in **`TACK.md`**. Keep them aligned with `project/docs/architecture.md`.
 - Persistence and messaging tables are usually populated from Phase 2 sections (g) and (d). External integrations come from Phase 2 (f).
 - If the user has a single-paragraph wiki link instead of a diagram, drop the **Canonical architecture diagram** section to a single bullet pointing at the URL — do not invent diagrams that do not exist.
 - When `tack.ddd.profile = on`, populate **Context map** and **Anticorruption layers** from Phase 2 sections (ddd.5) and (ddd.4). When the profile is `off`, **omit** both sections entirely — do not ship empty tables for them.

@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules file: [project/.cursorrules](../.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap) — especially `<TEST_COMMAND>`, `<TEST_HARNESS_ROOT>` / harness paths, lint commands, and project layout conventions.
+- Repository rules file: [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root (**required**).
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md) — use the project’s domain vocabulary in hypotheses and reports.
 - [project/docs/architecture.md](../docs/architecture.md) — high-level boundaries and dependencies.
 - ADRs under [project/docs/adr/](../docs/adr/) that relate to the failing area (if any).

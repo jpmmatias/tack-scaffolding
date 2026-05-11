@@ -6,7 +6,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules file (e.g. [project/.cursorrules](../.cursorrules.template), generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules file (e.g. [project/TACK.md.template](../TACK.md.template) → **`TACK.md`** at repo root — **required**)
 - The diff or linked commits under review
 - The governing **`task.md`** / spec **`S-XXX`** for this change (feature work **must** cite a spec)
 
@@ -31,7 +31,7 @@ Do **not** propose new features or rewrite architecture.
 
 **TDD / coverage**
 
-1. **`src/**` or production tree without tests** — Any behaviour change under the application tree that does **not** add or modify at least one test file? → **FAIL** if yes (unless task explicitly documents why tests are impossible—rare). *(Adjust `src/**` in this rule to your repo layout in `.cursorrules` if needed.)*
+1. **`src/**` or production tree without tests** — Any behaviour change under the application tree that does **not** add or modify at least one test file? → **FAIL** if yes (unless task explicitly documents why tests are impossible—rare). *(Adjust `src/**` in this rule to your repo layout in **`TACK.md`** if needed.)*
 2. **Commit order** — For multi-commit PRs, did the **test** commit come **before** the implementation commit? Evidence: `git log --oneline`. → **FAIL** if order wrong (single atomic commit with tests + impl together is OK).
 3. **Test quality** — Tests couple to internals instead of behaviours named in ACs? → **FAIL** if yes.
 
@@ -42,7 +42,7 @@ Do **not** propose new features or rewrite architecture.
 
 **Harness / mocks**
 
-6. **Boundary mocks** — Bespoke mocks for boundaries that **must** use shared harness doubles (per `.cursorrules` / [test-harness.md](../docs/test-harness.md))? → **FAIL** if yes.
+6. **Boundary mocks** — Bespoke mocks for boundaries that **must** use shared harness doubles (per **`TACK.md`** / [test-harness.md](../docs/test-harness.md))? → **FAIL** if yes.
 
 **Glossary / telemetry**
 
@@ -53,13 +53,13 @@ Do **not** propose new features or rewrite architecture.
 
 9. **Vague new tests** — New test suites whose **only** description pattern is `should …` without **`S-XXX AC-N`**? → **FAIL** if yes.
 
-**DDD (only when `.cursorrules` contains the `Bounded contexts and ubiquitous language` section — otherwise skip)**
+**DDD (only when **`TACK.md`** contains the `Bounded contexts and ubiquitous language` section — otherwise skip)**
 
 10. **Bounded context violation** — Diff calls another bounded context's domain types directly without an ACL listed in `project/docs/architecture.md` → **Anticorruption layers**? → **FAIL** if yes. (Heuristic: imports across context source folders bypassing the ACL row.)
 11. **Aggregate invariant** — Diff mutates aggregate state (sets a field on an aggregate root, transitions a state enum) without a matching invariant test referenced in the spec's **Invariants enforced or changed** table? → **FAIL** if yes.
 12. **Domain event naming** — Diff introduces a new domain event whose name is not in the glossary's **Domain events** catalog, or whose name violates `<PastTenseVerb><Aggregate>` (e.g. `OrderProcessor`, `paymentEvent`, `notify_order_placed`)? → **FAIL** if yes.
 
-## Project-specific invariants (fill in `.cursorrules` and mirror here)
+## Project-specific invariants (fill in **`TACK.md`** and mirror here)
 
 Add rows **only** for rules your codebase defines. Examples (commented — delete or replace):
 

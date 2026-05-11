@@ -1,27 +1,32 @@
 #!/usr/bin/env bash
 # tack-doctor.sh — post-bootstrap validations for a Tack consumer repo.
 # Run from the repository root. Currently checks:
-#   1. .cursorrules contains no <UPPERCASE_PLACEHOLDER> tokens left over from
-#      .cursorrules.template (matches `<[A-Z][A-Z0-9_]*>`).
+#   1. Repo-root TACK.md exists and contains no <UPPERCASE_PLACEHOLDER> tokens
+#      (matches `<[A-Z][A-Z0-9_]*>`).
 #   2. project/prompts/auto-orchestrator.md Specialist routing table contains
 #      no `<fill>` rows.
 #   3. When tack.routing.auto is not explicitly "no", project/docs/tack-pipeline-models.md
 #      exists and YAML front matter lists every required pipeline key.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=tack-resolve-config.sh
+source "$SCRIPT_DIR/tack-resolve-config.sh"
+
 usage() {
   cat <<'EOF'
 Usage: tack-doctor.sh [--rules PATH] [--orchestrator PATH] [--models PATH] [--quiet]
 
 Validates a bootstrapped Tack repo:
-  1. <UPPERCASE_PLACEHOLDER> tokens removed from .cursorrules.
+  1. <UPPERCASE_PLACEHOLDER> tokens removed from the resolved rules file (default:
+     repo-root TACK.md). Use --rules PATH to check a different file.
   2. `<fill>` rows removed from project/prompts/auto-orchestrator.md
      Specialist routing table.
   3. project/docs/tack-pipeline-models.md (or --models) is complete when
-     tack.routing.auto is not explicitly `no` in .cursorrules.
+     tack.routing.auto is not explicitly `no` in the resolved rules file.
 
 Defaults:
-  --rules         .cursorrules
+  --rules         repo-root TACK.md (or the path you pass)
   --orchestrator  project/prompts/auto-orchestrator.md
   --models        project/docs/tack-pipeline-models.md
 
@@ -36,7 +41,8 @@ Exit codes:
 EOF
 }
 
-RULES=".cursorrules"
+RULES=""
+RULES_FROM_CLI=0
 ORCH="project/prompts/auto-orchestrator.md"
 MODELS="project/docs/tack-pipeline-models.md"
 QUIET=0
@@ -47,9 +53,11 @@ while [[ $# -gt 0 ]]; do
     --quiet) QUIET=1; shift ;;
     --rules)
       [[ $# -ge 2 ]] || { echo "tack-doctor: --rules needs a value" >&2; exit 2; }
-      RULES="$2"; shift 2
+      RULES="$2"
+      RULES_FROM_CLI=1
+      shift 2
       ;;
-    --rules=*) RULES="${1#--rules=}"; shift ;;
+    --rules=*) RULES="${1#--rules=}"; RULES_FROM_CLI=1; shift ;;
     --orchestrator)
       [[ $# -ge 2 ]] || { echo "tack-doctor: --orchestrator needs a value" >&2; exit 2; }
       ORCH="$2"; shift 2
@@ -70,9 +78,16 @@ errors=0
 note() { [[ "$QUIET" -eq 1 ]] || echo "tack-doctor: $*"; }
 fail() { echo "tack-doctor: $*" >&2; errors=$((errors + 1)); }
 
-if [[ ! -f "$RULES" ]]; then
-  fail "missing $RULES (run tack-bootstrap or set --rules)"
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+
+if [[ "$RULES_FROM_CLI" -eq 0 ]]; then
+  RULES="$(tack_config_primary_file "$ROOT" || true)"
+fi
+
+if [[ -z "$RULES" || ! -f "$RULES" ]]; then
+  fail "missing TACK.md at repo root (run tack-bootstrap or set --rules PATH)"
 else
+  tack_config_warn_if_both "$ROOT"
   matches="$(grep -nE '<[A-Z][A-Z0-9_]*>' "$RULES" || true)"
   if [[ -n "$matches" ]]; then
     fail "$RULES still contains uppercase placeholders:"
@@ -95,7 +110,7 @@ else
 fi
 
 routing_no=0
-if [[ -f "$RULES" ]] && grep -qE 'tack\.routing\.auto:[[:space:]]*no' "$RULES"; then
+if [[ -n "$RULES" && -f "$RULES" ]] && grep -qE 'tack\.routing\.auto:[[:space:]]*no' "$RULES"; then
   routing_no=1
 fi
 

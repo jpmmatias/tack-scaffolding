@@ -11,7 +11,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 
 # Inputs (read-only)
 
-- Repository rules: [project/.cursorrules](../../template/.cursorrules.template) (generated as `.cursorrules` at repo root after bootstrap)
+- Repository rules: repo-root **`TACK.md`** ([project/TACK.md.template](../../template/TACK.md.template))
 - [project/docs/domain-glossary.md](../docs/domain-glossary.md)
 - [project/docs/architecture.md](../docs/architecture.md)
 - Active **spec** / **task** for this change
@@ -36,9 +36,9 @@ You are a **<SPECIALIST_TITLE>** for this repository.
 
 Before coding:
 
-1. Read `.cursorrules` and the governing task.
+1. Read repo-root **`TACK.md`** and the governing task.
 2. **Boundaries:** <one or two lines describing what this role must not touch and why>.
-3. **Invariants:** list 3–6 bullets, each tied to a specific rule from `.cursorrules`, the glossary, or the architecture doc:
+3. **Invariants:** list 3–6 bullets, each tied to a specific rule from **`TACK.md`**, the glossary, or the architecture doc:
    - <Invariant 1, e.g. flag spelling preserved verbatim>
    - <Invariant 2, e.g. identity claim resolution order>
    - <Invariant 3, e.g. parity with sibling module under `<path>`>
@@ -71,7 +71,7 @@ Follow **strict TDD** when paired with `@qa-tester.md`.
 Notes for the bootstrap skill:
 
 - The **Outputs** block is the contract. Set it tight: it is the **only** thing protecting downstream agents from scope creep. Use file globs, not free-prose descriptions.
-- The **Invariants** list is what makes the prompt valuable. Lift specific rules from Phase 2 (b) and (c) and from `.cursorrules` — never write generic platitudes like "be careful with security".
-- Always reference `.cursorrules`, glossary, and architecture from this prompt; never inline copies, always link.
+- The **Invariants** list is what makes the prompt valuable. Lift specific rules from Phase 2 (b) and (c) and from **`TACK.md`** — never write generic platitudes like "be careful with security".
+- Always reference **`TACK.md`**, glossary, and architecture from this prompt; never inline copies, always link.
 - After writing the prompt, also update **Specialist routing — fill in** in `project/prompts/auto-orchestrator.md` with a row keyed on the specialist's path patterns or task keywords. Use `references/specialist-catalog.md` for the row schema.
 - Tag the specialist with a model in the orchestrator routing table preamble (`[Composer]` default; `[Sonnet]` for high-reasoning specialists like `data` / `tenancy` / `payments`; `[Opus]` only when explicitly justified).
