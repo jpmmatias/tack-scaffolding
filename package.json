@@ -22,7 +22,7 @@
     "validate-skill-evals": "node scripts/validate-skill-evals.mjs",
     "check-routing": "bash scripts/check-routing-snippet.sh",
     "test": "bats test/bats",
-    "check-shell": "shellcheck $(git ls-files '*.sh')",
+    "check-shell": "shellcheck -x $(git ls-files '*.sh')",
     "check-dispatch": "bash scripts/check-dispatch-contract.sh",
     "install-hooks": "git config core.hooksPath .githooks",
     "lint": "npx -y markdownlint-cli2",
