@@ -1,6 +1,6 @@
 ## Summary
 
-<!-- What does this PR change and why? Link `BACKLOG.md#b-NN` or an issue if applicable. -->
+<!-- What does this PR change and why? Link a GitHub issue or discussion if applicable. -->
 
 ## Checklist
 

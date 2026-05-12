@@ -2,11 +2,61 @@
 
 > Spec-driven, multi-agent discipline for coding agents.
 
-Tack turns a coding agent loose on your repo into a deterministic pipeline: numbered specs, failing tests before code, and isolated agent roles (PM → architect → QA → worker → reviewer) so features ship traceably end-to-end.
+Tack is a **template kit** for spec-driven development with coding agents—not a hosted runtime. A one-time **bootstrap** writes **`project/`** and repo-root **`TACK.md`** (quality commands, worktrees, SDD routing). **`tack-run`** drives isolated roles so work moves **spec → plan → failing tests → implementation → reviewer** end-to-end, with **`S-XXX` / `AC-N` traceability**.
 
-It's a **template, not a runtime** — install three small skills, run a one-time bootstrap on your repo, and ship features through the pipeline. Works across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**; bootstrap detects which editor skill paths to populate (**`tack.agents.active`**) and writes repo-root **`TACK.md`** as the single Tack config (commands, worktrees, SDD entry points) — you don't pick a platform up front.
+The same prompts work across **Claude Code, Cursor, GitHub Copilot CLI, Codex, and Antigravity**. Bootstrap picks skill install surfaces via **`tack.agents.active`**; you don’t pin a vendor up front.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![CI - Check](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml/badge.svg)](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml)
+[![skills.sh](https://img.shields.io/badge/skills.sh-directory-111111?style=flat)](https://skills.sh/)
 
 **Portuguese (Brazil):** [README.pt-BR.md](README.pt-BR.md)
+
+**Project status:** [![CI Check](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml/badge.svg)](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml) · [CONTRIBUTING.md](CONTRIBUTING.md) · [docs/FAQ.md](docs/FAQ.md)
+
+## Table of contents
+
+- [Why Tack?](#why-tack)
+- [What you get](#what-you-get)
+- [Prerequisites](#prerequisites)
+- [The three skills](#the-three-skills)
+- [Pipeline at a glance](#pipeline-at-a-glance)
+- [Getting started](#getting-started)
+- [Troubleshooting](#troubleshooting)
+- [When to use Tack](#when-to-use-tack)
+- [Philosophy](#philosophy)
+- [What's in the bundled template](#whats-in-the-bundled-template)
+- [Multi-platform agent support](#multi-platform-agent-support)
+- [Conventions (summary)](#conventions-summary)
+- [Listing on skills.sh](#listing-on-skillssh)
+- [Contributing](#contributing)
+- [References](#references)
+- [License](#license)
+
+## Why Tack?
+
+**Without a repeatable harness**, agents improvising on the same repo skip specs, skip real TDD, and blur roles so merges lose traceability to acceptance criteria.
+
+**With Tack**, you lock in numbered specs (**`S-XXX`**), Gherkin **AC-N**, isolated subagent roles (**`tack-run`**), and a single repo-root **`TACK.md`** for commands and routing—so shipping stays auditable instead of conversational.
+
+## What you get
+
+- **Specs and ACs** — `S-XXX` files plus `AC-N` in Gherkin; plans and commits cite them.
+- **`tack-bootstrap`** — six-phase interview: stack detection, optional DDD profile (`tack.ddd.profile`), filled `project/` and **`TACK.md`**.
+- **`tack-run`** — epic → spec → plan → red → green → reviewer via `project/prompts/auto-orchestrator.md`.
+- **`tack-agent`** — one-off roles (reviewer, diagnose, event-stormer, domain-modeler, …).
+- **Quality gates** — failing tests before implementation; reviewer checks the gate.
+- **`tack-doctor`** — catches leftover placeholders in **`TACK.md`** and routing tables after bootstrap.
+- **Parallel features (optional)** — `git worktree` + **`tack-worktree.sh`** reserve `S-XXX` across branches.
+- **Multi-editor installs** — skills mirrored under `.claude/`, `.cursor/`, `.agents/` as bootstrap detects surfaces.
+- **Optional `tack` CLI** — `doctor`, `init`, `specialist add` ([`bin/tack.mjs`](bin/tack.mjs)); does **not** replace the bootstrap interview.
+
+## Prerequisites
+
+- **Node.js 18+** — for `npm pack`, `npm link`, and tooling in this repo ([`package.json`](package.json)); optional for consuming repos that only install skills via `npx skills`.
+- **Target repo:** working **test** and **lint** commands (or equivalents) bootstrap can record into **`TACK.md`**; add a minimal harness first if neither exists ([When to use Tack](#when-to-use-tack)).
+- **Coding agent** that can invoke skills and subagents—or follow orchestrator fallback patterns in **`project/docs/sdd.md`** after bootstrap.
 
 ## The three skills
 
@@ -38,7 +88,9 @@ flowchart LR
 
 Full numbered lifecycle, orchestrators, and optional worktree coordination live in [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md).
 
-## Quick start
+## Getting started
+
+About **five minutes** once you have a repo checkout (new template or existing project): install skills, run **`tack-bootstrap`**, then ship epics with **`tack-run`**.
 
 ### New repo from this template
 

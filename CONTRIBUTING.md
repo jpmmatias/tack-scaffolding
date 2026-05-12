@@ -59,10 +59,12 @@ npm run check-links     # optional: lychee offline link check (downloads a pinne
 
 ## Consumer-side scripts (template/scripts/)
 
-Two helpers ship inside `skills/tack-bootstrap/template/scripts/` and are copied to a consumer's `project/scripts/` during Phase 5. They are validated by Bats and `shellcheck` here, but are intended to be run **from a bootstrapped repo's root**, not from this scaffold:
+Several shell helpers ship under `skills/tack-bootstrap/template/scripts/` and are copied to `project/scripts/` when **`tack-bootstrap`** materializes the consumer **`project/`** tree (Phase 5). They are validated by Bats and `shellcheck` here, but are intended to be run **from a bootstrapped repo's root**, not from this scaffold:
 
-- `splice-tack-routing.sh` — deterministic `## Tack routing` H2 splice into `AGENTS.md` / `CLAUDE.md` from `project/routing-snippet.md`. Idempotent; supports `--check` for CI / preview. Used by `tack-bootstrap` Phase 5 step 3b and re-runnable when `routing-snippet.md` upgrades.
-- `tack-doctor.sh` — post-bootstrap validator for **`TACK.md`** (or `--rules`; falls back to legacy **`.cursorrules`**): no `<UPPERCASE>` placeholders, `project/prompts/auto-orchestrator.md` has no `<fill>` Specialist routing rows. Run by `tack-bootstrap` Phase 6 step 1a; consumers can wire into their own CI as `bash project/scripts/tack-doctor.sh`.
+- **`splice-tack-routing.sh`** — **Legacy / manual migration only.** Replaces or appends the `## Tack routing` H2 in an existing repo-root **`AGENTS.md`** or **`CLAUDE.md`** from `project/routing-snippet.md` (derived from [`skills/tack-bootstrap/template/routing-snippet.md`](skills/tack-bootstrap/template/routing-snippet.md)). Idempotent; supports `--check` for CI / preview. **`tack-bootstrap` Phase 5 does not** write those agent files or run this splice; SDD entry points and routing belong in repo-root **`TACK.md`** and `project/prompts/auto-orchestrator.md` (see [`skills/tack-bootstrap/references/bootstrap-phase-05-artifacts.md`](skills/tack-bootstrap/references/bootstrap-phase-05-artifacts.md)).
+- **`tack-doctor.sh`** — post-bootstrap validator for **`TACK.md`** (or `--rules`; falls back to legacy **`.cursorrules`**): no `<UPPERCASE>` placeholders, `project/prompts/auto-orchestrator.md` has no `<fill>` Specialist routing rows. Run by `tack-bootstrap` Phase 6 step 1a; consumers can wire into their own CI as `bash project/scripts/tack-doctor.sh`.
+
+**Also copied:** `tack-worktree.sh` (parallel git worktrees) and `tack-resolve-config.sh`. Full inventory: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → **Additional resources** table.
 
 ## Local hooks (optional)
 

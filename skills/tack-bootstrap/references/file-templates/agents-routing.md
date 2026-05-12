@@ -2,11 +2,13 @@
 
 **DEPRECATED.** Tack keeps SDD entry points and routing in repo-root **`TACK.md`** only. Bootstrap **no longer** splices `AGENTS.md` or `CLAUDE.md`. This document is an archive of the old merge workflow.
 
----
+## Status
+
+The steps below describe the **historical** splice workflow (manual `splice-tack-routing.sh` or hand-edits). **Current Phase 5** does **not** create or update **`AGENTS.md`** / **`CLAUDE.md`**; use [`../bootstrap-phase-05-artifacts.md`](../bootstrap-phase-05-artifacts.md) for what bootstrap actually writes. Keep this file only as a **migration and shape reference** for repos that still carry those filenames.
 
 Worked example, **anonymized and trimmed** from the OrderFlow sample. Use as a shape guide only. ~~The bootstrap skill must **splice surgically**~~ Historical note: previously replaced only the `## Tack routing` H2 section (from `template/routing-snippet.md`).
 
-## Case A — brand-new file (create)
+## Case A — brand-new file (create) (historical)
 
 If `AGENTS.md` (or `CLAUDE.md`) does not exist at the consumer repo root, create it from the matching template:
 
@@ -41,11 +43,9 @@ Follow the SDD pipeline end-to-end for every feature, bug, or task in this repo 
 - **One chat inlining / `/agents`:** if the lead agent runs every role inline or UI “agent libraries” seem required, read [project/docs/sdd.md](project/docs/sdd.md) → **Multi-platform agent support** — use the optional orchestrator-only preamble with the epic, embed full `project/prompts/<name>.md` per **Dispatch protocol** in `auto-orchestrator.md`, and fall back to `@orchestrator.md` or stepwise **`tack-agent`** when subagent tools are unavailable.
 ```
 
-Notes for the bootstrap skill:
+**Historical splice workflow:** when migrating older repos only, the `## Tack routing` section was expected to match `template/routing-snippet.md` verbatim (today’s archive file). Do **not** treat the bullets below as current bootstrap instructions.
 
-- The exact `## Tack routing` section content must come from `template/routing-snippet.md` (single source of truth). Do not hand-edit it per repo.
-
-## Case B — existing file (splice / replace only the H2)
+## Case B — existing file (splice / replace only the H2) (historical)
 
 If the file already exists, do **not** overwrite it. Only replace the section titled `## Tack routing` (H2) and preserve everything else.
 
@@ -106,6 +106,6 @@ Everything after the routing section must remain byte-for-byte identical.
 
 If the file does **not** contain an H2 titled `## Tack routing`, append the full section from `template/routing-snippet.md` at the **end** of the file (after a blank line).
 
-## Idempotency requirement
+## Idempotency requirement (historical only)
 
-Re-running the bootstrap skill with unchanged `tack.routing.*` values and unchanged `template/routing-snippet.md` must produce a **no-op diff** for `AGENTS.md` and/or `CLAUDE.md`.
+Under the legacy splice workflow, re-running splice with unchanged `template/routing-snippet.md` was expected to yield a **no-op diff** for `AGENTS.md` and/or `CLAUDE.md` when routing keys were unchanged. **Modern bootstrap never performs this splice.**

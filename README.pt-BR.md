@@ -2,11 +2,61 @@
 
 > Disciplina orientada a especificação e multiagente para agentes de código.
 
-O Tack transforma um agente de código solto no seu repositório em um pipeline determinístico: especificações numeradas, testes falhando antes do código e papéis isolados (PM → arquiteto → QA → worker → reviewer), para que funcionalidades sejam entregues de ponta a ponta com rastreabilidade.
+O Tack é um **conjunto modelo** para desenvolvimento orientado por especificações com agentes de código—não um runtime hospedado. Um **bootstrap** único escreve **`project/`** e o **`TACK.md`** na raiz (comandos de qualidade, worktrees, roteamento SDD). O **`tack-run`** conduz papéis isolados para que o trabalho vá de **especificação → plano → testes falhando → implementação → reviewer** de ponta a ponta, com rastreabilidade **`S-XXX` / `AC-N`**.
 
-É um **modelo, não um runtime** — instale três skills pequenas, rode o bootstrap único no seu repositório e entregue funcionalidades pelo pipeline. Funciona em **Claude Code, Cursor, GitHub Copilot CLI, Codex e Antigravity**; o bootstrap detecta quais caminhos de skills do editor preencher (**`tack.agents.active`**) e grava na raiz do repositório o **`TACK.md`** como **única** configuração Tack (comandos, worktrees, entradas SDD) — você não escolhe a plataforma com antecedência.
+Os mesmos prompts funcionam em **Claude Code, Cursor, GitHub Copilot CLI, Codex e Antigravity**. O bootstrap escolhe os caminhos de instalação das skills (**`tack.agents.active`**); você não fixa um fornecedor com antecedência.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Node.js >=18](https://img.shields.io/badge/node-%3E%3D18-brightgreen)](https://nodejs.org/)
+[![CI - Check](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml/badge.svg)](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml)
+[![skills.sh](https://img.shields.io/badge/skills.sh-directory-111111?style=flat)](https://skills.sh/)
 
 **English version:** [README.md](README.md)
+
+**Estado do projeto:** [![CI Check](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml/badge.svg)](https://github.com/jpmmatias/tack-scaffolding/actions/workflows/check.yml) · [CONTRIBUTING.md](CONTRIBUTING.md) · [docs/FAQ.md](docs/FAQ.md)
+
+## Índice
+
+- [Por que o Tack?](#por-que-o-tack)
+- [O que você ganha](#o-que-você-ganha)
+- [Pré-requisitos](#pré-requisitos)
+- [As três skills](#as-três-skills)
+- [Pipeline em resumo](#pipeline-em-resumo)
+- [Começando](#começando)
+- [Solução de problemas](#solução-de-problemas)
+- [Quando usar o Tack](#quando-usar-o-tack)
+- [Filosofia](#filosofia)
+- [O que vem no modelo empacotado](#o-que-vem-no-modelo-empacotado)
+- [Suporte multiplataforma a agentes](#suporte-multiplataforma-a-agentes)
+- [Convenções (resumo)](#convenções-resumo)
+- [Listagem em skills.sh](#listagem-em-skillssh)
+- [Contribuir](#contribuir)
+- [Referências](#referências)
+- [Licença](#licença)
+
+## Por que o Tack?
+
+**Sem um harness repetível**, agentes improvisando no mesmo repositório pulam especificações, pulam TDD de verdade e misturam papéis — e os merges perdem rastreabilidade até aos critérios de aceitação.
+
+**Com o Tack**, você fixa especificações numeradas (**`S-XXX`**), ACs em Gherkin (**`AC-N`**), subagentes isolados (**`tack-run`**) e um único **`TACK.md`** na raiz para comandos e roteamento — assim a entrega fica auditável, não só conversacional.
+
+## O que você ganha
+
+- **Especificações e ACs** — arquivos `S-XXX` com `AC-N` em Gherkin; planos e commits citam isso.
+- **`tack-bootstrap`** — entrevista em seis fases: detecção de stack, perfil DDD opcional (`tack.ddd.profile`), `project/` e **`TACK.md`** preenchidos.
+- **`tack-run`** — épico → especificação → plano → red → green → reviewer via `project/prompts/auto-orchestrator.md`.
+- **`tack-agent`** — papéis pontuais (reviewer, diagnose, event-stormer, domain-modeler, …).
+- **Portões de qualidade** — testes falhando antes da implementação; o reviewer valida o portão.
+- **`tack-doctor`** — detecta placeholders sobrando no **`TACK.md`** e nas tabelas de roteamento após o bootstrap.
+- **Funcionalidades paralelas (opcional)** — `git worktree` + **`tack-worktree.sh`** para reservar `S-XXX` entre branches.
+- **Instalação multi‑editor** — skills espelhadas em `.claude/`, `.cursor/`, `.agents/` conforme o bootstrap detecta.
+- **CLI opcional `tack`** — `doctor`, `init`, `specialist add` ([`bin/tack.mjs`](bin/tack.mjs)); **não** substitui a entrevista de bootstrap.
+
+## Pré-requisitos
+
+- **Node.js 18+** — para `npm pack`, `npm link` e tooling neste repositório ([`package.json`](package.json)); opcional nos repositórios consumidores que só instalam skills com `npx skills`.
+- **Repositório alvo:** comandos funcionais de **teste** e **lint** (ou equivalentes) que o bootstrap possa registrar em **`TACK.md`**; adicione um harness mínimo primeiro se algo faltar ([Quando usar o Tack](#quando-usar-o-tack)).
+- **Agente de código** que consiga rodar skills e subagentes — ou siga os padrões de fallback do orquestrador em **`project/docs/sdd.md`** após o bootstrap.
 
 ## As três skills
 
@@ -14,7 +64,7 @@ O Tack transforma um agente de código solto no seu repositório em um pipeline 
 |---|---|---|
 | [`tack-bootstrap`](skills/tack-bootstrap/SKILL.md) | Primeira vez no repositório: entrevista em 6 fases que preenche arquivos de regras do projeto, `project/docs/`, prompts de papéis e roteamento | Uma vez por repositório |
 | [`tack-run`](skills/tack-run/SKILL.md) | Entregar uma funcionalidade de ponta a ponta (épico → especificação → plano → red → green → reviewer) | Por funcionalidade |
-| [`tack-agent`](skills/tack-agent/SKILL.md) | Invocar um único papel: passagem do reviewer em um diff, `diagnose` em uma regressão, `domain-modeler` para refinar contextos delimitados | Sob demanda |
+| [`tack-agent`](skills/tack-agent/SKILL.md) | Invocar um único papel: passagem do reviewer em um diff, `diagnose` em uma regressão, `event-stormer` para DDD em greenfield, `domain-modeler` para refinar contextos delimitados | Sob demanda |
 
 ## Pipeline em resumo
 
@@ -38,7 +88,9 @@ flowchart LR
 
 Ciclo de vida numerado completo, orquestradores e coordenação opcional com worktree estão em [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md).
 
-## Início rápido
+## Começando
+
+Cerca de **cinco minutos** depois que você já tem um checkout do repositório (modelo novo ou projeto existente): instalar skills, rodar **`tack-bootstrap`** e então entregar épicos com **`tack-run`**.
 
 ### Novo repositório a partir deste modelo
 
@@ -61,7 +113,7 @@ npx skills add jpmmatias/tack-scaffolding
 Ou copie `skills/tack-bootstrap/` manualmente para:
 
 | Agente / editor        | Caminho |
-|----------------------|---------|
+|----------------------|------|
 | Claude Code          | `.claude/skills/tack-bootstrap/` |
 | Cursor               | `.cursor/skills/tack-bootstrap/` |
 | Antigravity (projeto)| `.agents/skills/tack-bootstrap/` |
@@ -84,6 +136,27 @@ A Fase 2 extrai regras de negócio do código existente; a Fase 5 grava os artef
 
 A entrevista da Fase 1 trata **quais superfícies de agente recebem scaffolding** (`tack.agents.active`) e o perfil opcional de **DDD** (`tack.ddd.profile = on | off`, padrão **off**) como saídas de primeira classe, junto com a detecção de stack. Com `tack.ddd.profile = on`, fases seguintes acrescentam mineração de contextos delimitados, seções DDD em glossário/arquitetura/modelo de spec, **`@event-stormer.md`** opcional (greenfield / sem rascunho **(ddd)** da Fase 2) e **`@domain-modeler`** opcional. Detalhes: [`skills/tack-bootstrap/SKILL.md`](skills/tack-bootstrap/SKILL.md) → *Fase 1 — Detectar contexto* e regra de comportamento 13.
 
+### Opcional — CLI `tack`
+
+Este repositório expõe um binário pequeno **`tack`** ([`bin/tack.mjs`](bin/tack.mjs)) para repositórios bootstrados e experimentação local. Ele **não** substitui a entrevista **`tack-bootstrap`** (roteamento, espelhos, documentos preenchidos).
+
+Num clone deste repositório:
+
+```bash
+npm link          # disponibiliza `tack` no PATH (omitir se usar só npx)
+tack --help
+```
+
+Subcomandos típicos:
+
+| Comando | Finalidade |
+|---------|---------|
+| `tack doctor` | Executa `project/scripts/tack-doctor.sh` no repositório atual (checagem de placeholders). Igual a `bash project/scripts/tack-doctor.sh`. |
+| `tack init` | Copia a árvore [`skills/tack-bootstrap/template/`](skills/tack-bootstrap/template/) para `./project` (use `--target DIR` para outra raiz; `--force` substitui um `project/` existente). |
+| `tack specialist add <slug>` | Copia o stub de prompt especialista para `project/prompts/<slug>.md`; você mesmo liga linhas **Specialist** em [`auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md). |
+
+Também dá para `node bin/tack.mjs …` sem linking. Publicar no npm é opcional (`private` permanece true em [`package.json`](package.json)); `npm pack` executa **`prepack`**, que faz snapshot de `skills/tack-bootstrap/template` em **`pkg/template`** para instaladores.
+
 ### 3. Entregar uma funcionalidade
 
 Cole um épico e peça ao agente para rodar **`tack-run`**:
@@ -102,6 +175,7 @@ Para tarefas que não precisam do pipeline completo:
 ```text
 Run tack-agent reviewer on this diff
 Run tack-agent diagnose for the flaky test in tests/orders_spec.rb
+Run tack-agent event-stormer after Phase 3 Block A DDD Round 1 for a new repo
 Run tack-agent domain-modeler to refine the Billing context
 ```
 
@@ -174,6 +248,8 @@ O Tack envia um `auto-orchestrator.md` canônico escrito com nomes de ferramenta
 | Perguntar ao humano | `AskQuestion` | `AskUserQuestion` | postar a pergunta no chat literalmente |
 
 As skills `tack-run` / `tack-agent` fazem essa tradução quando invocadas pelo sistema de skills do host. Detalhes em [`skills/tack-bootstrap/template/prompts/auto-orchestrator.md`](skills/tack-bootstrap/template/prompts/auto-orchestrator.md) → **Platform tool mapping**.
+
+**Armadilhas comuns:** o chat líder pode executar o pipeline inteiro **em linha** (sem um `Task` / `Agent` por passo), e interfaces como **`/agents` do Claude Code** **não** são o pacote de papéis do Tack — cada passo deve ainda assim **incorporar o arquivo completo** `project/prompts/<nome>.md` conforme **Dispatch protocol** em `auto-orchestrator.md`. Preâmbulo épico apenas no orquestrador, biblioteca-vs-arquivos e fallbacks (`@orchestrator.md`, `tack-agent` passo a passo) estão em [`skills/tack-bootstrap/template/docs/sdd.md`](skills/tack-bootstrap/template/docs/sdd.md) → **Multi-platform agent support** (copiado para `project/docs/sdd.md` após o bootstrap).
 
 ## Convenções (resumo)
 
