@@ -7,9 +7,9 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 
 - **Worktree:** `<absolute path>` or `n/a` if Step −1 skipped
 - **Branch:** `<branch name>` or `n/a`
-- **Spec:** `S-XXX-<slug>` — `<path>`
-- **Spec grill (Q&A trail):** (list `question → answer` in order, or "n/a")
-- **Plan:** `<path to plan.md>`
+- **Spec:** `S-XXX-<slug>` — `<path>` (under Resume mode, append ` (resumed)`; if a task was resumed, also list `Task spec: <task_spec_path>` on the next line)
+- **Spec grill (Q&A trail):** (list `question → answer` in order, or `n/a`; under Resume mode this is always `n/a (resumed)`)
+- **Plan:** `<path to plan.md>` (under Resume mode, append ` (existing — Step 2 skipped)` or ` (extended)`)
 - **ADRs created:** (list paths or "none")
 - **Test files:** (list)
 - **Source files modified:** (from `git diff --name-only` or summary)
@@ -20,5 +20,5 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
 - **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
 - **Implementation verification:** `PASS` | `GAP` | `FAILED` — narrative: original user epic/ask ↔ spec **AC-*** coverage; **`<TEST_COMMAND>`** / **`<LINT_COMMAND>`** (scope + exit status); notable `git diff` observation. Under **GAP**/**FAILED**, list what is missing or failing.
-- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at verification — <reason>
+- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at Resume — <reason> | STOPPED at verification — <reason>
 ```

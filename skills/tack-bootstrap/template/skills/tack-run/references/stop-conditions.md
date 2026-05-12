@@ -6,6 +6,8 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 
 **Preflight** — `project/docs/tack-pipeline-models.md` missing or incomplete (`STOPPED at Preflight — …`).
 
+**Resume mode** — input carried a `S-NNN[-T NN|-task-NN]` token but file resolution failed (`STOPPED at Resume — …`): parent spec not unique, task spec not found, primary spec has no ACs, or Step −1's `spec_id_reserved` conflicts with the resumed `spec_id`.
+
 1. Subagent errors or does not create expected artifacts.
 2. **Spec id** cannot be determined or collides.
 3. **Step 1** — PM returns malformed output (missing/unknown `STATUS`, missing required fields, or missing/empty `options:` when `STATUS: NEEDS_INPUT`).

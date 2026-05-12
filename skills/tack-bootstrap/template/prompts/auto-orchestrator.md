@@ -13,7 +13,7 @@ Ignore prior conversation. Read only **Inputs**. Produce only **Outputs**.
 - [project/specs/_template.md](../specs/_template.md)
 - [project/docs/adr/_template.md](../docs/adr/_template.md)
 - At runtime: read the **full contents** of each execution prompt under `project/prompts/` when dispatching that step (`product-manager.md`, `architect.md`, `qa-tester.md`, `harness-engineer.md`, `worker.md`, `reviewer.md`, `security-engineer.md`, plus any specialist prompts you added by copying `_specialist-template.md`).
-- The **epic / task description** the human pasted (same input as passive `@orchestrator.md`).
+- The **epic / task description** the human pasted (same input as passive `@orchestrator.md`). The input **may** begin with a **resume token** (`S-NNN`, `S-NNN-tNN`, or `S-NNN-task-NN`, optionally preceded by `resume`, `continue`, or `work on`) — when present, the run resumes an existing spec/task instead of authoring a new one. See **Resume mode**.
 
 ---
 
@@ -33,11 +33,74 @@ Unlike `@orchestrator.md` (passive checklist only), you **execute** the SDD/TDD 
 Your job:
 
 1. Run **Preflight** — load and validate **`project/docs/tack-pipeline-models.md`** (see **Preflight**). **No `Task` before this succeeds.**
-2. Optionally run **Step −1** (worktree isolation). When it succeeds, apply the **Worktree anchor** (see Step −1): every downstream **`Task`** for Steps **1–7** and **7b** uses **`working_directory`** = absolute `worktree_path` **and** the prompt-line `cd` duplicate in **INPUTS** (see **Dispatch protocol**) — including **iteration 1** of the PM grill loop.
-3. Resolve the next free spec id `S-XXX` — **unless** Step −1 already reserved `spec_id_reserved`; then treat that as canonical for Steps 0–7. When Step −1 succeeded, resolve spec paths only under **`${worktree_path}/project/specs/`** (absolute prefix); do **not** rely on the IDE workspace root if it is the primary clone (see **Step 0**).
-4. Run Steps 1–7 in order (see **Dispatch protocol**).
-5. Validate gates between steps (red / green / invariants / reviewer).
-6. Emit the **Final report**.
+2. **Detect Resume mode** from the human input (see **Resume mode**). Token detection only; file resolution happens in Step 0 after the active checkout is known.
+3. Optionally run **Step −1** (worktree isolation). When it succeeds, apply the **Worktree anchor** (see Step −1): every downstream **`Task`** for Steps **1–7** and **7b** uses **`working_directory`** = absolute `worktree_path` **and** the prompt-line `cd` duplicate in **INPUTS** (see **Dispatch protocol**) — including **iteration 1** of the PM grill loop.
+4. Resolve the canonical spec id `S-XXX` (see **Step 0**) — **Resume mode** wins when active; otherwise Step −1's `spec_id_reserved` wins; otherwise pick the lowest unused `S-XXX`. When Step −1 succeeded, resolve spec paths only under **`${worktree_path}/project/specs/`** (absolute prefix); do **not** rely on the IDE workspace root if it is the primary clone.
+5. Run Steps 1–7 in order (see **Dispatch protocol**). Under **Resume mode**, Step 1 is skipped entirely and Step 2 may be skipped when a valid `plan.md` already covers the resumed spec/task.
+6. Validate gates between steps (red / green / invariants / reviewer).
+7. Emit the **Final report**.
+
+---
+
+# Resume mode (epic carries an existing spec id)
+
+The human input **may** target an existing spec or task instead of authoring a new one. Detect this **before Preflight** by parsing only the input string; resolve file paths in **Step 0** once the active checkout is known.
+
+## Detection (token parsing, before Preflight)
+
+1. Strip a leading verb if present: `resume`, `continue`, `work on` (case-insensitive). What remains is the candidate.
+2. Match the first whitespace-separated token of the candidate against (case-insensitive on letters; numeric body):
+   - `S-\d+` — parent epic only (e.g. `S-002`)
+   - `S-\d+-T\d+` — task short form (e.g. `S-002-T03`)
+   - `S-\d+-task-\d+` — task long form (e.g. `S-002-task-03`)
+3. **No match** → `resume_mode = false`. Proceed normally; the entire input is the fresh epic.
+4. **Match** → set:
+   - `resume_mode = true`
+   - `spec_id` = the parent `S-NNN` (digits preserved as typed)
+   - `task_id` = the numeric part of the task suffix when present (e.g. `03`); otherwise `null`
+   - `epic_note` = everything after the matched token (trimmed; may be empty) — passed to downstream prompts as supplementary context, not as the epic
+
+Anything else in the input (slugs, commentary) is **not** authoritative — the existing spec on disk is.
+
+## Resolution (Step 0, after the active checkout is known)
+
+When `resume_mode = true`, perform these checks before doing anything else in Step 0:
+
+1. **Parent spec lookup** in `<worktree_path>/project/specs/` (or `project/specs/` if Step −1 was skipped): find **exactly one** `S-NNN-*.md` file whose `NNN` matches `spec_id` numerically **and** whose name does **not** match `S-NNN-task-NN-*.md` or `S-NNN-tNN-*.md`. Zero or multiple → **STOP** (`STOPPED at Resume — parent spec not unique for <spec_id>`).
+2. **Task spec lookup** when `task_id` is set: find **exactly one** `S-NNN-task-NN-*.md` whose `NN` matches `task_id` numerically. Zero → **STOP** (`STOPPED at Resume — task spec not found for <resume_token>`). Multiple → **STOP**.
+3. **AC validation:** the **primary** spec — task spec when `task_id` is set, parent spec otherwise — must contain at least one numbered `AC-1`, `AC-2`, … line. If none → **STOP** (`STOPPED at Resume — no ACs in <path>`).
+4. Record `spec_path` (parent), `task_spec_path` (task or `null`), and `primary_spec_path` = `task_spec_path` if set else `spec_path`.
+5. **Step −1 cross-check:** if Step −1 returned `spec_id_reserved` and it does **not** match `spec_id` → **STOP** (`STOPPED at Resume — coordinator reserved <spec_id_reserved>, conflicts with resume <spec_id>`).
+
+## Step −1 interaction
+
+When `resume_mode = true` and Step −1 runs, pass **`--spec <spec_id>`** to `@worktree-coordinator.md` so it reuses the existing id (skips `next-spec-id`) and names the branch with the resumed id (e.g. `feature/S-002-<slug>`). The slug source is unchanged — derive it from `epic_note` if non-empty, otherwise from the existing parent spec filename.
+
+## Step 1 (PM) effect
+
+**Skip Step 1 entirely** — the spec already exists. Do not dispatch `@product-manager.md`. In **Final report**, set **Spec grill** to `n/a (resumed)`.
+
+## Step 2 (architect) effect
+
+Look for an existing `plan.md` under the active checkout: `<worktree_path>/plan.md` or `<worktree_path>/project/specs/plan.md` (or the same paths relative to the active checkout when Step −1 was skipped).
+
+- **Skip Step 2** when a plan exists with first line `Spec: <spec_id>` **and** (when `task_id` is set) a `## Traceability` row referencing the task. Record the existing `plan.md` path for downstream steps.
+- **Otherwise dispatch `@architect.md`** in **extend** mode: include in **INPUTS** the parent spec path, the task spec path (if any), and the existing `plan.md` path if any. Instruct the architect to extend the plan rather than rewrite it (the architect prompt already handles plan continuation).
+
+## Steps 3, 5, 6, 7, 7b INPUTS
+
+When `resume_mode = true`, include in every step's `=== INPUTS ===`:
+
+```text
+Resume mode: true
+Spec id: <spec_id>
+Primary spec: <primary_spec_path>
+Parent epic spec: <spec_path>
+Task spec: <task_spec_path or "n/a">
+Epic note (supplementary): <epic_note or "n/a">
+```
+
+All AC-N references and `describe('<spec_id> AC-N:` blocks (Step 3) target the **primary** spec's ACs (task-level when `task_id` is set, parent-level otherwise).
 
 ---
 
@@ -137,19 +200,21 @@ Use **`Task`** with:
    - **`always`** — run the coordinator (no user question).
    - **`prompt`** — ask the human once: *Run this feature in an isolated git worktree/branch?* **Default: yes.** If the human declines → skip Step −1.
 3. If proceeding: derive a **slug** from the epic (kebab-case, e.g. `change-background`). If the epic is ambiguous, ask one clarifying question.
-4. Dispatch **`@worktree-coordinator.md`** with `model: models.worktree_coordinator` (**`[Composer]`** tier), passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
+4. Dispatch **`@worktree-coordinator.md`** with `model: models.worktree_coordinator` (**`[Composer]`** tier), passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **When Resume mode is active, always pass `--spec <spec_id>`** so the coordinator reuses the resumed id (it must not call `next-spec-id`). **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
 5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract). If `error` is non-null → **STOP** (Stop conditions) unless the human instructs you to continue without isolation; in that case fall back to **Step 0** in the current directory and **do not** use a reserved spec id.
 6. **Worktree anchor (Steps 0–7 and 7b).** Store the verbatim **absolute** `worktree_path`. Until the **Final report** is emitted, treat that directory as the **only** checkout for pipeline artifacts (specs, plan, tests, implementation): **every** `Task` for Steps **1–7** and **7b** **MUST** set pinned cwd to `worktree_path` **and** must include the **INPUTS** `cd` / path-prefix rule in **Dispatch protocol** — **including iteration 1** of the PM grill loop (**never** omit `working_directory` or the prompt-line anchor on the first dispatch).
 7. **Wrong-tree detection and recovery:** If there is any chance files were created in the **primary clone** instead of `worktree_path`, **before continuing** run and surface **`git -C <worktree_path> status`** and **`git -C <repo_root> status`** (`repo_root` = the directory you used as `working_directory` for the Step −1 coordinator `Task`). **Reconcile:** move or replay edits so specs, plan, tests, and app code changes exist **only** under the worktree; **remove duplicates from main** (e.g. uncommitted: copy into the worktree, then restore/remove paths on main; committed: revert or cherry-pick per team practice). Do **not** leave duplicate specs or parallel plans on main.
 
 ## Step 0 — Spec id
 
-1. If Step −1 produced **`spec_id_reserved`**, treat it as the canonical **`S-XXX`** for this run. Continue to Step 1 and instruct **`@product-manager.md`** to use exactly that id in **INPUTS** (`Reserved spec id: S-XXX`).
-2. Otherwise: if Step −1 **succeeded**, list **`<worktree_path>/project/specs/`** (absolute path), excluding `_template.md`, and determine the lowest unused `S-XXX`. If Step −1 was **skipped**, list `project/specs/` relative to the active checkout. If collision or ambiguity → **STOP** (Stop conditions).
-3. After Step 1, **discover** the created file under the same tree: **`project/specs/S-XXX-<slug>.md`** (i.e. `<worktree_path>/project/specs/S-XXX-<slug>.md` when Step −1 succeeded). If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
+1. **Resume mode wins.** If `resume_mode = true`, run **Resume mode → Resolution** now (parent spec lookup, optional task spec lookup, AC validation, Step −1 cross-check). On success, `spec_id` / `spec_path` / `task_spec_path` are canonical for the rest of the run — **skip the auto-pick** below and skip Step 1. Continue to Step 2 per **Resume mode → Step 2 effect**.
+2. Otherwise, if Step −1 produced **`spec_id_reserved`**, treat it as the canonical **`S-XXX`** for this run. Continue to Step 1 and instruct **`@product-manager.md`** to use exactly that id in **INPUTS** (`Reserved spec id: S-XXX`).
+3. Otherwise: if Step −1 **succeeded**, list **`<worktree_path>/project/specs/`** (absolute path), excluding `_template.md`, and determine the lowest unused `S-XXX`. If Step −1 was **skipped**, list `project/specs/` relative to the active checkout. If collision or ambiguity → **STOP** (Stop conditions).
+4. After Step 1 (when it ran), **discover** the created file under the same tree: **`project/specs/S-XXX-<slug>.md`** (i.e. `<worktree_path>/project/specs/S-XXX-<slug>.md` when Step −1 succeeded). If Step −1 reserved an id and the filename does not match that **`S-XXX`** → **STOP**.
 
 ## Step 1 — `@product-manager.md`
 
+- **Skip this step entirely when `resume_mode = true`** — the spec already exists on disk; no PM dispatch. Proceed directly to Step 2 per **Resume mode → Step 2 effect**.
 - Model: **`models.product_manager`** (`[Opus]`).
 - This step is an **iterative loop** until a spec is written: **optional clarification** `NEEDS_INPUT` turns, then a **mandatory confirm-before-write** turn (`next_question` begins with `[CONFIRM_SPEC] ` per `product-manager.md`), then `SPEC_WRITTEN`.
 - **`working_directory`:** `worktree_path` when Step −1 succeeded.
@@ -184,7 +249,8 @@ Use **`Task`** with:
 ## Step 2 — `@architect.md`
 
 - Model: **`models.architect`** (`[Opus]`).
-- Inputs: absolute path to the spec file from Step 1 + architect Inputs (architecture, ADR folder, sdd).
+- **Resume mode:** if `resume_mode = true` **and** a valid `plan.md` already covers the resumed spec/task (first line `Spec: <spec_id>`, and a `## Traceability` row referencing `task_id` when `task_id` is set), **skip this step** — record the existing `plan.md` path for downstream steps and continue to Step 3. Otherwise dispatch the architect in **extend** mode per **Resume mode → Step 2 effect** (pass the parent spec, task spec when present, and the existing `plan.md` path if any).
+- Inputs: absolute path to the spec file from Step 1 (or, under Resume mode, the parent spec + task spec paths) + architect Inputs (architecture, ADR folder, sdd).
 - **`working_directory`:** same as Step 1 when Step −1 succeeded.
 - After dispatch: locate `plan.md` under the worktree anchor when Step −1 succeeded (`<worktree_path>/plan.md` or `<worktree_path>/project/specs/plan.md` — **first line must be** `Spec: S-XXX` per architect rules). Confirm `## Traceability` table exists with **Task id**, **Description**, **ACs covered**. Every AC from the spec appears at least once. If architect stops asking for PM first, or outputs invalid plan → **STOP**.
 
@@ -264,6 +330,13 @@ Stop the pipeline and set **Final report** `Status` to `STOPPED at Step N — <r
 
 **Preflight** — `project/docs/tack-pipeline-models.md` is missing or incomplete (see **Preflight**).
 
+**Resume mode** — when `resume_mode = true` and any of the following holds (set Status to `STOPPED at Resume — <reason>`):
+
+- Parent spec for `<spec_id>` not found, or multiple matches.
+- Task spec for `<resume_token>` not found, or multiple matches.
+- Primary spec contains no numbered `AC-N` lines.
+- Step −1's `spec_id_reserved` conflicts with the resumed `spec_id`.
+
 Additionally stop when:
 
 1. Subagent errors or does not create expected artifacts.
@@ -295,9 +368,9 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 
 - **Worktree:** `<absolute path>` or `n/a` if Step −1 skipped
 - **Branch:** `<branch name>` or `n/a`
-- **Spec:** `S-XXX-<slug>` — `<path>`
-- **Spec grill (Q&A trail):** (list `question → answer` in order, or "n/a")
-- **Plan:** `<path to plan.md>`
+- **Spec:** `S-XXX-<slug>` — `<path>` (under Resume mode, append ` (resumed)`; if a task was resumed, also list `Task spec: <task_spec_path>` on the next line)
+- **Spec grill (Q&A trail):** (list `question → answer` in order, or `n/a`; under Resume mode this is always `n/a (resumed)`)
+- **Plan:** `<path to plan.md>` (under Resume mode, append ` (existing — Step 2 skipped)` when the plan was reused, or ` (extended)` when the architect ran in extend mode)
 - **ADRs created:** (list paths or "none")
 - **Test files:** (list)
 - **Source files modified:** (from `git diff --name-only` or summary)
@@ -308,7 +381,7 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 - **PR:** `<url>` | `declined` | `unavailable (gh missing)` | `failed: <reason>` | `n/a` (only present when Step 8 ran or was eligible)
 - **Worktree cleanup:** `removed: <path> (branch <branch>)` | `kept (user declined)` | `skipped (<reason>)` | `failed: <reason>` | `disabled` | `n/a` (only present when Step −1 ran)
 - **Implementation verification:** `PASS` | `GAP` | `FAILED` — narrative: original user epic/ask ↔ spec **AC-*** coverage; **`<TEST_COMMAND>`** / **`<LINT_COMMAND>`** (scope + exit status); notable `git diff` observation. Under **GAP**/**FAILED**, list what is missing or failing.
-- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at verification — <reason>
+- **Status:** COMPLETED | STOPPED at Step N — <reason> | STOPPED at Resume — <reason> | STOPPED at verification — <reason>
 ```
 
 ---
