@@ -7,59 +7,61 @@ description: Use when dispatching a single Tack SDD prompt in a bootstrapped rep
 
 # tack-agent
 
-You dispatch **exactly one** Tack prompt from `project/prompts/<name>.md` in the **consumer** repository (see **Platform tool mapping** below for the host's dispatch primitive). You **read** the prompt from disk, assemble **INPUTS**, choose the model from the catalog, pin the working directory, return the subagent output.
-
----
+Host-side dispatcher for exactly one `project/prompts/<name>.md` in the consumer repo. Read the prompt, assemble INPUTS, choose the model, pin the working directory, return the subagent output.
 
 ## When to use
 
-- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator, diagnose, domain-modeler (`tack.ddd.profile = on`), event-stormer (greenfield DDD when no Phase 2 **(ddd)** draft).
+- User names one role: PM, architect, QA, harness, worker, reviewer, security, worktree coordinator, diagnose, domain-modeler (`tack.ddd.profile = on`), event-stormer (greenfield DDD when no Phase 2 (ddd) draft).
 - User references a file under `project/prompts/`.
 - User wants reviewer/security on a diff, or DDD model refinement without full bootstrap.
 
-## When **not** to use (redirect)
+## When not to use
 
-- **Full** pipeline (epic → reviewer). Send them to **`tack-run`**. If they insist: **`tack-run`** is supported; optional one-line note that **`auto-orchestrator.md`** is the state machine.
-
----
+Full pipeline (epic → reviewer) → `tack-run`. You may dispatch `orchestrator.md` only if the user explicitly wants the passive checklist text.
 
 ## Preconditions
 
-1. **`project/prompts/<name>.md`** exists (discover via `project/prompts/*.md`).
-2. **`TACK.md`** at repo root for prompts that need `<TEST_COMMAND>` / invariants; if missing, stop (bootstrap or `project/TACK.md.template`).
+- `project/prompts/<name>.md` exists (discover via `project/prompts/*.md`).
+- `TACK.md` at repo root for prompts that need `<TEST_COMMAND>` / invariants. Missing → stop (run `tack-bootstrap` or copy `project/TACK.md.template`).
 
----
+## Authority
 
-## Behavior rules
+- Protocol: [references/single-dispatch-protocol.md](references/single-dispatch-protocol.md) — Task parameters, prompt body template, After-dispatch verification.
+- Agent choice + model slugs + specialist discovery: [references/agent-catalog.md](references/agent-catalog.md).
 
-1. **Detect language** (PT or EN). Direct tone, no fluff, no emojis (except `[ ]` / `[x]` in checklists).
-2. **Read** the full chosen `project/prompts/<name>.md` before dispatch.
-3. **`references/single-dispatch-protocol.md`** — dispatch `prompt` wrapper and parameters.
-4. **`references/agent-catalog.md`** — stock agents, pipeline keys, tier tags, specialist discovery, default `project/prompts/<file>.md` choices. **Model slugs:** baseline is the table below. If **`project/docs/tack-pipeline-models.md`** is present, its keys override per step; missing keys fall back + one-time warning. Prompt file **wins** over table on conflict.
+On any conflict between this SKILL and a referenced file, the referenced file wins.
 
-   | Tag | Default slug |
-   |-----|--------------|
-   | `[Opus]` | `claude-opus-4-7-thinking-xhigh` |
-   | `[Sonnet]` | `claude-4.6-sonnet-medium-thinking` |
-   | `[Composer]` | `composer-2-fast` |
+## Output rules
 
-5. **Ambiguous agent:** ask the user via the host's question tool (see **Platform tool mapping**) — stock agents from catalog, discovered specialists, **Full pipeline — use tack-run** (redirect only).
-6. **Gather INPUTS** before dispatch (architect: spec path; reviewer: diff/scope; diagnose: symptom + optional spec; PM: epic + mode + `qa_history` when autonomous). Minimal clarifying questions if paths missing.
-7. **Working directory:** consumer repo root, or user-supplied worktree path.
-8. **Mandatory implementation verification (host).** After every successful dispatch, before returning to the user:
-   a. Use read-only shell in the working directory (or the host equivalent) to confirm the outcome — never rely solely on the subagent's PASS.
-   b. **worker / implementation specialists:** run `<TEST_COMMAND>` from `TACK.md` (full or scoped).
-   c. **reviewer / security-engineer:** confirm the verdict against `git diff` for the stated scope.
-   d. **PM / architect / QA / harness / diagnose / domain-modeler / event-stormer:** open the artifact paths the subagent named and confirm they exist and reflect the user's wording.
-   e. Emit exactly one line after the subagent payload:
-      `Verification: PASS | GAP | FAILED — <short evidence>`
-   f. On `FAILED` or `GAP` (when user required full satisfaction), say so plainly **before** any celebratory wording.
-   Long-form drill-down: `references/single-dispatch-protocol.md` (After dispatch).
-9. Return subagent output **verbatim** when practical, immediately followed by the `Verification:` line from rule 8e.
+Detect language (PT or EN). Direct tone, no fluff, no emojis except `[ ]` / `[x]` in checklists.
 
-Do **not** dispatch `auto-orchestrator.md` for a **full** run — use **`tack-run`**. You **may** dispatch `orchestrator.md` if the user only wants the **passive checklist** text.
+## Dispatch parameters
 
----
+Per `references/single-dispatch-protocol.md` (Task parameters + Prompt body template). Resolve `model` from `project/docs/tack-pipeline-models.md` when present, falling back to the baseline table in `references/agent-catalog.md` with a one-time warning. Upward fallback on dispatch failure: Composer → Sonnet → Opus.
+
+## INPUTS gathering
+
+Gather before dispatch — architect: spec path; reviewer / security: diff or scope + governing spec; diagnose: symptom + optional spec; PM: epic + mode + `qa_history` when autonomous; worker: spec + plan/task + red test output. Ask minimal clarifying questions only when paths are missing.
+
+## Ambiguous agent
+
+Ask the user via the host's question tool with one option per stock agent (`references/agent-catalog.md`), plus discovered specialists, plus a final `Full pipeline — use tack-run` redirect.
+
+## Worktree
+
+Working directory: consumer repo root, or a user-supplied worktree path. Ask if unclear.
+
+## Verification
+
+After every successful dispatch, before returning to the user, run the After-dispatch protocol in `references/single-dispatch-protocol.md` (tiered checks per agent type) and emit a single line:
+
+`Verification: PASS | GAP | FAILED — <short evidence>`
+
+Return the subagent output verbatim immediately followed by that line. On `FAILED` (or `GAP` when the user required full satisfaction), say so plainly before any celebratory wording.
+
+## Failure handling
+
+No auto-retry. If the verification line is `FAILED` or `GAP`, the user fixes the cause and re-invokes `tack-agent` with corrected INPUTS, or falls back to `tack-run` with a resume token (`S-NNN`) for a multi-step recovery. See [tack-run/references/troubleshooting.md](../tack-run/references/troubleshooting.md) → Resume after a failure.
 
 ## Platform tool mapping
 
@@ -74,10 +76,8 @@ This skill describes capabilities, not tool names. Translate to your host:
 
 When a host omits a primitive (e.g. Claude Code Agent has no `working_directory` param), prepend an absolute `cd <path>` line to the dispatched prompt so the subagent runs in the right tree.
 
----
-
 ## Additional resources
 
-- **`tack-run`** `references/troubleshooting.md` (repo: `skills/tack-run/references/`; bundled under `skills/tack-bootstrap/template/skills/tack-run/` after sync) — **Why a single agent fails**.
-- `references/agent-catalog.md` — models, triggers, specialists.
-- `references/single-dispatch-protocol.md` — dispatch wrapper template.
+- [references/single-dispatch-protocol.md](references/single-dispatch-protocol.md) — Task parameters, prompt wrapper, After-dispatch verification.
+- [references/agent-catalog.md](references/agent-catalog.md) — stock agents, pipeline keys, model slugs, specialist discovery.
+- `tack-run` references/troubleshooting.md — Why a single agent fails.

@@ -5,7 +5,6 @@ set -euo pipefail
 # Tests may set TACK_DISPATCH_CONTRACT_ROOT to a temp copy of the repo (Bats drift case).
 ROOT="${TACK_DISPATCH_CONTRACT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 CATALOG="$ROOT/skills/tack-agent/references/agent-catalog.md"
-PIPELINE="$ROOT/skills/tack-run/references/pipeline-state-machine.md"
 AUTO="$ROOT/skills/tack-bootstrap/template/prompts/auto-orchestrator.md"
 PROMPTS="$ROOT/skills/tack-bootstrap/template/prompts"
 
@@ -35,8 +34,7 @@ for f in "${AGENT_FILES[@]}"; do
 done
 [[ $missing -eq 0 ]] || die "one or more stock agent prompts missing under template/prompts/"
 
-python3 - "$PIPELINE" "$AUTO" "$CATALOG" <<'PY'
-import difflib
+python3 - "$AUTO" "$CATALOG" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -44,43 +42,6 @@ from pathlib import Path
 
 def read(p: Path) -> str:
     return p.read_text(encoding="utf-8")
-
-
-def norm_step_line(line: str) -> str:
-    s = line.strip()
-    s = s.replace("**", "").replace("`", "")
-    s = re.sub(r"\s+$", "", s)
-    return s
-
-
-def extract_step_bullets_pipeline(text: str) -> list[str]:
-    m = re.search(r"^## Step → model\n\n((?:- .+\n)+)", text, re.MULTILINE)
-    if not m:
-        raise SystemExit("pipeline-state-machine.md: missing ## Step → model bullets")
-    return sorted(norm_step_line(x) for x in m.group(1).strip().splitlines())
-
-
-def extract_step_bullets_auto(text: str) -> list[str]:
-    m = re.search(
-        r"^Step → tag mapping:\n\n(.+?)^---\s*$",
-        text,
-        re.MULTILINE | re.DOTALL,
-    )
-    if not m:
-        m = re.search(
-            r"^Step → \*\*key\*\*[^\n]*\n\n((?:- .+\n)+)",
-            text,
-            re.MULTILINE,
-        )
-    if not m:
-        raise SystemExit(
-            "auto-orchestrator.md: missing Step → tag mapping or Step → **key** bullets"
-        )
-    body = m.group(1).strip()
-    lines = [x for x in body.splitlines() if x.strip().startswith("- ")]
-    if not lines:
-        raise SystemExit("auto-orchestrator.md: no step bullets under Step mapping")
-    return sorted(norm_step_line(x) for x in lines)
 
 
 def first_markdown_table_rows_after(lines: list[str], start_idx: int) -> list[str]:
@@ -96,7 +57,6 @@ def first_markdown_table_rows_after(lines: list[str], start_idx: int) -> list[st
         i += 1
     if len(table_lines) < 3:
         raise SystemExit("table too short (need header, divider, ≥1 data row)")
-    # [0] header, [1] |---|---|, [2:] data
     return table_lines[2:]
 
 
@@ -116,63 +76,54 @@ def norm_table_rows(rows: list[str]) -> list[str]:
     return sorted(out)
 
 
-def extract_tldr_dispatch_tags(text: str) -> list[str]:
-    """Tags from '# Default pipeline order' numbered list + optional security line."""
-    m = re.search(
-        r"^# Default pipeline order.*?\n\n((?:[0-9]+\..+\n)+)",
-        text,
-        re.MULTILINE | re.DOTALL,
-    )
-    if not m:
-        raise SystemExit("auto-orchestrator.md: missing Default pipeline order block")
-    block = m.group(1)
-    tags = re.findall(r"\*\*`(\[[^]]+\])`\*\*", block)
-    opt = re.search(r"^Optional:\s+\*\*`(\[[^]]+\])`\*\*", text, re.MULTILINE)
-    if opt:
-        tags.append(opt.group(1))
-    return tags
-
-
-pipeline_path, auto_path, catalog_path = map(Path, sys.argv[1:4])
-pipeline = read(pipeline_path)
+auto_path, catalog_path = map(Path, sys.argv[1:3])
 auto = read(auto_path)
 catalog = read(catalog_path)
 
-pb = extract_step_bullets_pipeline(pipeline)
-ab = extract_step_bullets_auto(auto)
-if pb != ab:
-    sys.stderr.write("Step → model drift between pipeline-state-machine and auto-orchestrator:\n")
-    sys.stderr.write(
-        "".join(difflib.unified_diff(pb, ab, lineterm="\n", fromfile="pipeline", tofile="auto"))
-    )
-    raise SystemExit(1)
-
-cat_rows = extract_model_table_by_heading(catalog, "## Model routing convention (fallback)")
-pipe_rows = extract_model_table_by_heading(pipeline, "## Model routing (Cursor slugs)")
+cat_rows = extract_model_table_by_heading(catalog, "## Model routing (default slugs)")
 auto_rows = extract_model_table_by_heading(auto, "# Model routing")
 
 nc = norm_table_rows(cat_rows)
-np = norm_table_rows(pipe_rows)
 na = norm_table_rows(auto_rows)
-if nc != np or nc != na:
-    sys.stderr.write("Model routing table drift (normalized cell comparison failed).\n")
+if nc != na:
+    sys.stderr.write("Model routing table drift between agent-catalog and auto-orchestrator (normalized cell comparison failed).\n")
+    sys.stderr.write(f"catalog: {nc}\nauto:    {na}\n")
     raise SystemExit(1)
 
-expected_tags: list[str] = []
-for line in pb:
-    for m in re.finditer(r"(\[[A-Za-z]+\])", line):
-        expected_tags.append(m.group(1))
-# Unique preserve order not needed for membership
-tag_set = set(expected_tags)
+# Sanity: every Pipeline-key referenced in the agent-catalog (Pipeline model file table)
+# must appear at least once in the auto-orchestrator step→key bullets.
+def extract_catalog_keys(text: str) -> set[str]:
+    m = re.search(r"^## Pipeline model file \(override\)\n(.+?)(?=^## )", text, re.MULTILINE | re.DOTALL)
+    if not m:
+        raise SystemExit("agent-catalog.md: missing ## Pipeline model file (override) section")
+    keys = set()
+    for token in re.findall(r"`([a-z_]+)`", m.group(1)):
+        if "_" in token or token in {"worker", "architect", "reviewer"}:
+            keys.add(token)
+    keys.discard("auto")
+    return keys
 
-tldr_tags = extract_tldr_dispatch_tags(auto)
-for t in tldr_tags:
-    if t not in tag_set:
-        sys.stderr.write(
-            f"TL;DR tag {t!r} not found in Step → model bullets (pipeline copy).\n"
-        )
-        raise SystemExit(1)
+
+def extract_auto_keys(text: str) -> set[str]:
+    m = re.search(r"^Step → \*\*key\*\*[^\n]*\n\n((?:- .+\n)+)", text, re.MULTILINE)
+    if not m:
+        raise SystemExit("auto-orchestrator.md: missing Step → **key** bullets")
+    return set(re.findall(r"`([a-z_]+)`", m.group(1)))
+
+
+cat_keys = extract_catalog_keys(catalog)
+auto_keys = extract_auto_keys(auto)
+missing_in_auto = cat_keys - auto_keys
+# Out-of-band agents (diagnose, domain-modeler, event-stormer) intentionally have no
+# stock pipeline key — they reuse architect/qa_tester or require user-added keys.
+out_of_band = {"diagnose", "domain_modeler", "event_stormer"}
+missing_in_auto -= out_of_band
+if missing_in_auto:
+    sys.stderr.write(
+        f"agent-catalog Pipeline keys not in auto-orchestrator Step→key bullets: {sorted(missing_in_auto)}\n"
+    )
+    raise SystemExit(1)
 
 PY
 
-echo "OK: ${#AGENT_FILES[@]} stock agent prompts resolved; model tables + step maps match."
+echo "OK: ${#AGENT_FILES[@]} stock agent prompts resolved; model table + pipeline keys match."

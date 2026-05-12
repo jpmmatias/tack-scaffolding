@@ -25,7 +25,7 @@ User-facing guide when the **tack-run** or **tack-agent** skill stops, errors, o
 
 ## Why the full pipeline stops mid-run (tack-run)
 
-Canonical stop list: `references/stop-conditions.md` in this skill bundle, and the **Stop conditions** section in your repo’s **`project/prompts/auto-orchestrator.md`**.
+Canonical stop list: the **Stop conditions** section in your repo's **`project/prompts/auto-orchestrator.md`**.
 
 Common reasons:
 
@@ -37,7 +37,7 @@ Common reasons:
 
 4. **Spec / traceability** — No valid `project/specs/S-XXX-*.md` with acceptance criteria, or `plan.md` missing **Traceability** for every AC. **Next steps:** Fix files manually or re-run **product-manager** / **architect** with the correct spec id.
 
-5. **Models** — **Model unavailable after upward fallback** (see `references/stop-conditions.md`). **Next steps:** Adjust `project/docs/tack-pipeline-models.md` to models your host supports; retry the step.
+5. **Models** — **Model unavailable after upward fallback**. **Next steps:** Adjust `project/docs/tack-pipeline-models.md` to models your host supports; retry the step.
 
 6. **Worktree (Step −1)** — Coordinator error, path unusable, or fallback not authorized. **Next steps:** Fix `tack.worktree.*` in repo-root **`TACK.md`**; use a valid worktree path, or run from the main repo if policy allows.
 
@@ -77,6 +77,16 @@ If a **`.cursorrules`** file exists, it is **not** read by Tack scripts or these
 | Ambiguous role | Agent not specified | Use the orchestrator’s question-tool flow (see **Platform tool mapping** in `tack-run/SKILL.md`) or pick **full pipeline → tack-run**. |
 
 ---
+
+## Resume after a failure
+
+Failed steps do not auto-retry. Two recovery paths:
+
+- **Re-dispatch one step (tack-agent).** Pick the failing step's prompt (`product-manager`, `architect`, `qa-tester`, `harness-engineer`, `worker`, `reviewer`, `security-engineer`) and invoke **tack-agent** with the same INPUTS the orchestrator built (epic / spec path / plan path / red test output / git diff, per the agent's Inputs section). The worktree and reserved `S-NNN` stay reusable. Best for: reviewer FAIL, qa green failure, single-specialist re-run after a fix.
+
+- **Resume the full run (tack-run + resume token).** Re-invoke **tack-run** with input beginning with the resume token **`S-NNN`** (or **`S-NNN-tNN`** for a task — examples: `S-002`, `resume S-002`, `continue S-002-t01`). Auto-orchestrator's **Resume mode** skips Step 1 entirely and may skip Step 2 when a valid `plan.md` already covers the spec. Best for: green gate / reviewer FAIL after manual fixes, picking up a previously stopped run.
+
+If verification stopped the run (`STOPPED at verification`), fix the gap in code/tests, then use the **tack-agent** path on whichever step the failing AC traces back to — usually `worker` or `qa-tester`.
 
 ## Design policy (not a bug)
 
