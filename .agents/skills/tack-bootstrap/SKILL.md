@@ -57,7 +57,7 @@ Phases use the host's question primitive to interview the user. Translate to you
 |------------------------|--------------------|---------------------|-----------------------|
 | Ask the user a question| `AskQuestion`      | `AskUserQuestion`   | (none — inline)       |
 | Dispatch a subagent    | `Task`             | `Agent`             | `Task`                |
-| Pin working directory  | `working_directory`| `isolation: worktree` + `cd` in prompt | host-specific (`cwd` if available, else `cd` in prompt) |
+| Pin working directory  | `working_directory`| `cd <path>` in prompt body          | host-specific (`cwd` if available, else `cd` in prompt) |
 | Subagent type          | `generalPurpose`   | `general-purpose`   | `general-purpose`     |
 
 References that mention `AskQuestion` / `Task` by name are Cursor-anchored; translate them with this table.
