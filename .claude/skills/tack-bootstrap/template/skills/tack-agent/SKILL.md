@@ -49,7 +49,12 @@ Ask the user via the host's question tool with one option per stock agent (`refe
 
 ## Worktree
 
-Working directory: consumer repo root, or a user-supplied worktree path. Ask if unclear.
+`tack-agent` does **not** create or manage worktrees — that is `tack-run` Step −1's responsibility. Dispatch with `working_directory` set to either:
+
+- the consumer repo root, **or**
+- an absolute path to an existing worktree the user pointed you at.
+
+Ask if unclear. When the host has no `working_directory` primitive (see **Platform tool mapping**), prepend `cd <absolute path>` to the dispatched prompt.
 
 ## Verification
 
@@ -61,7 +66,12 @@ Return the subagent output verbatim immediately followed by that line. On `FAILE
 
 ## Failure handling
 
-No auto-retry. If the verification line is `FAILED` or `GAP`, the user fixes the cause and re-invokes `tack-agent` with corrected INPUTS, or falls back to `tack-run` with a resume token (`S-NNN`) for a multi-step recovery. See [tack-run/references/troubleshooting.md](../tack-run/references/troubleshooting.md) → Resume after a failure.
+No auto-retry. If the verification line is `FAILED` or `GAP`:
+
+- **Single-step recovery:** the user fixes the cause and re-invokes `tack-agent` with corrected INPUTS. The worktree (if any) and any reserved `S-NNN` stay reusable.
+- **Multi-step recovery:** fall back to `tack-run` with input beginning with the resume token `S-NNN` (or `S-NNN-tNN` for a task — examples: `S-002`, `resume S-002`, `continue S-002-t01`). Auto-orchestrator's Resume mode skips Step 1 and may skip Step 2 when a valid `plan.md` already covers the spec.
+
+See also (when `tack-run` is installed alongside): `tack-run/references/troubleshooting.md` → Resume after a failure.
 
 ## Platform tool mapping
 
