@@ -44,7 +44,7 @@ Claude Code plugins are not available in every editor. Use the same prompts and 
 
 ## Progressive disclosure (line budget)
 
-Keep each **`SKILL.md` hot path** short (purpose, when / not, numbered steps, pointers to `references/` and templates). The skill-creator article suggests **progressive disclosure** once a skill approaches **~500 lines** in a single file. **`npm run validate-skill`** warns above **400** lines and fails above **500** on canonical `skills/*/SKILL.md`. **tack-bootstrap** phase playbooks live in **`skills/tack-bootstrap/references/bootstrap-*.md`**; **tack-run** post-completion verification is **`references/post-completion-verification.md`**. After edits, `npm run sync` — mirrors stay byte-equal to canonical.
+Keep each **`SKILL.md` hot path** short (purpose, when / not, numbered steps, pointers to `references/` and templates). The skill-creator article suggests **progressive disclosure** once a skill approaches **~500 lines** in a single file. **`npm run validate-skill`** warns above **400** lines and fails above **500** on canonical `skills/*/SKILL.md`. **tack-bootstrap** phase playbooks live in **`skills/tack-bootstrap/references/bootstrap-*.md`**; **tack-run** post-completion verification is **`references/post-completion-verification.md`**; **tack-agent** dispatch protocol and agent catalog live in **`skills/tack-agent/references/`**. After edits, `npm run sync` — mirrors stay byte-equal to canonical.
 
 ## CI validation
 

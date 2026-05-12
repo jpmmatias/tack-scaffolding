@@ -2,7 +2,7 @@
 name: tack-run
 version: 0.2.0
 license: MIT
-description: Use when running the full Tack SDD/TDD pipeline in a bootstrapped repo. Triggers on run Tack, auto-orchestrator, epic-to-reviewer flow, or shipping via the spec pipeline.
+description: Use when running the full Tack SDD pipeline in a bootstrapped repo. Triggers on run Tack, auto-orchestrator, epic-to-reviewer flow, or shipping via the spec pipeline.
 ---
 
 # tack-run
