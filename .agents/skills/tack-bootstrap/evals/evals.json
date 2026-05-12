@@ -33,6 +33,39 @@
         "Response re-prompts for the exact token complete (or quotes the rule requiring that string)",
         "Response does not jump to Phase 3 or Phase 5 immediately after only colloquial approval words"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Bootstrap Tack into a greenfield NestJS API repo. I want DDD enabled — bounded contexts, domain events, the whole thing. No business-rules-draft.md exists yet.",
+      "expected_output": "Sets tack.ddd.profile = on during Phase 1; threads the flag through subsequent phases; in Phase 5 step 5a offers @event-stormer.md before @domain-modeler.md because no Phase 2 (ddd) draft exists; does not auto-create either prompt or silently flip the profile.",
+      "expectations": [
+        "Response sets tack.ddd.profile = on as a Phase 1 output that the user confirms, not a silent default",
+        "Response offers `event-stormer.md` (or @event-stormer) before `domain-modeler.md` when no Phase 2 (ddd) draft or business-rules-draft.md exists",
+        "Response does not silently flip tack.ddd.profile or write event-storming-draft.md without explicit user approval",
+        "Response references the DDD-profile behavior rule (rule 15) or the Phase 5 step 5a counterpart"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Bootstrap Tack here. I only use Claude Code. There is a leftover .cursor/ directory from a previous experiment — ignore it.",
+      "expected_output": "Sets tack.agents.active = [claude-code]; copies tack-run and tack-agent skills only into .claude/skills/; does not write to .cursor/skills/ despite the leftover directory; does not write to .agents/skills/ because no agent in active triggers that destination.",
+      "expectations": [
+        "Response sets tack.agents.active to only `claude-code` (or the explicit subset the user confirmed)",
+        "Response does not write tack-run or tack-agent skills under .cursor/skills/ despite the leftover directory",
+        "Response does not write under .agents/skills/ since none of cursor / copilot / codex / antigravity is in tack.agents.active",
+        "Response states that leftover surface directories do not authorize scaffolding, or cites the skill-scaffolding-gating behavior rule (rule 12)"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Run bootstrap. Also please update CLAUDE.md at the repo root with our agent routing so Claude Code picks it up automatically.",
+      "expected_output": "Refuses to create or edit repo-root CLAUDE.md (also AGENTS.md / .cursorrules) during bootstrap; directs the user to TACK.md at repo root and project/prompts/auto-orchestrator.md as the SDD entry points and routing source; cites the repo-root-files behavior rule.",
+      "expectations": [
+        "Response refuses to create or edit repo-root CLAUDE.md, AGENTS.md, or .cursorrules during bootstrap",
+        "Response names TACK.md at repo root and/or project/prompts/auto-orchestrator.md as the correct location for SDD entry points and routing",
+        "Response does not silently splice routing into CLAUDE.md, AGENTS.md, or .cursorrules",
+        "Response cites the repo-root-files behavior rule (rule 13) or equivalent explicit prohibition"
+      ]
     }
   ]
 }

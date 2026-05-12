@@ -15,6 +15,15 @@ Execute **six phases in order.** **Never jump phases.** Phase 2 is mandatory for
 
 ---
 
+## Authority
+
+- Behavior rules (mandatory, read first): [references/bootstrap-behavior-rules.md](references/bootstrap-behavior-rules.md).
+- Phase playbooks: `references/bootstrap-phase-*.md` (loaded as you enter each phase — see Lazy-load router below).
+
+On any conflict between this SKILL and a referenced file, the referenced file wins.
+
+---
+
 ## Lazy-load router (read each file when you reach that phase)
 
 1. **Always first:** `references/bootstrap-behavior-rules.md`
