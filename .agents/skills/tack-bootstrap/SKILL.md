@@ -2,7 +2,7 @@
 name: tack-bootstrap
 version: 0.2.0
 license: MIT
-description: Use when bootstrapping Tack into a new or existing repository. Triggers on SDD template setup, **TACK.md** and governance docs, specialist design, or deep business-rule discovery before writing specs.
+description: Use when bootstrapping Tack into a new or existing repository. Triggers on SDD template setup, **TACK.md** and governance docs, specialist design, or deep business-rule discovery before spec authoring begins.
 ---
 
 # tack-bootstrap
@@ -12,6 +12,14 @@ You are the bootstrap interviewer for **Tack** (spec-driven multi-agent template
 **You never write application code.** You write docs and prompts.
 
 Execute **six phases in order.** **Never jump phases.** Phase 2 is mandatory for **EXISTING** projects. The Phase 2 done-gate requires the literal word `complete` — see `references/bootstrap-behavior-rules.md` rule 9 and `references/bootstrap-phase-02-discovery.md`.
+
+---
+
+## When not to use
+
+- Feature implementation, bug fixes, refactors → use `tack-run` (full pipeline) or `tack-agent` (single role).
+- Editing live `project/prompts/*.md` after initial bootstrap → direct edits, or `tack-agent` for prompt-author specialists.
+- Writing or editing repo-root `AGENTS.md` / `CLAUDE.md` / `.cursorrules` — bootstrap explicitly refuses these (rule 13).
 
 ---
 
@@ -26,14 +34,14 @@ On any conflict between this SKILL and a referenced file, the referenced file wi
 
 ## Lazy-load router (read each file when you reach that phase)
 
-1. **Always first:** `references/bootstrap-behavior-rules.md`
-2. **Phase 1:** `references/bootstrap-phase-01-detection.md`
-3. **Phase 1b:** `references/bootstrap-phase-01b-pipeline-models.md`
-4. **Phase 2** (EXISTING only): `references/bootstrap-phase-02-discovery.md` — checklist detail in `references/business-rule-discovery-checklist.md`
-5. **Phase 3:** `references/bootstrap-phase-03-interview.md` — full question bank: `references/discovery-questions.md`
-6. **Phase 4:** `references/bootstrap-phase-04-specialists.md` — catalog/heuristics: `references/specialist-catalog.md`
-7. **Phase 5:** `references/bootstrap-phase-05-artifacts.md`
-8. **Phase 6:** `references/bootstrap-phase-06-smoke.md`
+1. **Always first** — behavior rules (mandatory before any phase): `references/bootstrap-behavior-rules.md`
+2. **Phase 1** — Detect stack, confirm `tack.agents.active`, suggest `tack.ddd.profile`: `references/bootstrap-phase-01-detection.md`
+3. **Phase 1b** — Pipeline model overrides (optional): `references/bootstrap-phase-01b-pipeline-models.md`
+4. **Phase 2** (EXISTING only) — Mine business rules, surfaces, telemetry, optional (ddd) layer: `references/bootstrap-phase-02-discovery.md` — checklist detail in `references/business-rule-discovery-checklist.md`
+5. **Phase 3** — Interview blocks A–G (plus DDD Round 1 when `tack.ddd.profile = on`): `references/bootstrap-phase-03-interview.md` — full question bank: `references/discovery-questions.md`
+6. **Phase 4** — Propose specialists from signals (never auto-create): `references/bootstrap-phase-04-specialists.md` — catalog/heuristics: `references/specialist-catalog.md`
+7. **Phase 5** — Generate artifacts (`project/` copy, `TACK.md`, governance, specialist prompts) with per-file diff confirmation: `references/bootstrap-phase-05-artifacts.md`
+8. **Phase 6** — Smoke test the bootstrap output: `references/bootstrap-phase-06-smoke.md`
 
 Parallel worktrees semantics: `references/worktree-design.md`.
 
