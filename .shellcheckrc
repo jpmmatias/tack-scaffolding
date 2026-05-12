@@ -1,2 +1,6 @@
 # Repo-wide ShellCheck defaults (Theme 2 / B-08).
 shell=bash
+# With `-x`, follow `source "$SCRIPT_DIR/…"` by resolving the path after the variable
+# in each script’s directory (not the shellcheck process cwd). Needed for 0.9.x CI
+# (e.g. Ubuntu shellcheck 0.9.0-1); see https://github.com/koalaman/shellcheck/issues/2899.
+source-path=SCRIPTDIR
