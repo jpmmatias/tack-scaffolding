@@ -1,9 +1,10 @@
 ---
-# Cursor Task `model` slugs for each SDD pipeline role.
-# Set during tack-bootstrap (Phase 1b). Hosts may use different names outside Cursor;
-# see project/prompts/auto-orchestrator.md → Platform tool mapping.
+# Subagent `model` slugs for each SDD pipeline role (host-agnostic).
+# Optional override file — when present, takes precedence over the dispatcher's
+# baseline tier slugs. Set during tack-bootstrap (Phase 1b); see
+# project/prompts/auto-orchestrator.md → Platform tool mapping for host names.
 #
-# Curated slugs (most common on Cursor subagent dispatch):
+# Curated slugs (commonly available on subagent dispatch):
 #   - claude-opus-4-7-thinking-xhigh
 #   - claude-4.6-sonnet-medium-thinking
 #   - composer-2-fast

@@ -2,19 +2,19 @@
 
 Paths are relative to the **consumer repo root**. Prompt files live under `project/prompts/`. **Read each prompt’s Inputs section** from disk before dispatch — this table is a guide only.
 
-## Model routing convention (fallback)
+## Model routing (default slugs)
 
-When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, use this tier → slug map and **warn** the user to run bootstrap Phase 1b or add the file.
+These are the **baseline** slugs used when **`project/docs/tack-pipeline-models.md`** is absent or a key is missing. When the override file exists with a matching key, use that key's slug instead; warn once per run when falling back.
 
-| Tag | Cursor model slug |
-|-----|-------------------|
+| Tag | Model slug |
+|-----|------------|
 | `[Opus]` | `claude-opus-4-7-thinking-xhigh` |
 | `[Sonnet]` | `claude-4.6-sonnet-medium-thinking` |
 | `[Composer]` | `composer-2-fast` |
 
-## Pipeline model file
+## Pipeline model file (override)
 
-**Primary:** read **`project/docs/tack-pipeline-models.md`** (YAML front matter). Each **`Task`** uses the slug for the row’s **pipeline key** below.
+**Optional override:** read **`project/docs/tack-pipeline-models.md`** (YAML front matter). When present, each dispatch uses the slug for the row's **pipeline key** below in place of the tier baseline.
 
 | Agent | File | Pipeline key | Tier tag (hint) |
 |-------|------|--------------|-----------------|
@@ -25,7 +25,7 @@ When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, u
 | Harness engineer | `harness-engineer.md` | `harness_engineer` | `[Sonnet]` |
 | Worker | `worker.md` | `worker` | `[Composer]` |
 | Reviewer | `reviewer.md` | `reviewer` | `[Opus]` |
-| Diagnose | `diagnose.md` | *(no stock key)* | `[Opus]` — use **Model routing convention (fallback)** unless you add `diagnose:` to `tack-pipeline-models.md` |
+| Diagnose | `diagnose.md` | *(no stock key)* | `[Opus]` — use **Model routing (default slugs)** unless you add `diagnose:` to `tack-pipeline-models.md` |
 | Security engineer | `security-engineer.md` | `security_engineer` | `[Opus]` |
 | Domain modeler | `domain-modeler.md` | reuse **`architect`** | `[Opus]` — use slug for **`architect`** in YAML (stock file always has it) |
 | Event stormer | `event-stormer.md` | reuse **`qa_tester`** | `[Sonnet]` — use slug for **`qa_tester`** in YAML (stock file always has it) |
@@ -57,12 +57,12 @@ When **`project/docs/tack-pipeline-models.md`** is missing or a key is absent, u
 
 ## Specialists
 
-Any file under `project/prompts/` that is **not** listed above and is **not** `_specialist-template.md` or `auto-orchestrator.md` / `orchestrator.md` is a **candidate specialist** (e.g. team-created `api.md`, `ui.md`). Use the **`worker`** slug from **`project/docs/tack-pipeline-models.md`** unless the prompt or `auto-orchestrator.md` **Specialist routing** table specifies `[Sonnet]` / `[Opus]` — then use the slug for **`qa_tester`** or **`product_manager`** respectively, or the tier **fallback** in **Model routing convention (fallback)** if that key is missing.
+Any file under `project/prompts/` that is **not** listed above and is **not** `_specialist-template.md` or `auto-orchestrator.md` / `orchestrator.md` is a **candidate specialist** (e.g. team-created `api.md`, `ui.md`). Use the **`worker`** slug from **`project/docs/tack-pipeline-models.md`** (when present) unless the prompt or `auto-orchestrator.md` **Specialist routing** table specifies `[Sonnet]` / `[Opus]` — then use the slug for **`qa_tester`** or **`product_manager`** respectively, or the tier baseline in **Model routing (default slugs)** if that key is missing.
 
 **Discovery:** list `project/prompts/*.md` and exclude: `_specialist-template.md`, `auto-orchestrator.md`, `orchestrator.md`, and the stock rows in this table (or include them if the user picks one explicitly).
 
 ## Choosing an agent
 
 - If the user names a role or file, map to the table.
-- If ambiguous, use **`AskQuestion`** with one option per stock agent plus **Specialist: (list dynamic filenames)** and **Full pipeline (use tack-run)**.
+- If ambiguous, ask the user via the host's question tool (see **Platform tool mapping** in `tack-agent/SKILL.md`) with one option per stock agent plus **Specialist: (list dynamic filenames)** and **Full pipeline (use tack-run)**.
 - If the user selects **Full pipeline**, stop and instruct them to invoke **`tack-run`** with their epic (do not chain every step manually unless they insist and accept context-rot risk).

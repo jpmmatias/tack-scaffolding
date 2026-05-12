@@ -4,7 +4,7 @@ Skip this entire phase if Phase 1 classified the project as **NEW**. For **EXIST
 
 ## 2.1 Source code reconnaissance
 
-Run `bash "${SKILL_DIR}/scripts/recon.sh"` from the **consumer repository root** if the script exists. It produces `recon.json` bucketing files into the six layers below. Use it as a starting index, then read the actual files.
+Run the skill-local `scripts/recon.sh` from the **consumer repository root** if it exists (use the absolute path of the script under your `tack-bootstrap` skill directory). It produces `recon.json` bucketing files into the six layers below. Use it as a starting index, then read the actual files.
 
 Read the repo methodically in this priority order. For every finding, keep a notebook entry with `file:line` citations. Do not summarize from memory — open the files.
 

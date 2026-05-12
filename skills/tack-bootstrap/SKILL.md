@@ -7,9 +7,7 @@ description: Use when bootstrapping Tack into a new or existing repository. Trig
 
 # tack-bootstrap
 
-You are the bootstrap interviewer for **Tack** (spec-driven multi-agent template). Stock SDD layout is bundled at `${SKILL_DIR}/template/` (`prompts/`, `docs/`, `specs/`, `examples/`, `TACK.md.template`). In Phase 5 you copy that tree into the **consumer**’s `project/` (with confirmation), then fill governance docs. Deliver **`TACK.md`** at the consumer repo root (the **only** repo-root Tack config), `project/docs/domain-glossary.md`, `project/docs/architecture.md`, the **Specialist routing** table in `project/prompts/auto-orchestrator.md`, and new specialist prompts under `project/prompts/` so downstream SDD agents can run.
-
-**`${SKILL_DIR}`** is the directory containing this `SKILL.md` (e.g. `.claude/skills/tack-bootstrap`, `.cursor/skills/tack-bootstrap`, `.agents/skills/tack-bootstrap`).
+You are the bootstrap interviewer for **Tack** (spec-driven multi-agent template). Stock SDD layout is bundled at `template/` (skill-local: `prompts/`, `docs/`, `specs/`, `examples/`, `TACK.md.template`). In Phase 5 you copy that tree into the **consumer**’s `project/` (with confirmation), then fill governance docs. Deliver **`TACK.md`** at the consumer repo root (the **only** repo-root Tack config), `project/docs/domain-glossary.md`, `project/docs/architecture.md`, the **Specialist routing** table in `project/prompts/auto-orchestrator.md`, and new specialist prompts under `project/prompts/` so downstream SDD agents can run.
 
 **You never write application code.** You write docs and prompts.
 
@@ -44,7 +42,22 @@ Parallel worktrees semantics: `references/worktree-design.md`.
 | `template/routing-snippet.md` | Deprecated archive (`## Tack routing`); do not splice into `AGENTS.md` / `CLAUDE.md` |
 | `template/skills/tack-run/`, `template/skills/tack-agent/` | Bundled dispatcher skills (Phase 5 step 1a) |
 | `references/file-templates/agents-routing.md` | Deprecated legacy `AGENTS.md` example |
-| `${SKILL_DIR}/scripts/detect-stack.sh`, `recon.sh` | Phase 1 / 2 helpers (run from consumer repo root) |
+| `scripts/detect-stack.sh`, `scripts/recon.sh` | Phase 1 / 2 helpers (skill-local; run from consumer repo root) |
 | `template/scripts/tack-resolve-config.sh`, `tack-doctor.sh`, `tack-worktree.sh`, `splice-tack-routing.sh` | Copied to `project/scripts/` (`splice-tack-routing.sh` deprecated) |
 
 When unsure about pipeline keys, model tags, or **Specialist routing** schema, re-read the consumer’s `project/docs/tack-pipeline-models.md` and `project/prompts/auto-orchestrator.md`.
+
+---
+
+## Platform tool mapping
+
+Phases use the host's question primitive to interview the user. Translate to your host:
+
+| Capability             | Cursor             | Claude Code (CLI)   | Claude Code SDK / API |
+|------------------------|--------------------|---------------------|-----------------------|
+| Ask the user a question| `AskQuestion`      | `AskUserQuestion`   | (none — inline)       |
+| Dispatch a subagent    | `Task`             | `Agent`             | `Task`                |
+| Pin working directory  | `working_directory`| `isolation: worktree` + `cd` in prompt | host-specific (`cwd` if available, else `cd` in prompt) |
+| Subagent type          | `generalPurpose`   | `general-purpose`   | `general-purpose`     |
+
+References that mention `AskQuestion` / `Task` by name are Cursor-anchored; translate them with this table.

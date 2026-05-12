@@ -5,7 +5,7 @@ Before asking the user anything, gather facts.
 1. List the repo root and look for: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`, `pom.xml`, `build.gradle`, `composer.json`, `Dockerfile`, `docker-compose.yml`, `.github/`, `infra/`, `migrations/`, `prisma/`, `app/`, `src/`, `tests/`, `e2e/`, `project/` (the template).
 2. Read the main manifest. Infer language, framework, test runner, linter, build scripts, package manager.
 3. Count non-empty source files, excluding `node_modules`, `vendor`, `.venv`, `dist`, `build`, `.git`, `coverage`, `.next`, `.turbo`, `target`.
-4. Run `bash "${SKILL_DIR}/scripts/detect-stack.sh"` from the **consumer repository root** if the script exists — it outputs a JSON summary. Treat its output as a hint, not ground truth.
+4. Run the skill-local `scripts/detect-stack.sh` from the **consumer repository root** if it exists (use the absolute path of the script under your `tack-bootstrap` skill directory) — it outputs a JSON summary. Treat its output as a hint, not ground truth.
 5. **DDD signal scan.** Independently of the stack script, look for code-level signals that suggest the team is already practicing DDD. Use these to **suggest** (not force) the DDD profile default:
    - Directory names anywhere under the source tree: `domain/`, `aggregates/`, `value-objects/`, `events/`, `bounded-contexts/`, `contexts/`, multi-module layouts where each top-level folder looks like a self-contained service (its own `domain/` + `application/` + `infra/`).
    - Class / type name suffixes occurring 3+ times: `*Aggregate`, `*AggregateRoot`, `*ValueObject`, `*DomainEvent`, `*Event` paired with `*Handler`, `Anticorruption*`, `*Acl` / `*ACL` adapter classes.

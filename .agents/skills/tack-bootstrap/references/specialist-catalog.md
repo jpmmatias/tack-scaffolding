@@ -4,7 +4,7 @@ Reference catalog for **Phase 4** of `tack-bootstrap`. Every entry below is a *c
 
 Conventions:
 
-- **Suggested model** uses the orchestrator tag — `[Composer]` (mechanical), `[Sonnet]` (contractual), `[Opus]` (high-stakes reasoning). The concrete Cursor slug comes from **`project/docs/tack-pipeline-models.md`** (see `project/prompts/auto-orchestrator.md`); specialists default to the **`worker`** key unless the routing row implies `[Sonnet]` / `[Opus]`.
+- **Suggested model** uses the orchestrator tag — `[Composer]` (mechanical), `[Sonnet]` (contractual), `[Opus]` (high-stakes reasoning). The concrete slug comes from **`project/docs/tack-pipeline-models.md`** when present, otherwise the dispatcher's baseline tier table (see `project/prompts/auto-orchestrator.md` and the **Platform tool mapping** in `tack-agent/SKILL.md`); specialists default to the **`worker`** key unless the routing row implies `[Sonnet]` / `[Opus]`.
 - **Scope** is a comma-separated list of file/path globs the specialist owns. Goes into the prompt's *Outputs* block.
 - **Detection signals** are what the skill should grep for. Combine path patterns with library imports.
 - **Example invariant** is a one-liner the skill can drop into the *Boundaries / Invariants* section of the generated specialist prompt — the user must approve or edit it before write.

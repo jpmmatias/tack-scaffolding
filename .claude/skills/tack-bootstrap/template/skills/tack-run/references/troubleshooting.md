@@ -74,7 +74,7 @@ If a **`.cursorrules`** file exists, it is **not** read by Tack scripts or these
 | “Prompt not found” | **`project/prompts/<name>.md` missing** | List `project/prompts/*.md`; use an existing agent or **`tack specialist add <slug>`** after bootstrap. |
 | Wrong or missing model | **`tack-pipeline-models.md` incomplete** for that key | Fix `project/docs/tack-pipeline-models.md`; the skill may warn and use fallback. |
 | Incomplete result | **INPUTS not gathered** (e.g. architect without spec path, reviewer without diff scope) | Re-invoke with explicit paths, epic, or `git diff` scope. |
-| Ambiguous role | Agent not specified | Use the orchestrator’s **AskQuestion** flow or pick **full pipeline → tack-run**. |
+| Ambiguous role | Agent not specified | Use the orchestrator’s question-tool flow (see **Platform tool mapping** in `tack-run/SKILL.md`) or pick **full pipeline → tack-run**. |
 
 ---
 

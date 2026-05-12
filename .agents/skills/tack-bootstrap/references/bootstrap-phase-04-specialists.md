@@ -1,6 +1,6 @@
 # Phase 4 — Suggest specialists (NEVER auto-create)
 
-Based on Phases 1–3, propose candidate specialists derived from `${SKILL_DIR}/template/prompts/_specialist-template.md` if `project/prompts/_specialist-template.md` is not present yet, otherwise from `project/prompts/_specialist-template.md`. **Present as a checklist** with short justification grounded in actual findings — cite `file:line` or detection signals where possible.
+Based on Phases 1–3, propose candidate specialists derived from the skill-local `template/prompts/_specialist-template.md` if `project/prompts/_specialist-template.md` is not present yet, otherwise from `project/prompts/_specialist-template.md`. **Present as a checklist** with short justification grounded in actual findings — cite `file:line` or detection signals where possible.
 
 **Heuristics** (signal → specialist id): use **`references/specialist-catalog.md`** for the full catalog, scope, detection signals, suggested model tags, example invariants, and naming conventions — do not duplicate that table here.
 
