@@ -4,7 +4,7 @@ Use this for **one** `project/prompts/<name>.md` execution. The hosting agent do
 
 ## Task parameters
 
-- `subagent_type`: `generalPurpose`
+- `subagent_type`: the host's general-purpose subagent type — `generalPurpose` on Cursor, `general-purpose` on Claude Code and the Claude Agent SDK (see **Platform tool mapping** in `tack-agent/SKILL.md`)
 - `description`: short unique title (e.g. `Tack agent architect S-001`)
 - `model`: resolve from **`project/docs/tack-pipeline-models.md`** per **`references/agent-catalog.md`** (**Pipeline model file**). If the file or key is missing, use **Model routing convention (fallback)** in the same file and **warn** once. **Upward fallback** when dispatch fails: Composer → Sonnet → Opus tier slugs from **that YAML** when present, else from the fallback table — never downward.
 - `working_directory`: absolute path to consumer repo root, or to an active **worktree** if the user is working in isolation (ask if unclear)
