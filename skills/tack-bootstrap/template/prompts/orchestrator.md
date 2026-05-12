@@ -30,6 +30,8 @@ Your **only** job is to output a **sequential checklist** of `@prompts/` command
 - `@orchestrator.md` (this file) — passive: emits the checklist; the human runs each step manually in isolated chat windows.
 - `@auto-orchestrator.md` — active: same checklist, but executes each step as a subagent via the `Task` tool (where supported). No human checkpoints. Use when you want full-auto execution and accept that any failure stops the pipeline.
 
+> Cursor-canonical tool names (`Task`, `AskQuestion`) used below translate per **Platform tool mapping** in `auto-orchestrator.md` for hosts other than Cursor.
+
 ---
 
 # Model routing convention

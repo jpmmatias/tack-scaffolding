@@ -123,7 +123,7 @@ Human approval is required **once per approach** before any spec file exists.
 
 ### Autonomous NEEDS_INPUT options
 
-The host orchestrator renders `options` in Cursor's `AskQuestion` UI (multiple choice). Author them accordingly:
+The host orchestrator renders `options` in Cursor's `AskQuestion` UI (multiple choice; on other hosts see **Platform tool mapping** in `auto-orchestrator.md`). Author them accordingly:
 
 - Emit **2–5** distinct option strings, each phrased as a **candidate answer** (not as a question).
 - Mark **exactly one** option with the suffix `(recommended)` so it mirrors `recommendation`.
