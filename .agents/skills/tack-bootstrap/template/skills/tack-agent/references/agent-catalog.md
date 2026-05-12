@@ -65,4 +65,4 @@ Any file under `project/prompts/` that is **not** listed above and is **not** `_
 
 - If the user names a role or file, map to the table.
 - If ambiguous, ask the user via the host's question tool (see **Platform tool mapping** in `tack-agent/SKILL.md`) with one option per stock agent plus **Specialist: (list dynamic filenames)** and **Full pipeline (use tack-run)**.
-- If the user selects **Full pipeline**, stop and instruct them to invoke **`tack-run`** with their epic (do not chain every step manually unless they insist and accept context-rot risk).
+- If the user selects **Full pipeline**, stop and instruct them to invoke **`tack-run`** with their epic. Always redirect — do not chain pipeline steps manually inside `tack-agent` even if the user insists.
