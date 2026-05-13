@@ -55,6 +55,17 @@
         "Response distinguishes scope explicitly — tack-agent's per-dispatch line vs tack-run's post-pipeline line — not just outcome",
         "Response cites post-completion-verification.md or the tack-run SKILL Post-completion verification section as the source of the protocol"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "tack-run started a full pipeline. Step -1 dispatched worktree-coordinator.md, which returned JSON with `error: \"branch already exists: feature/S-001-foo\"` and no `worktree_path`. What does the host do next?",
+      "expected_output": "Do not silently fall back. Ask the human via the host's question primitive with the exact prompt 'Worktree creation failed (branch already exists: feature/S-001-foo). Continue in the primary checkout without isolation? Specs and code will be written to the current branch.' On Yes, every Step 0–7 / 7b dispatch uses working_directory = primary repo root, no spec_id_reserved, Step 0 lists project/specs/ relative to the primary checkout, and the Final report records `Worktree: skipped — <reason>`. On No, emit `STOPPED at Step -1 — worktree creation failed (<reason>)`.",
+      "expectations": [
+        "Response asks the human for explicit authorization before falling back — does not silently continue or auto-retry",
+        "Response specifies that fallback uses working_directory = primary repo root (or equivalent) and does not pass spec_id_reserved to downstream steps",
+        "Response says the Final report records `Worktree: skipped — <reason>` (or equivalent) when fallback is taken; not `n/a` and not a worktree path",
+        "Response cites the Worktree failure recovery subsection of tack-run SKILL or auto-orchestrator Step -1 item 5 — not invented behavior"
+      ]
     }
   ]
 }
