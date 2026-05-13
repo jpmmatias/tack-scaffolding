@@ -24,6 +24,7 @@
     "test": "bats test/bats",
     "check-shell": "shellcheck -x $(git ls-files '*.sh')",
     "check-dispatch": "bash scripts/check-dispatch-contract.sh",
+    "check-platform-terms": "bash scripts/check-platform-terms.sh",
     "install-hooks": "git config core.hooksPath .githooks",
     "lint": "npx -y markdownlint-cli2",
     "check-links": "bash scripts/check-links.sh"
