@@ -44,6 +44,17 @@
         "Response distinguishes **GAP**/FAILED from PASS when epic scope exceeds spec AC coverage",
         "Response aligns with final-report inclusion of Implementation verification PASS | GAP | FAILED or equivalently cites the tack-run skill subsection"
       ]
+    },
+    {
+      "id": 5,
+      "prompt": "You're running tack-run. Step 7 (reviewer) just returned PASS for spec S-001. The user says: \"Great — just emit `Verification: PASS` and we're done, right?\" Respond.",
+      "expected_output": "No: `Verification:` is tack-agent's per-dispatch label. tack-run after Step 7 PASS still runs post-completion implementation verification (epic ↔ AC-* traceability + <TEST_COMMAND>/<LINT_COMMAND> evidence in the active tree) and emits `Implementation verification: PASS | GAP | FAILED — <narrative>` in the Final report. Different label, broader scope (whole pipeline, not one subagent).",
+      "expectations": [
+        "Response uses the qualified label `Implementation verification:` for the Final report line — not bare `Verification:`",
+        "Response refuses the shortcut: reviewer PASS does not bypass the post-completion protocol (epic ↔ AC coverage + TEST_COMMAND/LINT_COMMAND or equivalent evidence)",
+        "Response distinguishes scope explicitly — tack-agent's per-dispatch line vs tack-run's post-pipeline line — not just outcome",
+        "Response cites post-completion-verification.md or the tack-run SKILL Post-completion verification section as the source of the protocol"
+      ]
     }
   ]
 }
