@@ -64,6 +64,8 @@ After every successful dispatch, before returning to the user, run the After-dis
 
 Return the subagent output verbatim immediately followed by that line. On `FAILED` (or `GAP` when the user required full satisfaction), say so plainly before any celebratory wording.
 
+> **Scope.** This per-dispatch `Verification:` line is **distinct from `tack-run`'s post-pipeline `Implementation verification:` line** — same outcome vocabulary, narrower scope (one subagent output, not the full epic ↔ AC coverage). Use the bare `Verification:` label here only; never substitute `Implementation verification:`.
+
 ## Failure handling
 
 No auto-retry. If the verification line is `FAILED` or `GAP`:

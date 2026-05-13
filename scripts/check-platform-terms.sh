@@ -23,6 +23,7 @@ cd "$ROOT"
 # The other three (`AskQuestion`, `working_directory`, `generalPurpose`) are
 # typographically unique (camelCase / underscore) so we match the bare word.
 CURSOR_TERM_BARE='AskQuestion|working_directory|generalPurpose'
+# shellcheck disable=SC2016  # backticks here are literal markdown, not command substitution
 CURSOR_TERM_TASK='`Task`'
 
 # The shared file is itself the mapping — it can't reference itself.

@@ -42,7 +42,11 @@ When Step −1 succeeds:
 
 ## Post-completion verification
 
-After Step 7 / 7b PASS, before emitting `COMPLETED`: traceability (epic ↔ AC-*), evidence (run `<TEST_COMMAND>` / `<LINT_COMMAND>` in the active tree), surface check (`git diff --stat` vs expectation). Long form: [references/post-completion-verification.md](references/post-completion-verification.md). Failure → `STOPPED at verification — <reason>`.
+After Step 7 / 7b PASS, before emitting `COMPLETED`: traceability (epic ↔ AC-*), evidence (run `<TEST_COMMAND>` / `<LINT_COMMAND>` in the active tree), surface check (`git diff --stat` vs expectation). The Final report emits one explicit line:
+
+`Implementation verification: PASS | GAP | FAILED — <narrative: user ask ↔ AC coverage, commands run, notable diff observation>`
+
+This is **distinct from `tack-agent`'s per-dispatch `Verification:` line** — same outcome vocabulary, broader scope (whole pipeline epic ↔ AC, not one subagent). Long form: [references/post-completion-verification.md](references/post-completion-verification.md). Failure → `STOPPED at verification — <reason>`.
 
 ## Failure handling & resume
 
