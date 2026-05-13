@@ -55,6 +55,17 @@
         "Response distinguishes subagent PASS from actual green test suite / user ask satisfaction",
         "Response cites **single-dispatch-protocol.md** (**After dispatch**) or the tack-agent Behavior rule—not silent trust of PASS"
       ]
+    },
+    {
+      "id": 6,
+      "prompt": "User input is exactly \"S-042\" with no role named. Repo has both project/specs/S-042-payment-retry.md (parent spec) and project/specs/S-042-task-01-stub.md (task spec).",
+      "expected_output": "tack-agent parses S-042 as a resume token (local spec resolution). Bare S-NNN excludes *-task-NN-*.md, so it resolves to project/specs/S-042-payment-retry.md. Since no role was named, it runs the Ambiguous-agent flow carrying the resolved spec forward in INPUTS — does not dispatch any role yet.",
+      "expectations": [
+        "Response identifies S-042 as a Tack spec id / resume token, not as the literal epic text for a new spec",
+        "Response resolves project/specs/S-042-payment-retry.md as the parent spec; bare S-NNN excludes the task-spec file (S-042-task-01-stub.md)",
+        "Response does not dispatch any role without asking — no role was named in the input",
+        "Response does not treat the input as a fresh epic, invent a new spec, or redirect the whole flow to tack-run as the only option"
+      ]
     }
   ]
 }

@@ -23,6 +23,7 @@ Full pipeline (epic → reviewer) → `tack-run`. You may dispatch `orchestrator
 
 - `project/prompts/<name>.md` exists (discover via `project/prompts/*.md`).
 - `TACK.md` at repo root for prompts that need `<TEST_COMMAND>` / invariants. Missing → stop (run `tack-bootstrap` or copy `project/TACK.md.template`).
+- For role dispatches that need a spec (architect, QA, worker, reviewer, security): the spec must be resolvable from either an explicit path in INPUTS or a resume token in user input (see **Resume tokens** below). Missing or ambiguous → ask before dispatch.
 
 ## Authority
 
@@ -42,6 +43,17 @@ Per `references/single-dispatch-protocol.md` (Task parameters + Prompt body temp
 ## INPUTS gathering
 
 Gather before dispatch — architect: spec path; reviewer / security: diff or scope + governing spec; diagnose: symptom + optional spec; PM: epic + mode + `qa_history` when autonomous; worker: spec + plan/task + red test output. Ask minimal clarifying questions only when paths are missing.
+
+## Resume tokens
+
+When the user's input **begins** with a Tack spec id — `S-NNN`, `S-NNN-tNN`, or `S-NNN-task-NN` (optionally preceded by `resume`, `continue`, or `work on`; case-insensitive on letters, digits preserved as typed) — parse it as a spec id, not as the epic. Anything after the matched token is supplementary context (e.g. a role name), not the epic.
+
+1. Resolve a unique `S-NNN-*.md` under `project/specs/` (or `<worktree_path>/project/specs/` when the user pointed you at a worktree). A task suffix (`S-NNN-tNN` / `S-NNN-task-NN`) forces a task-spec match; bare `S-NNN` excludes `*-task-NN-*.md` from the candidate set.
+2. **Zero matches** → stop; tell the user the spec id is not present under `project/specs/` and suggest `tack-run` for a fresh epic.
+3. **Multiple matches** → ask the user via the host's question tool which spec to target (one option per matching path) before dispatch.
+4. **Exactly one match** → use that path in INPUTS for whichever role the user named, or fall through to **Ambiguous agent** carrying the resolved spec forward when no role was named.
+
+Resume tokens here are **local resolution only** — they let `tack-agent` resolve a spec from a short id without a full path. They do **not** trigger the orchestrator's Resume mode (Step 1 skip, plan reuse) — that's `tack-run`'s job; see **Failure handling** for multi-step recovery.
 
 ## Ambiguous agent
 
