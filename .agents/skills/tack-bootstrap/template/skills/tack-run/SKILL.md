@@ -40,6 +40,23 @@ When Step −1 succeeds:
 3. Step 0 lists `<worktree_path>/project/specs/`, not the IDE workspace root.
 4. Wrong tree: run `git -C <worktree_path> status` and `git -C <repo_root> status`; recover per orchestrator → Wrong-tree detection and recovery.
 
+## Worktree failure recovery
+
+When Step −1 errors (coordinator JSON has non-null `error`, or the returned path is unusable), do **not** auto-fall-back. Ask the human via the host's question primitive (see **Platform tool mapping**) with this exact prompt:
+
+> Worktree creation failed (`<reason>`). Continue in the primary checkout without isolation? Specs and code will be written to the current branch.
+
+Options: `Yes — continue without isolation` / `No — abort and report STOPPED`.
+
+- **Yes** → fall back:
+  1. `working_directory` = primary repo root (the cwd used for the Step −1 coordinator dispatch) for **all** subsequent dispatches (Steps 0–7 / 7b). Do **not** prepend a `cd` line to INPUTS — there is no separate tree.
+  2. Step 0 lists `<repo_root>/project/specs/`, not a `<worktree_path>`.
+  3. Do **not** carry `spec_id_reserved` (the coordinator never reserved one on failure). Pick the lowest unused id per Step 0.
+  4. In the Final report, set `Worktree: skipped — <reason>` (not the success line with a path).
+- **No** → emit `STOPPED at Step −1 — worktree creation failed (<reason>)` and exit.
+
+Underlying orchestrator rule: `project/prompts/auto-orchestrator.md` Step −1 item 5 and Stop conditions item 13.
+
 ## Post-completion verification
 
 After Step 7 / 7b PASS, before emitting `COMPLETED`: traceability (epic ↔ AC-*), evidence (run `<TEST_COMMAND>` / `<LINT_COMMAND>` in the active tree), surface check (`git diff --stat` vs expectation). The Final report emits one explicit line:

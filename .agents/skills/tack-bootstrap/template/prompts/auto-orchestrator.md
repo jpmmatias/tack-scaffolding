@@ -208,7 +208,16 @@ Use **`Task`** with:
    - **`prompt`** — ask the human once: *Run this feature in an isolated git worktree/branch?* **Default: yes.** If the human declines → skip Step −1.
 3. If proceeding: derive a **slug** from the epic (kebab-case, e.g. `change-background`). If the epic is ambiguous, ask one clarifying question.
 4. Dispatch **`@worktree-coordinator.md`** with `model: models.worktree_coordinator` (**`[Composer]`** tier), passing: slug, parsed `tack.worktree.*` values, and optional `--base` / `--spec` if you already know them. **When Resume mode is active, always pass `--spec <spec_id>`** so the coordinator reuses the resumed id (it must not call `next-spec-id`). **Set `working_directory` to the primary repo root** (not the new worktree) for this single dispatch if your tool distinguishes it — the coordinator runs `project/scripts/tack-worktree.sh` from the root.
-5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract). If `error` is non-null → **STOP** (Stop conditions) unless the human instructs you to continue without isolation; in that case fall back to **Step 0** in the current directory and **do not** use a reserved spec id.
+5. Parse the coordinator’s JSON. On success, record `worktree_path`, `branch`, and `spec_id_reserved` (map from `spec_id` / `spec_id_reserved` per coordinator contract).
+
+   On **failure** (non-null `error`, or the returned path is unusable as `working_directory`), do **not** auto-fall-back. Ask the human via the host's question primitive (see **Platform tool mapping**) with this exact prompt:
+
+   > Worktree creation failed (`<reason>`). Continue in the primary checkout without isolation? Specs and code will be written to the current branch.
+
+   Options: `Yes — continue without isolation` / `No — abort and report STOPPED`.
+
+   - **Yes** → fall back: every subsequent `Task` (Steps 0–7 / 7b) uses `working_directory` = the primary repo root (the cwd used for this Step −1 coordinator dispatch); do **not** prepend a `cd <worktree_path>` line to INPUTS (no separate tree); Step 0 lists `<repo_root>/project/specs/`; do **not** carry `spec_id_reserved` (coordinator never reserved one); set `Worktree: skipped — <reason>` in the Final report instead of the success line.
+   - **No** → **STOP** with Status `STOPPED at Step −1 — worktree creation failed (<reason>)` (see Stop conditions item 13).
 6. **Worktree anchor (Steps 0–7 and 7b).** Store the verbatim **absolute** `worktree_path`. Until the **Final report** is emitted, treat that directory as the **only** checkout for pipeline artifacts (specs, plan, tests, implementation): **every** `Task` for Steps **1–7** and **7b** **MUST** set pinned cwd to `worktree_path` **and** must include the **INPUTS** `cd` / path-prefix rule in **Dispatch protocol** — **including iteration 1** of the PM grill loop (**never** omit `working_directory` or the prompt-line anchor on the first dispatch).
 7. **Wrong-tree detection and recovery:** If there is any chance files were created in the **primary clone** instead of `worktree_path`, **before continuing** run and surface **`git -C <worktree_path> status`** and **`git -C <repo_root> status`** (`repo_root` = the directory you used as `working_directory` for the Step −1 coordinator `Task`). **Reconcile:** move or replay edits so specs, plan, tests, and app code changes exist **only** under the worktree; **remove duplicates from main** (e.g. uncommitted: copy into the worktree, then restore/remove paths on main; committed: revert or cherry-pick per team practice). Do **not** leave duplicate specs or parallel plans on main.
 
@@ -373,7 +382,7 @@ Emit this structure in chat when the run finishes (`COMPLETED` or `STOPPED`):
 ```markdown
 ## Auto-orchestrator report
 
-- **Worktree:** `<absolute path>` or `n/a` if Step −1 skipped
+- **Worktree:** `<absolute path>` (Step −1 succeeded) | `n/a` (Step −1 skipped per `tack.worktree.mode`) | `skipped — <reason>` (Step −1 failed; human authorized fallback to primary checkout)
 - **Branch:** `<branch name>` or `n/a`
 - **Spec:** `S-XXX-<slug>` — `<path>` (under Resume mode, append ` (resumed)`; if a task was resumed, also list `Task spec: <task_spec_path>` on the next line)
 - **Spec grill (Q&A trail):** (list `question → answer` in order, or `n/a`; under Resume mode this is always `n/a (resumed)`)
